@@ -1,11 +1,13 @@
 import { IEvolutionService } from "../ports/ievolution-service";
 import { IScheduleRepository } from "../repositories/ischedule-repository";
 import { IUserConfigRepository } from "../repositories/iuser-config-repository";
+import { IClientRepository } from "../repositories/iclient-repository";
 
 export class NotifyUpcomingAppointmentsUseCase {
     constructor(
         private readonly scheduleRepository: IScheduleRepository,
         private readonly userConfigRepository: IUserConfigRepository,
+        private readonly clientRepository: IClientRepository,
         private readonly evolutionService: IEvolutionService
     ) {}
 
@@ -19,10 +21,29 @@ export class NotifyUpcomingAppointmentsUseCase {
         const next24h = new Date();
         next24h.setHours(now.getHours() + 24);
 
+        if (this.isSilenceWindow()) {
+            console.log(`[NotifyUseCase] Still in silence window. Skipping notifications.`);
+            return;
+        }
+
         const appointments = await this.scheduleRepository.findNextToNotify(userId, now, next24h);
 
         for (const appointment of appointments) {
-            const phoneNumber = this.extractPhoneNumber(`${appointment.title} ${appointment.description || ""}`);
+            let phoneNumber = this.extractPhoneNumber(`${appointment.title} ${appointment.description || ""}`);
+            
+            if (!phoneNumber && appointment.clientId) {
+                const client = await this.clientRepository.findById(appointment.clientId);
+                if (client?.phone) {
+                    phoneNumber = client.phone;
+                }
+            }
+
+            if (!phoneNumber) {
+                const client = await this.clientRepository.findByNameOrEmail(userId, appointment.title);
+                if (client?.phone) {
+                    phoneNumber = client.phone;
+                }
+            }
             
             if (phoneNumber) {
                 const message = `Olá! Você tem um agendamento para "${appointment.title}" amanhã às ${appointment.startAt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}. Podemos confirmar?`;
@@ -35,6 +56,13 @@ export class NotifyUpcomingAppointmentsUseCase {
                 }
             }
         }
+    }
+
+    private isSilenceWindow(): boolean {
+        const now = new Date();
+        const hour = now.getHours();
+        // 21h às 08h
+        return hour >= 21 || hour < 8;
     }
 
     private extractPhoneNumber(text: string): string | null {

@@ -1,10 +1,12 @@
 import { IUserConfigRepository } from "../repositories/iuser-config-repository";
 import { ConfirmAppointmentUseCase } from "../calendar/confirm-appointment.usecase";
+import { CancelAppointmentUseCase } from "../calendar/cancel-appointment.usecase";
 
 export class HandleEvolutionWebhookUseCase {
     constructor(
         private readonly userConfigRepository: IUserConfigRepository,
-        private readonly confirmAppointment: ConfirmAppointmentUseCase
+        private readonly confirmAppointment: ConfirmAppointmentUseCase,
+        private readonly cancelAppointment: CancelAppointmentUseCase
     ) {}
 
     async execute(payload: any): Promise<void> {
@@ -23,11 +25,19 @@ export class HandleEvolutionWebhookUseCase {
 
         if (this.isConfirmation(messageText)) {
             await this.confirmAppointment.execute(config.userId, phoneNumber);
+        } else if (this.isCancellation(messageText)) {
+            await this.cancelAppointment.execute(config.userId, phoneNumber);
         }
     }
 
     private isConfirmation(text: string): boolean {
-        const keywords = ["sim", "confirmado", "ok", "com certeza", "pode confirmar", "confirmar"];
+        const keywords = ["sim", "confirmado", "ok", "com certeza", "pode confirmar", "confirmar", "perfeito", "topo"];
+        const normalized = text.toLowerCase().trim();
+        return keywords.some(k => normalized.includes(k));
+    }
+
+    private isCancellation(text: string): boolean {
+        const keywords = ["não", "nao", "cancelar", "desistir", "remarcar", "não vou", "nao vou", "cancela"];
         const normalized = text.toLowerCase().trim();
         return keywords.some(k => normalized.includes(k));
     }

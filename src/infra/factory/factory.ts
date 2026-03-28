@@ -13,6 +13,7 @@ import { GenerateGoogleAuthUrlUseCase } from "../../usecase/auth/generate-google
 import { ExchangeGoogleCodeUseCase } from "../../usecase/auth/exchange-google-code.usecase";
 import { SyncCalendarUseCase } from "../../usecase/calendar/sync-calendar.usecase";
 import { ConfirmAppointmentUseCase } from "../../usecase/calendar/confirm-appointment.usecase";
+import { CancelAppointmentUseCase } from "../../usecase/calendar/cancel-appointment.usecase";
 import { NotifyUpcomingAppointmentsUseCase } from "../../usecase/notification/notify-upcoming-appointments.usecase";
 import { HandleEvolutionWebhookUseCase } from "../../usecase/notification/handle-evolution-webhook.usecase";
 import { SyncCalendarQueue } from "../queue/sync-calendar.queue";
@@ -35,6 +36,7 @@ const syncCalendarUseCase = new SyncCalendarUseCase(googleCalendarAdapter, sched
 const notifyUpcomingAppointmentsUseCase = new NotifyUpcomingAppointmentsUseCase(
     scheduleRepository,
     userConfigRepository,
+    clientRepository,
     evolutionAdapter
 );
 const confirmAppointmentUseCase = new ConfirmAppointmentUseCase(
@@ -42,9 +44,15 @@ const confirmAppointmentUseCase = new ConfirmAppointmentUseCase(
     userConfigRepository,
     googleCalendarAdapter
 );
+const cancelAppointmentUseCase = new CancelAppointmentUseCase(
+    scheduleRepository,
+    userConfigRepository,
+    googleCalendarAdapter
+);
 const handleEvolutionWebhookUseCase = new HandleEvolutionWebhookUseCase(
     userConfigRepository,
-    confirmAppointmentUseCase
+    confirmAppointmentUseCase,
+    cancelAppointmentUseCase
 );
 
 // Queues & Workers

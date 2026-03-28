@@ -3,7 +3,7 @@ import { IScheduleRepository } from "../repositories/ischedule-repository";
 import { IUserConfigRepository } from "../repositories/iuser-config-repository";
 import { ScheduleStatus } from "../../infra/database/entities/schedule.entity";
 
-export class ConfirmAppointmentUseCase {
+export class CancelAppointmentUseCase {
     constructor(
         private readonly scheduleRepository: IScheduleRepository,
         private readonly userConfigRepository: IUserConfigRepository,
@@ -22,12 +22,12 @@ export class ConfirmAppointmentUseCase {
             
             if (extractedPhone === phoneNumber) {
                 // 1. Atualiza no Banco
-                await this.scheduleRepository.updateStatus(schedule.id, ScheduleStatus.CONFIRMED);
+                await this.scheduleRepository.updateStatus(schedule.id, ScheduleStatus.CANCELLED);
 
                 // 2. Tenta atualizar no Google
                 await this.updateGoogleEvent(userId, schedule.googleEventId, schedule.title);
                 
-                return; // Confirmamos o primeiro que encontramos (o mais próximo)
+                return; // Cancelamos o primeiro que encontramos (o mais próximo)
             }
         }
     }
@@ -37,13 +37,13 @@ export class ConfirmAppointmentUseCase {
         if (!config || !config.googleAccessToken) return;
 
         try {
-            const newTitle = `✅ ${currentTitle.replace("✅ ", "")}`;
+            const newTitle = `❌ ${currentTitle.replace("❌ ", "").replace("✅ ", "")}`;
             await this.googleService.updateEvent(config.googleAccessToken, eventId, {
                 summary: newTitle,
-                colorId: "10" // Green (Basil)
+                colorId: "11" // Red (Tomato)
             });
         } catch (error) {
-            console.error(`[ConfirmUseCase] Failed to update Google Calendar for event ${eventId}:`, error);
+            console.error(`[CancelUseCase] Failed to update Google Calendar for event ${eventId}:`, error);
         }
     }
 

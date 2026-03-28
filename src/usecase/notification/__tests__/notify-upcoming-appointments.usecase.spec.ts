@@ -1,8 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { NotifyUpcomingAppointmentsUseCase } from "../notify-upcoming-appointments.usecase";
 import { IEvolutionService } from "../../ports/ievolution-service";
 import { IScheduleRepository } from "../../repositories/ischedule-repository";
 import { IUserConfigRepository } from "../../repositories/iuser-config-repository";
+import { IClientRepository } from "../../repositories/iclient-repository";
 import { UserConfig } from "../../../infra/database/entities/user-config.entity";
 import { Schedule } from "../../../infra/database/entities/schedule.entity";
 
@@ -11,6 +12,7 @@ describe("NotifyUpcomingAppointmentsUseCase", () => {
     let googleService: any;
     let scheduleRepository: IScheduleRepository;
     let userConfigRepository: IUserConfigRepository;
+    let clientRepository: IClientRepository;
     let evolutionService: IEvolutionService;
 
     const mockConfig = {
@@ -30,6 +32,7 @@ describe("NotifyUpcomingAppointmentsUseCase", () => {
 
         userConfigRepository = {
             findByUserId: vi.fn().mockResolvedValue(mockConfig),
+            findByInstanceName: vi.fn().mockResolvedValue(mockConfig),
             save: vi.fn(),
             update: vi.fn(),
             findAllActive: vi.fn()
@@ -43,11 +46,26 @@ describe("NotifyUpcomingAppointmentsUseCase", () => {
             deleteInstance: vi.fn()
         };
 
+        clientRepository = {
+            save: vi.fn(),
+            findById: vi.fn(),
+            findByUserId: vi.fn(),
+            findByNameOrEmail: vi.fn()
+        };
+
         sut = new NotifyUpcomingAppointmentsUseCase(
             scheduleRepository,
             userConfigRepository,
+            clientRepository,
             evolutionService
         );
+
+        // Garante que o teste rode fora da janela de silêncio por padrão
+        vi.setSystemTime(new Date("2024-03-28T14:00:00"));
+    });
+
+    afterEach(() => {
+        vi.useRealTimers();
     });
 
     it("deve extrair o número de telefone do título do evento e enviar a mensagem", async () => {
@@ -118,5 +136,57 @@ describe("NotifyUpcomingAppointmentsUseCase", () => {
         expect(evolutionService.sendText).toHaveBeenCalledTimes(2);
         expect(scheduleRepository.updateNotified).toHaveBeenCalledTimes(1); // Somente o segundo app
         expect(scheduleRepository.updateNotified).toHaveBeenCalledWith("2", true);
+    });
+
+    it("não deve enviar mensagens se estiver na janela de silêncio (ex: 22h)", async () => {
+        vi.setSystemTime(new Date("2024-03-28T22:00:00"));
+        
+        const appointment = { id: "1", title: "App (11) 91111-1111", startAt: new Date() } as Schedule;
+        vi.mocked(scheduleRepository.findNextToNotify).mockResolvedValueOnce([appointment]);
+
+        await sut.execute("user-1");
+
+        expect(evolutionService.sendText).not.toHaveBeenCalled();
+    });
+
+    it("deve buscar o telefone no clientRepository se não encontrar no título (Fallback Strategy)", async () => {
+        const appointment = { 
+            id: "1", 
+            title: "João Silva", 
+            startAt: new Date(),
+            clientId: "client-1"
+        } as Schedule;
+
+        vi.mocked(scheduleRepository.findNextToNotify).mockResolvedValueOnce([appointment]);
+        vi.mocked(clientRepository.findById).mockResolvedValueOnce({ id: "client-1", phone: "5511999998888" } as any);
+
+        await sut.execute("user-1");
+
+        expect(clientRepository.findById).toHaveBeenCalledWith("client-1");
+        expect(evolutionService.sendText).toHaveBeenCalledWith(
+            "instancia-1",
+            "5511999998888",
+            expect.any(String)
+        );
+    });
+
+    it("deve buscar o telefone pelo nome no clientRepository se não tiver clientId no schedule", async () => {
+        const appointment = { 
+            id: "1", 
+            title: "Maria Oliveira", 
+            startAt: new Date()
+        } as Schedule;
+
+        vi.mocked(scheduleRepository.findNextToNotify).mockResolvedValueOnce([appointment]);
+        vi.mocked(clientRepository.findByNameOrEmail).mockResolvedValueOnce({ id: "client-2", phone: "5511977776666" } as any);
+
+        await sut.execute("user-1");
+
+        expect(clientRepository.findByNameOrEmail).toHaveBeenCalledWith("user-1", "Maria Oliveira");
+        expect(evolutionService.sendText).toHaveBeenCalledWith(
+            "instancia-1",
+            "5511977776666",
+            expect.any(String)
+        );
     });
 });

@@ -25,20 +25,44 @@ export class CalendarController {
         }, {
             tags: ["Calendar"],
             summary: "Sincroniza eventos do Google Calendar",
-            description: "Adiciona uma tarefa na fila para buscar eventos do Google e salvar no banco de dados local.",
+            description: "Registra uma tarefa assíncrona para buscar os eventos mais recentes da conta Google do usuário e sincronizar com o banco de dados local.",
+            body: {
+                type: 'object',
+                description: 'Este endpoint não requer corpo de mensagem.',
+                properties: {}
+            },
             response: {
                 200: {
                     type: 'object',
+                    description: 'Sincronização agendada',
                     properties: {
-                        message: { type: 'string' },
-                        userId: { type: 'string' }
+                        message: { 
+                            type: 'string', 
+                            example: 'Sincronização agendada com sucesso!',
+                            description: 'Status do agendamento' 
+                        },
+                        userId: { 
+                            type: 'string', 
+                            format: 'uuid', 
+                            example: '00000000-0000-0000-0000-000000000001',
+                            description: 'ID do usuário que terá os eventos sincronizados' 
+                        }
                     }
                 },
                 500: {
                     type: 'object',
+                    description: 'Erro no agendamento',
                     properties: {
-                        error: { type: 'string' },
-                        message: { type: 'string' }
+                        error: { 
+                            type: 'string', 
+                            example: 'Erro ao agendar sincronização',
+                            description: 'Categoria do erro'
+                        },
+                        message: { 
+                            type: 'string', 
+                            example: 'Queue connection failed',
+                            description: 'Detalhe técnico' 
+                        }
                     }
                 }
             }
@@ -54,20 +78,36 @@ export class CalendarController {
         }, {
             tags: ["Calendar"],
             summary: "Dispara envio de notificações WhatsApp",
-            description: "Adiciona uma tarefa na fila para verificar agendamentos nas próximas 24h e enviar lembretes via WhatsApp.",
+            description: "Aciona a verificação de eventos nas próximas 24 horas e coloca os lembretes de notificação na fila do WhatsApp.",
+            body: {
+                type: 'object',
+                description: 'Este endpoint não requer corpo de mensagem.',
+                properties: {}
+            },
             response: {
                 200: {
                     type: 'object',
+                    description: 'Notificação agendada',
                     properties: {
-                        message: { type: 'string' },
-                        userId: { type: 'string' }
+                        message: { 
+                            type: 'string', 
+                            example: 'Varridura de notificações agendada!',
+                            description: 'Status do processo' 
+                        },
+                        userId: { 
+                            type: 'string', 
+                            format: 'uuid', 
+                            example: '00000000-0000-0000-0000-000000000001',
+                            description: 'Usuário afetado' 
+                        }
                     }
                 },
                 500: {
                     type: 'object',
+                    description: 'Erro operacional',
                     properties: {
-                        error: { type: 'string' },
-                        message: { type: 'string' }
+                        error: { type: 'string', example: 'Erro ao agendar notificações' },
+                        message: { type: 'string', example: 'Database connection timeout' }
                     }
                 }
             }

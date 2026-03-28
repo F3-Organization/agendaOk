@@ -25,7 +25,13 @@ export class AuthController {
         }, {
             tags: ["Auth"],
             summary: "Inicia o fluxo de autenticação com o Google",
-            description: "Redireciona o usuário para a página de consentimento do Google OAuth2."
+            description: "Redireciona o usuário para a página de consentimento do Google OAuth2.",
+            response: {
+                302: {
+                    type: 'object',
+                    description: 'Redirecionamento para o Google'
+                }
+            }
         });
 
         // 2. Rota de callback do Google
@@ -56,33 +62,60 @@ export class AuthController {
         }, {
             tags: ["Auth"],
             summary: "Callback de autenticação do Google",
-            description: "Recebe o código de autorização do Google, troca por tokens e ativa a sincronização do calendário.",
+            description: "Recebe o código de autorização do Google, troca por tokens de acesso/atualização e sincroniza o perfil do usuário de teste.",
             querystring: {
                 type: 'object',
+                required: ['code'],
                 properties: {
-                    code: { type: 'string', description: 'O código de autorização retornado pelo Google' }
-                },
-                required: ['code']
+                    code: { 
+                        type: 'string', 
+                        description: 'O código de autorização gerado pelo Google após o consentimento do usuário',
+                        example: '4/0AdqtABC123...'
+                    }
+                }
             },
             response: {
                 200: {
                     type: 'object',
+                    description: 'Autenticação bem-sucedida',
                     properties: {
-                        message: { type: 'string' },
-                        details: { type: 'string' }
+                        message: { 
+                            type: 'string', 
+                            example: 'Autenticação concluída com sucesso!',
+                            description: 'Mensagem de confirmação' 
+                        },
+                        details: { 
+                            type: 'string', 
+                            example: 'Os tokens foram salvos...', 
+                            description: 'Detalhes sobre o que foi processado' 
+                        }
                     }
                 },
                 400: {
                     type: 'object',
+                    description: 'Erro de Requisição (Falta o código)',
                     properties: {
-                        error: { type: 'string' }
+                        error: { 
+                            type: 'string', 
+                            example: 'Code not provided by Google',
+                            description: 'Descrição do erro de entrada'
+                        }
                     }
                 },
                 500: {
                     type: 'object',
+                    description: 'Erro Interno',
                     properties: {
-                        error: { type: 'string' },
-                        message: { type: 'string' }
+                        error: { 
+                            type: 'string', 
+                            example: 'Falha na troca de tokens',
+                            description: 'Categoria do erro'
+                        },
+                        message: { 
+                            type: 'string', 
+                            example: 'invalid_grant',
+                            description: 'Mensagem técnica detalhada'
+                        }
                     }
                 }
             }

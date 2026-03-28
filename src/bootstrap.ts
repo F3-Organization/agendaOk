@@ -6,7 +6,11 @@ async function bootstrap() {
         await AppDataSource.initialize();
         console.log("Data Source has been initialized!");
 
-        // Initialize controllers (which register routes)
+        // 1. Setup adapter (Swagger, etc.)
+        const adapter = factory.adapters.fastify();
+        await adapter.setup();
+
+        // 2. Initialize controllers (which register routes)
         factory.controller.app();
         factory.controller.auth();
         factory.controller.calendar();
@@ -17,7 +21,7 @@ async function bootstrap() {
         factory.queues.notify();
 
         // Start the server
-        factory.adapters.fastify().listen();
+        adapter.listen();
     } catch (err) {
         console.error("Error during Data Source initialization", err);
         process.exit(1);

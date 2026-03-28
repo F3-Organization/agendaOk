@@ -9,29 +9,53 @@ export class FastifyAdapter {
     public constructor() {
         this.app = Fastify({
             logger: true,
+            ajv: {
+                customOptions: {
+                    keywords: ['example']
+                }
+            }
         })
-        this.registerSwagger()
     }
 
-    private registerSwagger() {
-        this.app.register(fastifySwagger, {
+    public async setup() {
+        await this.app.register(fastifySwagger, {
+            mode: 'dynamic',
             openapi: {
+                openapi: '3.0.0',
                 info: {
                     title: 'AgendaOk API',
-                    description: 'Solução SaaS pragmática para automação de agendamentos e notificações via WhatsApp.',
-                    version: '1.0.0'
+                    description: 'Solução SaaS pragmática para automação de agendamentos e notificações via WhatsApp integrando Google Calendar e Evolution API.',
+                    version: '1.0.0',
+                    contact: {
+                        name: 'Suporte AgendaOk',
+                        email: 'suporte@agendaok.com.br',
+                        url: 'https://agendaok.com.br/contato'
+                    },
+                    license: {
+                        name: 'MIT',
+                        url: 'https://opensource.org/licenses/MIT'
+                    }
                 },
-                servers: [{ url: `http://localhost:${env.port}` }],
+                externalDocs: {
+                    description: 'Documentação Técnica Completa',
+                    url: 'https://docs.agendaok.com.br'
+                },
+                servers: [
+                    { 
+                        url: `http://localhost:${env.port}`,
+                        description: 'Servidor de Desenvolvimento Local' 
+                    }
+                ],
                 tags: [
-                    { name: 'Auth', description: 'Endpoints de autenticação com o Google' },
-                    { name: 'Calendar', description: 'Endpoints de gerenciamento e sincronização de calendário' },
-                    { name: 'Webhook', description: 'Recebimento de notificações da Evolution API' },
-                    { name: 'System', description: 'Informações do sistema' }
+                    { name: 'Auth', description: 'Gerenciamento de autenticação via Google OAuth2' },
+                    { name: 'Calendar', description: 'Operações de sincronização e tarefas de calendário' },
+                    { name: 'Webhook', description: 'Receptores de eventos assíncronos (Evolution API)' },
+                    { name: 'System', description: 'Monitoramento e status operacional' }
                 ]
             }
         })
 
-        this.app.register(fastifySwaggerUi, {
+        await this.app.register(fastifySwaggerUi, {
             routePrefix: '/api/documentation',
             uiConfig: {
                 docExpansion: 'list',
@@ -40,6 +64,8 @@ export class FastifyAdapter {
             staticCSP: true,
             transformStaticCSP: (header) => header
         })
+
+        await this.app.after();
     }
 
     public addRoute(
@@ -55,9 +81,12 @@ export class FastifyAdapter {
         });
     }
 
+    // Remove the redundant ready method as it's part of the async setup
+
     public listen() {
         this.app.listen({
             port: env.port as number,
+            host: '0.0.0.0'
         })
     }
 

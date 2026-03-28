@@ -6,8 +6,9 @@ async function bootstrap() {
         await AppDataSource.initialize();
         console.log("Data Source has been initialized!");
 
-        // Initialize controller (which registers routes)
+        // Initialize controllers (which register routes)
         factory.controller.app();
+        factory.controller.auth();
 
         // Start the server
         factory.adapters.fastify().listen();

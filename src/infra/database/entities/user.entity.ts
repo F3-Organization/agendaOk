@@ -14,6 +14,9 @@ export class User {
     @Column({ nullable: true })
     password?: string;
 
+    @Column({ name: "google_id", nullable: true, unique: true })
+    googleId?: string;
+
     @CreateDateColumn()
     createdAt!: Date;
 

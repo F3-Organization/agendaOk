@@ -2,10 +2,13 @@ import { FastifyAdapter } from "../adapters/fastfy.adapter";
 import { EvolutionApiAdapter } from "../adapters/evolution-api.adapter";
 import { GoogleCalendarAdapter } from "../adapters/google-calendar.adapter";
 import { AppController } from "../controller/app.controller";
+import { AuthController } from "../controller/auth.controller";
 import { UserRepository } from "../database/repositories/user.repository";
 import { ClientRepository } from "../database/repositories/client.repository";
 import { ScheduleRepository } from "../database/repositories/schedule.repository";
 import { UserConfigRepository } from "../database/repositories/user-config.repository";
+import { GenerateGoogleAuthUrlUseCase } from "../../usecase/auth/generate-google-auth-url.usecase";
+import { ExchangeGoogleCodeUseCase } from "../../usecase/auth/exchange-google-code.usecase";
 
 const adapterInstance = new FastifyAdapter();
 const evolutionAdapter = new EvolutionApiAdapter();
@@ -14,6 +17,10 @@ const userRepository = new UserRepository();
 const clientRepository = new ClientRepository();
 const scheduleRepository = new ScheduleRepository();
 const userConfigRepository = new UserConfigRepository();
+
+// UseCases
+const generateGoogleAuthUrlUseCase = new GenerateGoogleAuthUrlUseCase(googleCalendarAdapter);
+const exchangeGoogleCodeUseCase = new ExchangeGoogleCodeUseCase(googleCalendarAdapter, userConfigRepository);
 
 const repositories = {
     user: () => userRepository,
@@ -29,7 +36,13 @@ const adapters = {
 }
 
 const controllers = {
-    app: () => new AppController(adapterInstance)
+    app: () => new AppController(adapterInstance),
+    auth: () => new AuthController(
+        adapterInstance,
+        generateGoogleAuthUrlUseCase,
+        exchangeGoogleCodeUseCase,
+        userRepository
+    )
 }
 
 export const factory = {

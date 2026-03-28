@@ -23,3 +23,18 @@
 - Seguir o padrão pragmático documentado em `architecture.md`. 
 - Usar a Factory manual em `src/infra/factory/factory.ts` para instanciar repositórios e injetá-los nos Use Cases. 
 - Evitar bibliotecas mágicas de injeção de dependência para este MVP. Mantenha a injeção manual para facilitar o rastreio e o debug.
+
+## 5. Princípios de Engenharia e Limpeza
+- **SOLID:** O código deve seguir os princípios SOLID para garantir manutenibilidade e escalabilidade.
+  - **S**ingle Responsibility: Cada classe/arquivo tem uma única razão para mudar.
+  - **O**pen/Closed: Entidades abertas para extensão, fechadas para modificação.
+  - **L**iskov Substitution: Subtipos devem ser substituíveis por seus tipos base.
+  - **I**nterface Segregation: Interfaces específicas são melhores que uma interface geral.
+  - **D**ependency Inversion: Depender de abstrações (Interfaces/Ports), não de implementações.
+- **Código Limpo (Clean Code):** O código deve ser autoexplicativo através de nomes semânticos de variáveis, funções e classes.
+- **SEM COMENTÁRIOS:** Não deixe comentários no código explicando "o que" ele faz. Se um trecho precisa de explicação, ele deve ser refatorado para ser mais legível. Comentários só são permitidos em casos EXTREMAMENTE raros para explicar o "porquê" de uma decisão técnica obscura ou workaround.
+
+---
+
+## 6. Definição de Pronto (Definition of Done)
+Após finalizar qualquer implementação, siga obrigatoriamente o **[Checklist de Revisão](file:///home/felipe/Repositories/personal/agendaOk/.agent/review-checklist.md)** para garantir a qualidade, ausência de bugs e aderência aos princípios SOLID.

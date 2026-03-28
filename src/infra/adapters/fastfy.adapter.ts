@@ -92,7 +92,16 @@ export class FastifyAdapter {
                     { name: 'Calendar', description: 'Operações de sincronização e tarefas de calendário' },
                     { name: 'Webhook', description: 'Receptores de eventos assíncronos (Evolution API)' },
                     { name: 'System', description: 'Monitoramento e status operacional' }
-                ]
+                ],
+                components: {
+                    securitySchemes: {
+                        bearerAuth: {
+                            type: 'http',
+                            scheme: 'bearer',
+                            bearerFormat: 'JWT'
+                        }
+                    }
+                }
             }
         })
 
@@ -145,6 +154,15 @@ export class FastifyAdapter {
         schema?: any,
         preHandler?: any
     ) {
+        const preHandlers = [this.app.authenticate];
+        if (preHandler) {
+            if (Array.isArray(preHandler)) {
+                preHandlers.push(...preHandler);
+            } else {
+                preHandlers.push(preHandler);
+            }
+        }
+
         this.app.route({
             method: method,
             url: `/api${path}`,
@@ -153,7 +171,7 @@ export class FastifyAdapter {
                 ...schema,
                 security: [{ bearerAuth: [] }]
             },
-            preHandler: preHandler ? [this.app.authenticate, preHandler] : [this.app.authenticate]
+            preHandler: preHandlers
         });
     }
 

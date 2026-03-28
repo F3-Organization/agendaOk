@@ -2,6 +2,7 @@ import { FastifyAdapter } from "../adapters/fastfy.adapter";
 import { EvolutionApiAdapter } from "../adapters/evolution-api.adapter";
 import { GoogleCalendarAdapter } from "../adapters/google-calendar.adapter";
 import { AbacatePayAdapter } from "../adapters/abacatepay.adapter";
+import { adminMiddleware } from "../middleware/auth.middleware";
 import { AppController } from "../controller/app.controller";
 import { AuthController } from "../controller/auth.controller";
 import { CalendarController } from "../controller/calendar.controller";
@@ -21,6 +22,9 @@ import { NotifyUpcomingAppointmentsUseCase } from "../../usecase/notification/no
 import { HandleEvolutionWebhookUseCase } from "../../usecase/notification/handle-evolution-webhook.usecase";
 import { CreateSubscriptionCheckoutUseCase } from "../../usecase/subscription/create-checkout.usecase";
 import { HandleAbacatePayWebhookUseCase } from "../../usecase/subscription/handle-abacate-webhook.usecase";
+import { ConnectWhatsappUseCase } from "../../usecase/notification/connect-whatsapp.usecase";
+import { DisconnectWhatsappUseCase } from "../../usecase/notification/disconnect-whatsapp.usecase";
+import { WhatsappController } from "../controller/whatsapp.controller";
 import { SyncCalendarQueue } from "../queue/sync-calendar.queue";
 import { SyncCalendarWorker } from "../queue/sync-calendar.worker";
 import { NotifyQueue } from "../queue/notify.queue";
@@ -76,6 +80,16 @@ const handleAbacatePayWebhookUseCase = new HandleAbacatePayWebhookUseCase(
     subscriptionRepository
 );
 
+const connectWhatsappUseCase = new ConnectWhatsappUseCase(
+    userConfigRepository,
+    evolutionAdapter
+);
+
+const disconnectWhatsappUseCase = new DisconnectWhatsappUseCase(
+    userConfigRepository,
+    evolutionAdapter
+);
+
 // Queues & Workers
 const syncCalendarQueue = new SyncCalendarQueue();
 const syncCalendarWorker = new SyncCalendarWorker(syncCalendarUseCase);
@@ -124,6 +138,13 @@ const controllers = {
         createSubscriptionCheckoutUseCase,
         handleAbacatePayWebhookUseCase,
         subscriptionRepository
+    ),
+    whatsapp: () => new WhatsappController(
+        adapterInstance,
+        connectWhatsappUseCase,
+        disconnectWhatsappUseCase,
+        subMiddleware,
+        adminMiddleware
     )
 }
 

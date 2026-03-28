@@ -10,7 +10,7 @@ export class EvolutionApiAdapter implements IEvolutionService {
         this.apiKey = env.evolution.apiKey;
     }
 
-    private async request(path: string, method: string, body?: any) {
+    private async request<T = any>(path: string, method: string, body?: any): Promise<T> {
         const url = `${this.baseUrl}${path}`;
         
         const options: RequestInit = {
@@ -32,7 +32,7 @@ export class EvolutionApiAdapter implements IEvolutionService {
             throw new Error(`Evolution API Error [${response.status}]: ${error}`);
         }
 
-        return await response.json();
+        return await response.json() as T;
     }
 
     async createInstance(instanceName: string): Promise<void> {
@@ -41,6 +41,11 @@ export class EvolutionApiAdapter implements IEvolutionService {
             token: "",
             integration: "WHATSAPP-BAILEYS"
         });
+    }
+
+    async connectInstance(instanceName: string): Promise<{ base64: string }> {
+        const response = await this.request(`/instance/connect/${instanceName}`, "GET");
+        return { base64: response.base64 || response.code }; 
     }
 
     async sendText(instanceName: string, number: string, text: string): Promise<void> {

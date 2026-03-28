@@ -16,6 +16,7 @@ async function bootstrap() {
         factory.controller.calendar();
         factory.controller.webhook();
         factory.controller.subscription();
+        factory.controller.whatsapp();
 
         // Start workers
         factory.queues.sync();

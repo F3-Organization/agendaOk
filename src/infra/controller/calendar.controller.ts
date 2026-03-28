@@ -22,6 +22,26 @@ export class CalendarController {
             } catch (error: any) {
                 reply.code(500).send({ error: "Erro ao agendar sincronização", message: error.message });
             }
+        }, {
+            tags: ["Calendar"],
+            summary: "Sincroniza eventos do Google Calendar",
+            description: "Adiciona uma tarefa na fila para buscar eventos do Google e salvar no banco de dados local.",
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        message: { type: 'string' },
+                        userId: { type: 'string' }
+                    }
+                },
+                500: {
+                    type: 'object',
+                    properties: {
+                        error: { type: 'string' },
+                        message: { type: 'string' }
+                    }
+                }
+            }
         });
 
         this.fastify.addRoute("POST", "/calendar/notify", async (request, reply) => {
@@ -30,6 +50,26 @@ export class CalendarController {
                 reply.send({ message: "Varridura de notificações agendada!", userId: CalendarController.TEST_USER_ID });
             } catch (error: any) {
                 reply.code(500).send({ error: "Erro ao agendar notificações", message: error.message });
+            }
+        }, {
+            tags: ["Calendar"],
+            summary: "Dispara envio de notificações WhatsApp",
+            description: "Adiciona uma tarefa na fila para verificar agendamentos nas próximas 24h e enviar lembretes via WhatsApp.",
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        message: { type: 'string' },
+                        userId: { type: 'string' }
+                    }
+                },
+                500: {
+                    type: 'object',
+                    properties: {
+                        error: { type: 'string' },
+                        message: { type: 'string' }
+                    }
+                }
             }
         });
     }

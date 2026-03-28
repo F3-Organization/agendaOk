@@ -16,6 +16,8 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@fastify/swagger": "^9.7.0",
+    "@fastify/swagger-ui": "^5.2.5",
     "@types/pg": "^8.20.0",
     "bullmq": "^5.41.0",
     "dotenv": "^17.3.1",
@@ -25,13 +27,13 @@
     "typeorm": "^0.3.28"
   },
   "devDependencies": {
+    "@swc/core": "^1.11.1",
     "@types/dotenv": "^6.1.1",
     "@types/node": "^25.5.0",
     "@vitest/coverage-v8": "^3.0.7",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.2",
-    "vitest": "^3.0.7",
     "unplugin-swc": "^1.5.1",
-    "@swc/core": "^1.11.1"
+    "vitest": "^3.0.7"
   }
 }

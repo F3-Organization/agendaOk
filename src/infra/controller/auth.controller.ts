@@ -22,6 +22,10 @@ export class AuthController {
         this.fastify.addRoute("GET", "/auth/google", async (request, reply) => {
             const url = this.generateAuthUrl.execute();
             reply.redirect(url);
+        }, {
+            tags: ["Auth"],
+            summary: "Inicia o fluxo de autenticação com o Google",
+            description: "Redireciona o usuário para a página de consentimento do Google OAuth2."
         });
 
         // 2. Rota de callback do Google
@@ -48,6 +52,39 @@ export class AuthController {
                     error: "Falha na troca de tokens",
                     message: error.message
                 });
+            }
+        }, {
+            tags: ["Auth"],
+            summary: "Callback de autenticação do Google",
+            description: "Recebe o código de autorização do Google, troca por tokens e ativa a sincronização do calendário.",
+            querystring: {
+                type: 'object',
+                properties: {
+                    code: { type: 'string', description: 'O código de autorização retornado pelo Google' }
+                },
+                required: ['code']
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        message: { type: 'string' },
+                        details: { type: 'string' }
+                    }
+                },
+                400: {
+                    type: 'object',
+                    properties: {
+                        error: { type: 'string' }
+                    }
+                },
+                500: {
+                    type: 'object',
+                    properties: {
+                        error: { type: 'string' },
+                        message: { type: 'string' }
+                    }
+                }
             }
         });
     }

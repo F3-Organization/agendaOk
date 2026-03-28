@@ -10,6 +10,7 @@ async function bootstrap() {
         factory.controller.app();
         factory.controller.auth();
         factory.controller.calendar();
+        factory.controller.webhook();
 
         // Start workers
         factory.queues.sync();

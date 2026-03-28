@@ -18,6 +18,10 @@ export class UserConfigRepository implements IUserConfigRepository {
         return await this.repository.findOneBy({ userId });
     }
 
+    async findByInstanceName(instanceName: string): Promise<UserConfig | null> {
+        return await this.repository.findOneBy({ whatsappInstanceName: instanceName });
+    }
+
     async findAllActive(): Promise<UserConfig[]> {
         return await this.repository.find({ where: { syncEnabled: true } });
     }

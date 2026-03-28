@@ -189,4 +189,15 @@ describe("NotifyUpcomingAppointmentsUseCase", () => {
             expect.any(String)
         );
     });
+
+    it("não deve disparar notificações se o usuário não tiver configuração ou instância configurada", async () => {
+        vi.mocked(userConfigRepository.findByUserId).mockResolvedValueOnce({
+            userId: "user-sem-wa",
+            whatsappInstanceName: undefined
+        } as UserConfig);
+
+        await sut.execute("user-sem-wa");
+
+        expect(scheduleRepository.findNextToNotify).not.toHaveBeenCalled();
+    });
 });

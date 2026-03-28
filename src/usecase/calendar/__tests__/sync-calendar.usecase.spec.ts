@@ -29,7 +29,8 @@ describe("SyncCalendarUseCase", () => {
             getTokens: vi.fn(),
             refreshAccessToken: vi.fn(),
             listEvents: vi.fn().mockResolvedValue([]),
-            updateEvent: vi.fn()
+            updateEvent: vi.fn(),
+            getUserProfile: vi.fn()
         };
 
         scheduleRepository = {
@@ -37,11 +38,14 @@ describe("SyncCalendarUseCase", () => {
             findByGoogleEventId: vi.fn(),
             findByUserId: vi.fn(),
             findNextToNotify: vi.fn(),
-            updateStatus: vi.fn()
+            updateStatus: vi.fn(),
+            updateNotified: vi.fn()
         };
 
         userConfigRepository = {
             findByUserId: vi.fn().mockResolvedValue(mockUserConfig),
+            findByInstanceName: vi.fn(),
+            findAllActive: vi.fn(),
             save: vi.fn(),
             update: vi.fn()
         };
@@ -78,6 +82,20 @@ describe("SyncCalendarUseCase", () => {
         expect(userConfigRepository.update).toHaveBeenCalledWith("user-1", expect.objectContaining({
             googleAccessToken: "new-token"
         }));
+    });
+
+    it("deve lançar erro se falhar ao renovar o access token", async () => {
+        const expiredConfig = {
+            ...mockUserConfig,
+            googleTokenExpiry: new Date(Date.now() - 1000)
+        } as UserConfig;
+
+        vi.mocked(userConfigRepository.findByUserId).mockResolvedValueOnce(expiredConfig);
+        vi.mocked(googleService.refreshAccessToken).mockResolvedValueOnce({
+            access_token: undefined
+        });
+
+        await expect(sut.execute("user-1")).rejects.toThrow("Failed to refresh Google access token");
     });
 
     it("deve criar novos agendamentos para eventos inexistentes", async () => {

@@ -23,7 +23,8 @@ describe("ConfirmAppointmentUseCase", () => {
             getTokens: vi.fn(),
             refreshAccessToken: vi.fn(),
             listEvents: vi.fn(),
-            updateEvent: vi.fn()
+            updateEvent: vi.fn(),
+            getUserProfile: vi.fn()
         };
 
         scheduleRepository = {
@@ -102,5 +103,54 @@ describe("ConfirmAppointmentUseCase", () => {
             "google-123",
             expect.objectContaining({ summary: "✅ Corte João (11) 98888-7777" })
         );
+    });
+
+    it("deve logar erro no console se falhar a atualização no Google Calendar", async () => {
+        const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        const appointment = {
+            id: "schedule-123",
+            googleEventId: "google-123",
+            title: "Corte João (11) 98888-7777",
+            status: ScheduleStatus.PENDING
+        } as Schedule;
+
+        vi.mocked(scheduleRepository.findNextToNotify).mockResolvedValueOnce([appointment]);
+        vi.mocked(googleService.updateEvent).mockRejectedValueOnce(new Error("Google Error"));
+
+        await sut.execute("user-1", "5511988887777");
+
+        expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("Failed to update Google Calendar"), expect.any(Error));
+        consoleSpy.mockRestore();
+    });
+
+    it("não deve tentar atualizar Google se o usuário não tiver token ou configuração", async () => {
+        vi.mocked(userConfigRepository.findByUserId).mockResolvedValueOnce(null);
+        
+        const appointment = {
+            id: "schedule-123",
+            googleEventId: "google-123",
+            title: "Corte João (11) 98888-7777",
+            status: ScheduleStatus.PENDING
+        } as Schedule;
+
+        vi.mocked(scheduleRepository.findNextToNotify).mockResolvedValueOnce([appointment]);
+
+        await sut.execute("user-1", "5511988887777");
+
+        expect(googleService.updateEvent).not.toHaveBeenCalled();
+    });
+
+    it("não deve retornar telefone se o texto não contiver um padrão válido", async () => {
+        const appointment = {
+            id: "schedule-123",
+            title: "Corte sem telefone",
+            status: ScheduleStatus.PENDING
+        } as Schedule;
+
+        vi.mocked(scheduleRepository.findNextToNotify).mockResolvedValueOnce([appointment]);
+
+        await sut.execute("user-1", "5511988887777");
+
+        expect(scheduleRepository.updateStatus).not.toHaveBeenCalled();
     });
 });

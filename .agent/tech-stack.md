@@ -6,6 +6,7 @@
 - **Framework Web:** Fastify (v4+)
 - **ORM:** TypeORM (v0.3.x)
 - **Banco de Dados:** PostgreSQL
+- **Configuração**: `dotenv` para variáveis de ambiente.
 
 ## Filas e Background Jobs
 - **Message Broker / Cache:** Redis

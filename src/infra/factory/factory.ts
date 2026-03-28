@@ -1,14 +1,17 @@
 import { FastifyAdapter } from "../adapters/fastfy.adapter";
 import { EvolutionApiAdapter } from "../adapters/evolution-api.adapter";
 import { GoogleCalendarAdapter } from "../adapters/google-calendar.adapter";
+import { AbacatePayAdapter } from "../adapters/abacatepay.adapter";
 import { AppController } from "../controller/app.controller";
 import { AuthController } from "../controller/auth.controller";
 import { CalendarController } from "../controller/calendar.controller";
 import { EvolutionWebhookController } from "../controller/evolution-webhook.controller";
+import { SubscriptionController } from "../controller/subscription.controller";
 import { UserRepository } from "../database/repositories/user.repository";
 import { ClientRepository } from "../database/repositories/client.repository";
 import { ScheduleRepository } from "../database/repositories/schedule.repository";
 import { UserConfigRepository } from "../database/repositories/user-config.repository";
+import { SubscriptionRepository } from "../database/repositories/subscription.repository";
 import { GenerateGoogleAuthUrlUseCase } from "../../usecase/auth/generate-google-auth-url.usecase";
 import { ExchangeGoogleCodeUseCase } from "../../usecase/auth/exchange-google-code.usecase";
 import { SyncCalendarUseCase } from "../../usecase/calendar/sync-calendar.usecase";
@@ -16,22 +19,30 @@ import { ConfirmAppointmentUseCase } from "../../usecase/calendar/confirm-appoin
 import { CancelAppointmentUseCase } from "../../usecase/calendar/cancel-appointment.usecase";
 import { NotifyUpcomingAppointmentsUseCase } from "../../usecase/notification/notify-upcoming-appointments.usecase";
 import { HandleEvolutionWebhookUseCase } from "../../usecase/notification/handle-evolution-webhook.usecase";
+import { CreateSubscriptionCheckoutUseCase } from "../../usecase/subscription/create-checkout.usecase";
+import { HandleAbacatePayWebhookUseCase } from "../../usecase/subscription/handle-abacate-webhook.usecase";
 import { SyncCalendarQueue } from "../queue/sync-calendar.queue";
 import { SyncCalendarWorker } from "../queue/sync-calendar.worker";
 import { NotifyQueue } from "../queue/notify.queue";
 import { NotifyWorker } from "../queue/notify.worker";
+import { subscriptionMiddleware } from "../middleware/subscription.middleware";
 
 const adapterInstance = new FastifyAdapter();
 const evolutionAdapter = new EvolutionApiAdapter();
 const googleCalendarAdapter = new GoogleCalendarAdapter();
+const abacatePayAdapter = new AbacatePayAdapter();
+
 const userRepository = new UserRepository();
 const clientRepository = new ClientRepository();
 const scheduleRepository = new ScheduleRepository();
 const userConfigRepository = new UserConfigRepository();
+const subscriptionRepository = new SubscriptionRepository();
 
-// UseCases
+// UseCases - Auth
 const generateGoogleAuthUrlUseCase = new GenerateGoogleAuthUrlUseCase(googleCalendarAdapter);
 const exchangeGoogleCodeUseCase = new ExchangeGoogleCodeUseCase(googleCalendarAdapter, userConfigRepository);
+
+// UseCases - Calendar & Notification
 const syncCalendarUseCase = new SyncCalendarUseCase(googleCalendarAdapter, scheduleRepository, userConfigRepository);
 const notifyUpcomingAppointmentsUseCase = new NotifyUpcomingAppointmentsUseCase(
     scheduleRepository,
@@ -55,23 +66,38 @@ const handleEvolutionWebhookUseCase = new HandleEvolutionWebhookUseCase(
     cancelAppointmentUseCase
 );
 
+// UseCases - Subscription
+const createSubscriptionCheckoutUseCase = new CreateSubscriptionCheckoutUseCase(
+    userRepository,
+    subscriptionRepository,
+    abacatePayAdapter
+);
+const handleAbacatePayWebhookUseCase = new HandleAbacatePayWebhookUseCase(
+    subscriptionRepository
+);
+
 // Queues & Workers
 const syncCalendarQueue = new SyncCalendarQueue();
 const syncCalendarWorker = new SyncCalendarWorker(syncCalendarUseCase);
 const notifyQueue = new NotifyQueue();
 const notifyWorker = new NotifyWorker(notifyUpcomingAppointmentsUseCase, userConfigRepository);
 
+// Middlewares
+const subMiddleware = subscriptionMiddleware(subscriptionRepository);
+
 const repositories = {
     user: () => userRepository,
     client: () => clientRepository,
     schedule: () => scheduleRepository,
-    userConfig: () => userConfigRepository
+    userConfig: () => userConfigRepository,
+    subscription: () => subscriptionRepository
 }
 
 const adapters = {
     fastify: () => adapterInstance,
     evolution: () => evolutionAdapter,
-    google: () => googleCalendarAdapter
+    google: () => googleCalendarAdapter,
+    abacate: () => abacatePayAdapter
 }
 
 const controllers = {
@@ -80,16 +106,24 @@ const controllers = {
         adapterInstance,
         generateGoogleAuthUrlUseCase,
         exchangeGoogleCodeUseCase,
-        userRepository
+        userRepository,
+        googleCalendarAdapter
     ),
     calendar: () => new CalendarController(
         adapterInstance,
         syncCalendarQueue,
-        notifyQueue
+        notifyQueue,
+        subMiddleware
     ),
     webhook: () => new EvolutionWebhookController(
         adapterInstance,
         handleEvolutionWebhookUseCase
+    ),
+    subscription: () => new SubscriptionController(
+        adapterInstance,
+        createSubscriptionCheckoutUseCase,
+        handleAbacatePayWebhookUseCase,
+        subscriptionRepository
     )
 }
 

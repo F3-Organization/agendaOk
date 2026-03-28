@@ -5,6 +5,7 @@ import { User } from "../database/entities/user.entity";
 import { Client } from "../database/entities/client.entity";
 import { Schedule } from "../database/entities/schedule.entity";
 import { UserConfig } from "../database/entities/user-config.entity";
+import { Subscription } from "../database/entities/subscription.entity";
 
 export const AppDataSource = new DataSource({
     type: "postgres",
@@ -15,7 +16,7 @@ export const AppDataSource = new DataSource({
     database: env.database.database,
     synchronize: false,
     logging: env.debug(),
-    entities: [User, Client, Schedule, UserConfig],
+    entities: [User, Client, Schedule, UserConfig, Subscription],
     subscribers: [],
     migrations: ["dist/migrations/*.js"],
 })

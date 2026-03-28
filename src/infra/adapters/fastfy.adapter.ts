@@ -1,12 +1,10 @@
 import Fastify, { FastifyInstance, FastifyReply, FastifyRequest, HTTPMethods } from 'fastify'
 import { fastifySwagger } from '@fastify/swagger'
 import { fastifySwaggerUi } from '@fastify/swagger-ui'
-// @ts-ignore - Types installed during docker build
-import fastifyCors from '@fastify/cors'
-// @ts-ignore - Types installed during docker build
-import fastifyHelmet from '@fastify/helmet'
-// @ts-ignore - Types installed during docker build
-import fastifyRateLimit from '@fastify/rate-limit'
+import { fastifyJwt } from '@fastify/jwt'
+import { fastifyCors } from '@fastify/cors'
+import { fastifyHelmet } from '@fastify/helmet'
+import { fastifyRateLimit } from '@fastify/rate-limit'
 import { env } from '../config/configs'
 
 export class FastifyAdapter {
@@ -42,6 +40,18 @@ export class FastifyAdapter {
             max: 100,
             timeWindow: '1 minute',
             allowList: ['127.0.0.1'] // Localhost para health checks
+        });
+
+        await this.app.register(fastifyJwt, {
+            secret: env.jwt.secret
+        });
+
+        this.app.decorate("authenticate", async (request: any, reply: any) => {
+            try {
+                await request.jwtVerify();
+            } catch (err) {
+                reply.send(err);
+            }
         });
 
         // ── Documentação ───────────────────────────────────────
@@ -126,6 +136,33 @@ export class FastifyAdapter {
             handler: handler,
             schema: schema
         });
+    }
+
+    public addProtectedRoute(
+        method: HTTPMethods | HTTPMethods[],
+        path: string,
+        handler: (request: FastifyRequest, reply: FastifyReply) => void,
+        schema?: any,
+        preHandler?: any
+    ) {
+        this.app.route({
+            method: method,
+            url: `/api${path}`,
+            handler: handler,
+            schema: {
+                ...schema,
+                security: [{ bearerAuth: [] }]
+            },
+            preHandler: preHandler ? [this.app.authenticate, preHandler] : [this.app.authenticate]
+        });
+    }
+
+    public sign(payload: any): string {
+        return (this.app as any).jwt.sign(payload);
+    }
+
+    public decorate(name: string, fn: any) {
+        this.app.decorate(name, fn);
     }
 
     public listen() {

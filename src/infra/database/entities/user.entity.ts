@@ -17,6 +17,13 @@ export class User {
     @Column({ name: "google_id", nullable: true, unique: true })
     googleId?: string;
 
+    @Column({
+        type: "enum",
+        enum: ["ADMIN", "USER"],
+        default: "USER"
+    })
+    role!: "ADMIN" | "USER";
+
     @CreateDateColumn()
     createdAt!: Date;
 

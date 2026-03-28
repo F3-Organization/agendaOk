@@ -3,16 +3,15 @@ import { GenerateGoogleAuthUrlUseCase } from "../../usecase/auth/generate-google
 import { ExchangeGoogleCodeUseCase } from "../../usecase/auth/exchange-google-code.usecase";
 import { UserRepository } from "../database/repositories/user.repository";
 import { User } from "../database/entities/user.entity";
+import { IGoogleCalendarService } from "../../usecase/ports/igoogle-calendar-service";
 
 export class AuthController {
-    // ID fixo para testes enquanto não temos sistema de login
-    private static readonly TEST_USER_ID = "00000000-0000-0000-0000-000000000001";
-
     constructor(
         private readonly fastify: FastifyAdapter,
         private readonly generateAuthUrl: GenerateGoogleAuthUrlUseCase,
         private readonly exchangeCode: ExchangeGoogleCodeUseCase,
-        private readonly userRepo: UserRepository
+        private readonly userRepo: UserRepository,
+        private readonly googleService: IGoogleCalendarService
     ) {
         this.registerRoutes();
     }
@@ -43,94 +42,110 @@ export class AuthController {
             }
 
             try {
-                // Garantir que o usuário de teste existe (Foreign Key constraint)
-                await this.ensureTestUserExists();
+                // Trocar código por tokens
+                const tokens = await this.googleService.getTokens(code);
+                
+                // Buscar perfil do usuário no Google
+                const profile = await this.googleService.getUserProfile(tokens.access_token);
 
-                // Trocar código por tokens e salvar
-                await this.exchangeCode.execute(AuthController.TEST_USER_ID, code);
+                // Buscar ou criar o usuário local
+                let user = await this.userRepo.findByGoogleId(profile.id);
+                if (!user) {
+                    user = new User();
+                    user.googleId = profile.id;
+                    user.email = profile.email;
+                    user.name = profile.name;
+                    user = await this.userRepo.save(user);
+                }
+
+                // Salvar os tokens do Google para o usuário (UserConfig)
+                await this.exchangeCode.execute(user.id, code);
+
+                // Gerar JWT do AgendaOk
+                const token = this.fastify.sign({ 
+                    id: user.id, 
+                    email: user.email, 
+                    name: user.name,
+                    role: user.role 
+                });
 
                 reply.send({
                     message: "Autenticação concluída com sucesso!",
-                    details: "Os tokens foram salvos e a sincronização está ativa para o usuário de teste."
+                    token,
+                    user: {
+                        id: user.id,
+                        name: user.name,
+                        email: user.email,
+                        role: user.role
+                    }
                 });
             } catch (error: any) {
+                console.error("[AuthController] Authentication failed:", error);
                 reply.code(500).send({
-                    error: "Falha na troca de tokens",
+                    error: "Falha na autenticação",
                     message: error.message
                 });
             }
         }, {
             tags: ["Auth"],
             summary: "Callback de autenticação do Google",
-            description: "Recebe o código de autorização do Google, troca por tokens de acesso/atualização e sincroniza o perfil do usuário de teste.",
+            description: "Recebe o código do Google, cria/busca o usuário, salva os tokens e retorna um JWT para sessões futuras.",
             querystring: {
                 type: 'object',
                 required: ['code'],
                 properties: {
-                    code: { 
-                        type: 'string', 
-                        description: 'O código de autorização gerado pelo Google após o consentimento do usuário',
-                        example: '4/0AdqtABC123...'
-                    }
+                    code: { type: 'string' }
                 }
             },
             response: {
                 200: {
                     type: 'object',
-                    description: 'Autenticação bem-sucedida',
                     properties: {
-                        message: { 
-                            type: 'string', 
-                            example: 'Autenticação concluída com sucesso!',
-                            description: 'Mensagem de confirmação' 
-                        },
-                        details: { 
-                            type: 'string', 
-                            example: 'Os tokens foram salvos...', 
-                            description: 'Detalhes sobre o que foi processado' 
-                        }
-                    }
-                },
-                400: {
-                    type: 'object',
-                    description: 'Erro de Requisição (Falta o código)',
-                    properties: {
-                        error: { 
-                            type: 'string', 
-                            example: 'Code not provided by Google',
-                            description: 'Descrição do erro de entrada'
-                        }
-                    }
-                },
-                500: {
-                    type: 'object',
-                    description: 'Erro Interno',
-                    properties: {
-                        error: { 
-                            type: 'string', 
-                            example: 'Falha na troca de tokens',
-                            description: 'Categoria do erro'
-                        },
-                        message: { 
-                            type: 'string', 
-                            example: 'invalid_grant',
-                            description: 'Mensagem técnica detalhada'
+                        message: { type: 'string' },
+                        token: { type: 'string' },
+                        user: {
+                            type: 'object',
+                            properties: {
+                                id: { type: 'string' },
+                                name: { type: 'string' },
+                                email: { type: 'string' },
+                                role: { type: 'string' }
+                            }
                         }
                     }
                 }
             }
         });
-    }
 
-    private async ensureTestUserExists() {
-        const user = await this.userRepo.findById(AuthController.TEST_USER_ID);
-        if (!user) {
-            const newUser = new User();
-            newUser.id = AuthController.TEST_USER_ID;
-            newUser.name = "Admin Teste";
-            newUser.email = "admin@agendaok.com.br";
-            newUser.googleId = "test-google-id";
-            await this.userRepo.save(newUser);
-        }
+        // 3. Rota para pegar dados do usuário logado
+        this.fastify.addProtectedRoute("GET", "/auth/me", async (request, reply) => {
+            const userId = (request.user as any).id;
+            const user = await this.userRepo.findById(userId);
+            
+            if (!user) {
+                return reply.code(404).send({ error: "User not found" });
+            }
+
+            reply.send({
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            });
+        }, {
+            tags: ["Auth"],
+            summary: "Obtém dados do usuário autenticado",
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        id: { type: 'string' },
+                        name: { type: 'string' },
+                        email: { type: 'string' },
+                        role: { type: 'string' }
+                    }
+                }
+            }
+        });
     }
 }

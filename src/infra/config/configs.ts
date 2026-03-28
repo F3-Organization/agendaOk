@@ -7,6 +7,10 @@ export const env = {
     logLevel: (process.env.LOG_LEVEL || 'info') as 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace',
     port: parseInt(process.env.PORT || '3000'),
     domain: process.env.DOMAIN || 'localhost',
+    jwt: {
+        secret: process.env.JWT_SECRET || 'dev-secret-change-in-production',
+        expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+    },
     database: {
         host: process.env.DB_HOST || 'localhost',
         port: parseInt(process.env.DB_PORT || '5432'),
@@ -27,6 +31,13 @@ export const env = {
     google: {
         clientId: process.env.GOOGLE_CLIENT_ID || '',
         clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-        redirectUri: process.env.GOOGLE_REDIRECT_URI || 'http://localhost:3000/auth/google/callback',
+        redirectUri: process.env.GOOGLE_REDIRECT_URI || 'http://localhost:3000/api/auth/google/callback',
+    },
+    abacatePay: {
+        token: process.env.ABACATE_PAY_TOKEN || '',
+        baseUrl: process.env.ABACATE_PAY_URL || 'https://api.abacatepay.com/v1',
+        planName: process.env.PLAN_NAME || 'AgendaOk Pro',
+        planPrice: parseInt(process.env.PLAN_PRICE_CENTS || '4990'),
+        webhookSecret: process.env.ABACATE_WEBHOOK_SECRET || '',
     }
 }

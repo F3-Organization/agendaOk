@@ -15,7 +15,8 @@ export class GoogleCalendarAdapter implements IGoogleCalendarService {
     getAuthUrl(): string {
         const scopes = [
             "https://www.googleapis.com/auth/calendar.events",
-            "https://www.googleapis.com/auth/userinfo.email"
+            "https://www.googleapis.com/auth/userinfo.email",
+            "https://www.googleapis.com/auth/userinfo.profile"
         ].join(" ");
 
         const params = new URLSearchParams({
@@ -67,6 +68,23 @@ export class GoogleCalendarAdapter implements IGoogleCalendarService {
         }
 
         return await response.json();
+    }
+
+    async getUserProfile(accessToken: string): Promise<{ id: string, email: string, name: string }> {
+        const response = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+            headers: { Authorization: `Bearer ${accessToken}` }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Google UserInfo Error: ${await response.text()}`);
+        }
+
+        const data = await response.json() as any;
+        return {
+            id: data.id,
+            email: data.email,
+            name: data.name
+        };
     }
 
     async listEvents(accessToken: string, timeMin: Date, timeMax: Date): Promise<any[]> {

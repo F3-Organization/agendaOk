@@ -5,6 +5,7 @@ import { UserRepository } from "../database/repositories/user.repository";
 import { User } from "../database/entities/user.entity";
 import { IGoogleCalendarService } from "../../usecase/ports/igoogle-calendar-service";
 import { z } from "zod";
+import { AuthMeResponseSchema, LoginResponseSchema } from "@shared/schemas/auth.schema";
 
 export class AuthController {
     constructor(
@@ -99,24 +100,6 @@ export class AuthController {
                 properties: {
                     code: { type: 'string' }
                 }
-            },
-            response: {
-                200: {
-                    type: 'object',
-                    properties: {
-                        message: { type: 'string' },
-                        token: { type: 'string' },
-                        user: {
-                            type: 'object',
-                            properties: {
-                                id: { type: 'string' },
-                                name: { type: 'string' },
-                                email: { type: 'string' },
-                                role: { type: 'string' }
-                            }
-                        }
-                    }
-                }
             }
         });
 
@@ -137,18 +120,7 @@ export class AuthController {
             });
         }, {
             tags: ["Auth"],
-            summary: "Obtém dados do usuário autenticado",
-            response: {
-                200: {
-                    type: 'object',
-                    properties: {
-                        id: { type: 'string' },
-                        name: { type: 'string' },
-                        email: { type: 'string' },
-                        role: { type: 'string' }
-                    }
-                }
-            }
+            summary: "Obtém dados do usuário autenticado"
         });
     }
 }

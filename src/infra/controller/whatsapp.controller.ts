@@ -26,14 +26,14 @@ export class WhatsappController {
                 return reply.send(qr);
             } catch (error: any) {
                 return reply.code(error.status || 500).send({ 
-                    error: "Erro de Conexão", 
-                    message: "Não foi possível gerar o QR Code. Tente novamente mais tarde." 
+                    error: "Connection Error", 
+                    message: "Could not generate QR Code. Please try again later." 
                 });
             }
         }, {
             tags: ["WhatsApp"],
-            summary: "Gera um QR Code para conexão do WhatsApp",
-            description: "Cria ou recupera uma instância na Evolution API e retorna o QR Code em Base64 para pareamento."
+            summary: "Generates a QR Code for WhatsApp connection",
+            description: "Creates or retrieves an instance in the Evolution API and returns the Base64 QR Code for pairing."
         }, connectMiddlewares);
 
         this.fastify.addProtectedRoute("DELETE", "/whatsapp/disconnect", async (request, reply) => {
@@ -41,17 +41,17 @@ export class WhatsappController {
             
             try {
                 await this.disconnectUseCase.execute(userId);
-                return reply.send({ status: "success", message: "WhatsApp desconectado com sucesso." });
+                return reply.send({ status: "success", message: "WhatsApp disconnected successfully." });
             } catch (error: any) {
                 return reply.code(500).send({ 
-                    error: "Erro de Desconexão", 
-                    message: "Houve um erro ao tentar desconectar o WhatsApp." 
+                    error: "Disconnection Error", 
+                    message: "There was an error while trying to disconnect WhatsApp." 
                 });
             }
         }, {
             tags: ["WhatsApp"],
-            summary: "Remove a conexão do WhatsApp",
-            description: "Finaliza a sessão do WhatsApp e remove a instância vinculada ao usuário."
+            summary: "Removes WhatsApp connection",
+            description: "Ends the WhatsApp session and removes the instance linked to the user."
         }, this.adminMiddleware);
     }
 }

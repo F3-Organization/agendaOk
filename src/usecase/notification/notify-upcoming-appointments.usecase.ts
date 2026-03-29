@@ -50,7 +50,7 @@ export class NotifyUpcomingAppointmentsUseCase {
                 
                 try {
                     await this.evolutionService.sendText(config.whatsappInstanceName, phoneNumber, message);
-                    await this.scheduleRepository.updateNotified(appointment.id, true);
+                    await this.scheduleRepository.updateNotified(appointment.id, userId, true);
                 } catch (error) {
                     console.error(`[NotifyUseCase] Failed to send notification for appointment ${appointment.id}:`, error);
                 }

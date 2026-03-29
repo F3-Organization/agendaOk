@@ -22,12 +22,12 @@ export class AuthController {
             reply.redirect(url);
         }, {
             tags: ["Auth"],
-            summary: "Inicia o fluxo de autenticação com o Google",
-            description: "Redireciona o usuário para a página de consentimento do Google OAuth2.",
+            summary: "Starts the Google authentication flow",
+            description: "Redirects the user to the Google OAuth2 consent page.",
             response: {
                 302: {
                     type: 'object',
-                    description: 'Redirecionamento para o Google'
+                    description: 'Redirect to Google'
                 }
             }
         });
@@ -63,7 +63,7 @@ export class AuthController {
                 });
 
                 reply.send({
-                    message: "Autenticação concluída com sucesso!",
+                    message: "Authentication successful!",
                     token,
                     user: {
                         id: user.id,
@@ -75,14 +75,14 @@ export class AuthController {
             } catch (error: any) {
                 console.error("[AuthController] Authentication failed:", error);
                 reply.code(500).send({
-                    error: "Falha na autenticação",
+                    error: "Authentication failure",
                     message: error.message
                 });
             }
         }, {
             tags: ["Auth"],
-            summary: "Callback de autenticação do Google",
-            description: "Recebe o código do Google, cria/busca o usuário, salva os tokens e retorna um JWT para sessões futuras.",
+            summary: "Google authentication callback",
+            description: "Receives the code from Google, creates/finds the user, saves tokens, and returns a JWT for future sessions.",
             querystring: {
                 type: 'object',
                 required: ['code'],

@@ -3,6 +3,8 @@ import { CreateSubscriptionCheckoutUseCase } from "../../usecase/subscription/cr
 import { HandleAbacatePayWebhookUseCase } from "../../usecase/subscription/handle-abacate-webhook.usecase";
 import { SubscriptionRepository } from "../database/repositories/subscription.repository";
 import { SubscriptionStatus } from "../database/entities/subscription.entity";
+import { env } from "../config/configs";
+import { createHmac } from "crypto";
 
 export class SubscriptionController {
     constructor(
@@ -23,12 +25,12 @@ export class SubscriptionController {
                 reply.send(result);
             } catch (error: any) {
                 console.error("[SubscriptionController] Checkout failed:", error);
-                reply.code(500).send({ error: "Erro ao criar checkout", message: error.message });
+                reply.code(500).send({ error: "Checkout creation failed", message: error.message });
             }
         }, {
             tags: ["Subscription"],
-            summary: "Cria um link de pagamento para assinatura PRO",
-            description: "Registra o usuário no Abacate Pay e retorna uma URL para pagamento via PIX ou Cartão.",
+            summary: "Creates a payment link for PRO subscription",
+            description: "Registers the user in Abacate Pay and returns a payment URL for PIX or Credit Card.",
             response: {
                 200: {
                     type: 'object',
@@ -56,7 +58,7 @@ export class SubscriptionController {
             });
         }, {
             tags: ["Subscription"],
-            summary: "Obtém o status atual da assinatura do usuário",
+            summary: "Gets the current subscription status of the user",
             response: {
                 200: {
                     type: 'object',
@@ -72,19 +74,35 @@ export class SubscriptionController {
 
         // 3. Webhook do Abacate Pay (Público)
         this.fastify.addRoute("POST", "/webhook/abacatepay", async (request, reply) => {
-            // TODO: Adicionar validação de assinatura HMAC do Abacate Pay se disponível
+            const signature = request.headers["x-abacatepay-signature"] as string;
             const payload = request.body;
+            const rawBody = JSON.stringify(payload);
+
+            if (!signature && env.isProduction()) {
+                return reply.code(401).send({ error: "Missing signature" });
+            }
+
+            if (env.isProduction() || env.abacatePay.webhookSecret) {
+                const hmac = createHmac("sha256", env.abacatePay.webhookSecret);
+                const digest = hmac.update(rawBody).digest("hex");
+
+                if (signature !== digest) {
+                    console.error("[SubscriptionController] Invalid HMAC signature");
+                    return reply.code(401).send({ error: "Invalid signature" });
+                }
+            }
+
             try {
                 await this.handleWebhook.execute(payload);
                 reply.send({ status: "processed" });
             } catch (error: any) {
                 console.error("[SubscriptionController] Webhook processing failed:", error);
-                reply.code(500).send({ error: "Webhook processing error" });
+                reply.code(400).send({ error: "Webhook processing error" });
             }
         }, {
             tags: ["Webhook"],
-            summary: "Receptor de eventos do Abacate Pay",
-            description: "Endpoint público para notificações automáticas de pagamento e atualizações de cobrança.",
+            summary: "Abacate Pay event receiver",
+            description: "Public endpoint for automatic payment notifications and billing updates.",
             response: {
                 200: { type: 'object', properties: { status: { type: 'string' } } }
             }

@@ -20,6 +20,7 @@ export class HandleAbacatePayWebhookUseCase {
 
                 await this.subscriptionRepository.updateStatus(
                     subscription.id, 
+                    subscription.userId,
                     SubscriptionStatus.ACTIVE,
                     periodEnd
                 );

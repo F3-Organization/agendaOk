@@ -22,7 +22,7 @@ export class CancelAppointmentUseCase {
             
             if (extractedPhone === phoneNumber) {
                 // 1. Atualiza no Banco
-                await this.scheduleRepository.updateStatus(schedule.id, ScheduleStatus.CANCELLED);
+                await this.scheduleRepository.updateStatus(schedule.id, userId, ScheduleStatus.CANCELLED);
 
                 // 2. Tenta atualizar no Google
                 await this.updateGoogleEvent(userId, schedule.googleEventId, schedule.title);

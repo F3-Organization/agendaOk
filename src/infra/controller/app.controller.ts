@@ -10,21 +10,21 @@ export class AppController {
             reply.send({ status: 'ok', timestamp: new Date().toISOString() });
         }, {
             tags: ['System'],
-            summary: 'Verifica o status da API',
+            summary: 'Checks the API status',
             response: {
                 200: {
                     type: 'object',
-                    description: 'Estado atual do sistema',
+                    description: 'Current system state',
                     properties: {
                         status: { 
                             type: 'string', 
-                            description: 'Status operacional da API',
+                            description: 'API operational status',
                             example: 'ok' 
                         },
                         timestamp: { 
                             type: 'string', 
                             format: 'date-time', 
-                            description: 'Carimbo de data/hora atual no servidor',
+                            description: 'Current server timestamp',
                             example: '2026-03-28T22:00:00.000Z' 
                         }
                     }

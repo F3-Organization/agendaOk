@@ -17,14 +17,14 @@ export class CalendarController {
             const userId = (request.user as any).id;
             try {
                 await this.syncQueue.addSyncJob(userId);
-                reply.send({ message: "Sincronização agendada com sucesso!", userId });
+                reply.send({ message: "Synchronization scheduled successfully!", userId });
             } catch (error: any) {
-                reply.code(500).send({ error: "Erro ao agendar sincronização", message: error.message });
+                reply.code(500).send({ error: "Error scheduling synchronization", message: error.message });
             }
         }, {
             tags: ["Calendar"],
-            summary: "Sincroniza eventos do Google Calendar",
-            description: "Registra uma tarefa assíncrona para buscar os eventos mais recentes da conta Google do usuário. Requer Token JWT e Assinatura Ativa.",
+            summary: "Syncs Google Calendar events",
+            description: "Registers an asynchronous task to fetch the latest events from the user's Google account. Requires JWT Token and Active Subscription.",
             response: {
                 200: {
                     type: 'object',
@@ -40,14 +40,14 @@ export class CalendarController {
             const userId = (request.user as any).id;
             try {
                 await this.notifyQueue.addNotificationJob(userId);
-                reply.send({ message: "Varridura de notificações agendada!", userId });
+                reply.send({ message: "Notification scan scheduled!", userId });
             } catch (error: any) {
-                reply.code(500).send({ error: "Erro ao agendar notificações", message: error.message });
+                reply.code(500).send({ error: "Error scheduling notifications", message: error.message });
             }
         }, {
             tags: ["Calendar"],
-            summary: "Dispara envio de notificações WhatsApp",
-            description: "Aciona a verificação de eventos nas próximas 24 horas. Requer Token JWT e Assinatura Ativa.",
+            summary: "Triggers WhatsApp notification sending",
+            description: "Triggers the check for events in the next 24 hours. Requires JWT Token and Active Subscription.",
             response: {
                 200: {
                     type: 'object',

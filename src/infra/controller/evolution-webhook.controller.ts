@@ -32,65 +32,65 @@ export class EvolutionWebhookController {
             }
         }, {
             tags: ["Webhook"],
-            summary: "Recebe notificações da Evolution API",
-            description: "Endpoint principal para recebimento de webhooks vindos da Evolution API. Este canal é usado para sincronizar o status das mensagens e conexões do WhatsApp em tempo real.",
+            summary: "Receives notifications from the Evolution API",
+            description: "Main endpoint for receiving webhooks from the Evolution API. This channel is used to synchronize message status and WhatsApp connections in real-time.",
             body: {
                 type: 'object',
-                description: 'Payload do Webhook da Evolution API',
+                description: 'Evolution API Webhook Payload',
                 properties: {
                     event: { 
                         type: 'string', 
-                        description: 'Tipo do evento disparado pela Evolution API',
+                        description: 'Event type triggered by Evolution API',
                         enum: ['messages.upsert', 'messages.update', 'connection.update', 'qrcode.updated'],
                         example: 'messages.upsert' 
                     },
                     instance: { 
                         type: 'string', 
-                        description: 'Nome da instância que originou o evento',
+                        description: 'Name of the instance that originated the event',
                         example: 'MainInstance' 
                     },
                     data: { 
                         type: 'object', 
-                        description: 'Dados detalhados do evento',
+                        description: 'Detailed event data',
                         properties: {
                             key: {
                                 type: 'object',
                                 properties: {
-                                    remoteJid: { type: 'string', example: '5511999999999@s.whatsapp.net', description: 'ID do contato/grupo' },
-                                    fromMe: { type: 'boolean', example: false, description: 'Se a mensagem foi enviada pela própria instância' },
-                                    id: { type: 'string', example: 'ABC123XYZ', description: 'ID único da mensagem' }
+                                    remoteJid: { type: 'string', example: '5511999999999@s.whatsapp.net', description: 'Contact/group ID' },
+                                    fromMe: { type: 'boolean', example: false, description: 'If the message was sent by the instance itself' },
+                                    id: { type: 'string', example: 'ABC123XYZ', description: 'Unique message ID' }
                                 }
                             },
-                            pushName: { type: 'string', example: 'João Silva', nullable: true, description: 'Nome do contato no WhatsApp' },
-                            message: { type: 'object', additionalProperties: true, description: 'Conteúdo da mensagem (texto, imagem, etc)' }
+                            pushName: { type: 'string', example: 'John Doe', nullable: true, description: 'Contact name on WhatsApp' },
+                            message: { type: 'object', additionalProperties: true, description: 'Message content (text, image, etc)' }
                         },
                         additionalProperties: true
                     },
-                    destination: { type: 'string', description: 'URL de destino do webhook', example: 'http://api:3000/api/webhook/evolution' },
-                    date_time: { type: 'string', format: 'date-time', description: 'Data/hora do evento no formato ISO', example: '2026-03-28T22:00:00Z' },
-                    sender: { type: 'string', description: 'Número do remetente (JID)', example: '5511999999999@s.whatsapp.net' },
-                    server_url: { type: 'string', description: 'URL do servidor Evolution que disparou o evento', example: 'http://evolution:8080' },
-                    apikey: { type: 'string', description: 'Chave de API associada à instância', example: 'TEST_API_KEY' }
+                    destination: { type: 'string', description: 'Webhook destination URL', example: 'http://api:3000/api/webhook/evolution' },
+                    date_time: { type: 'string', format: 'date-time', description: 'ISO format event date/time', example: '2026-03-28T22:00:00Z' },
+                    sender: { type: 'string', description: 'Sender number (JID)', example: '5511999999999@s.whatsapp.net' },
+                    server_url: { type: 'string', description: 'URL of the Evolution server that triggered the event', example: 'http://evolution:8080' },
+                    apikey: { type: 'string', description: 'API key associated with the instance', example: 'TEST_API_KEY' }
                 },
                 required: ['event', 'instance', 'data']
             },
             response: {
                 200: {
                     type: 'object',
-                    description: 'Confirmação de recebimento',
+                    description: 'Receipt confirmation',
                     properties: {
                         status: { 
                             type: 'string', 
                             example: 'received',
-                            description: 'Informa que o payload foi aceito para processamento' 
+                            description: 'Indicates the payload was accepted for processing' 
                         }
                     }
                 },
                 500: {
                     type: 'object',
-                    description: 'Erro de processamento',
+                    description: 'Processing error',
                     properties: {
-                        error: { type: 'string', example: 'Webhook processing error', description: 'Mensagem de erro amigável' }
+                        error: { type: 'string', example: 'Webhook processing error', description: 'Friendly error message' }
                     }
                 }
             }

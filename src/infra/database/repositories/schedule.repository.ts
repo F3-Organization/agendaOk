@@ -33,11 +33,11 @@ export class ScheduleRepository implements IScheduleRepository {
         });
     }
 
-    async updateStatus(id: string, status: ScheduleStatus): Promise<void> {
-        await this.repository.update(id, { status });
+    async updateStatus(id: string, userId: string, status: ScheduleStatus): Promise<void> {
+        await this.repository.update({ id, userId }, { status });
     }
 
-    async updateNotified(id: string, isNotified: boolean): Promise<void> {
-        await this.repository.update(id, { isNotified });
+    async updateNotified(id: string, userId: string, isNotified: boolean): Promise<void> {
+        await this.repository.update({ id, userId }, { isNotified });
     }
 }

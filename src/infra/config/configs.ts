@@ -8,14 +8,14 @@ export const env = {
     port: parseInt(process.env.PORT || '3000'),
     domain: process.env.DOMAIN || 'localhost',
     jwt: {
-        secret: process.env.JWT_SECRET || 'dev-secret-change-in-production',
+        secret: process.env.JWT_SECRET!,
         expiresIn: process.env.JWT_EXPIRES_IN || '7d',
     },
     database: {
         host: process.env.DB_HOST || 'localhost',
         port: parseInt(process.env.DB_PORT || '5432'),
         user: process.env.DB_USER || 'postgres',
-        password: process.env.DB_PASSWORD || 'postgres',
+        password: process.env.DB_PASSWORD!,
         database: process.env.DB_NAME || 'agendaok',
     },
     redis: {
@@ -25,7 +25,7 @@ export const env = {
     },
     evolution: {
         apiUrl: process.env.EVOLUTION_API_URL || 'http://evolution-api:8080',
-        apiKey: process.env.EVO_API_KEY || 'secure_global_key',
+        apiKey: process.env.EVO_API_KEY!,
         serverUrl: process.env.EVO_SERVER_URL || 'http://localhost:8080',
     },
     google: {
@@ -36,7 +36,7 @@ export const env = {
     abacatePay: {
         token: process.env.ABACATE_PAY_TOKEN || '',
         baseUrl: process.env.ABACATE_PAY_URL || 'https://api.abacatepay.com/v1',
-        planName: process.env.PLAN_NAME || 'AgendaOk Pro',
+        planName: process.env.PLAN_NAME || 'ConfirmaZap Pro',
         planPrice: parseInt(process.env.PLAN_PRICE_CENTS || '4990'),
         webhookSecret: process.env.ABACATE_WEBHOOK_SECRET || '',
     }

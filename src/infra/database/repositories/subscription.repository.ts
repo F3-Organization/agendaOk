@@ -30,11 +30,11 @@ export class SubscriptionRepository {
         return await this.repository.findOne({ where: { abacateBillingId: billingId } });
     }
 
-    async updateStatus(id: string, status: SubscriptionStatus, periodEnd?: Date): Promise<void> {
+    async updateStatus(id: string, userId: string, status: SubscriptionStatus, periodEnd?: Date): Promise<void> {
         const updateData: any = { status };
         if (periodEnd) {
             updateData.currentPeriodEnd = periodEnd;
         }
-        await this.repository.update(id, updateData);
+        await this.repository.update({ id, userId }, updateData);
     }
 }

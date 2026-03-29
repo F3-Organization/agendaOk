@@ -22,7 +22,7 @@ export class ConfirmAppointmentUseCase {
             
             if (extractedPhone === phoneNumber) {
                 // 1. Atualiza no Banco
-                await this.scheduleRepository.updateStatus(schedule.id, ScheduleStatus.CONFIRMED);
+                await this.scheduleRepository.updateStatus(schedule.id, userId, ScheduleStatus.CONFIRMED);
 
                 // 2. Tenta atualizar no Google
                 await this.updateGoogleEvent(userId, schedule.googleEventId, schedule.title);

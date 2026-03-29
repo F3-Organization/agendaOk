@@ -78,10 +78,10 @@ services:
     ports:
       - '5173:5173'
     environment:
-      - VITE_API_URL=http://localhost:3000
+      - VITE_API_URL=http://localhost:3000/api
     volumes:
       - ./web:/app
-      - ./shared:/usr/src/shared
+      - ./shared:/shared
       - /app/node_modules
     depends_on:
       - api

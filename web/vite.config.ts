@@ -8,6 +8,16 @@ export default defineConfig({
   resolve: {
     alias: {
       '@shared': path.resolve(__dirname, '../shared'),
+      'zod': path.resolve(__dirname, 'node_modules/zod'),
+    },
+  },
+  server: {
+    fs: {
+      allow: [
+        '..', // parent (for /shared)
+        '/app', // frontend root
+        '/shared', // shared root
+      ],
     },
   },
 })

@@ -15,6 +15,19 @@ export const LoginResponseSchema = z.object({
 
 export const AuthMeResponseSchema = AuthUserSchema;
 
+export const LoginInputSchema = z.object({
+    email: z.string().email(),
+    password: z.string().min(6)
+});
+
+export const RegisterInputSchema = z.object({
+    name: z.string().min(2),
+    email: z.string().email(),
+    password: z.string().min(6)
+});
+
 export type AuthUser = z.infer<typeof AuthUserSchema>;
 export type LoginResponse = z.infer<typeof LoginResponseSchema>;
 export type AuthMeResponse = z.infer<typeof AuthMeResponseSchema>;
+export type LoginInput = z.infer<typeof LoginInputSchema>;
+export type RegisterInput = z.infer<typeof RegisterInputSchema>;

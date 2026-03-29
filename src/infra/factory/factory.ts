@@ -31,127 +31,127 @@ import { NotifyQueue } from "../queue/notify.queue";
 import { NotifyWorker } from "../queue/notify.worker";
 import { subscriptionMiddleware } from "../middleware/subscription.middleware";
 
+// Singletons (non-TypeORM dependent)
 const adapterInstance = new FastifyAdapter();
 const evolutionAdapter = new EvolutionApiAdapter();
 const googleCalendarAdapter = new GoogleCalendarAdapter();
 const abacatePayAdapter = new AbacatePayAdapter();
 
-const userRepository = new UserRepository();
-const clientRepository = new ClientRepository();
-const scheduleRepository = new ScheduleRepository();
-const userConfigRepository = new UserConfigRepository();
-const subscriptionRepository = new SubscriptionRepository();
+// Lazy Instances
+let userRepository: UserRepository;
+let clientRepository: ClientRepository;
+let scheduleRepository: ScheduleRepository;
+let userConfigRepository: UserConfigRepository;
+let subscriptionRepository: SubscriptionRepository;
 
-const generateGoogleAuthUrlUseCase = new GenerateGoogleAuthUrlUseCase(googleCalendarAdapter);
-const exchangeGoogleCodeUseCase = new ExchangeGoogleCodeUseCase(googleCalendarAdapter, userConfigRepository);
+let syncCalendarQueue: SyncCalendarQueue;
+let notifyQueue: NotifyQueue;
 
-const syncCalendarUseCase = new SyncCalendarUseCase(googleCalendarAdapter, scheduleRepository, userConfigRepository);
-const notifyUpcomingAppointmentsUseCase = new NotifyUpcomingAppointmentsUseCase(
-    scheduleRepository,
-    userConfigRepository,
-    clientRepository,
-    evolutionAdapter
-);
-const confirmAppointmentUseCase = new ConfirmAppointmentUseCase(
-    scheduleRepository,
-    userConfigRepository,
-    googleCalendarAdapter
-);
-const cancelAppointmentUseCase = new CancelAppointmentUseCase(
-    scheduleRepository,
-    userConfigRepository,
-    googleCalendarAdapter
-);
-const handleEvolutionWebhookUseCase = new HandleEvolutionWebhookUseCase(
-    userConfigRepository,
-    confirmAppointmentUseCase,
-    cancelAppointmentUseCase,
-    evolutionAdapter
-);
+const getRepo = {
+    user: () => userRepository || (userRepository = new UserRepository()),
+    client: () => clientRepository || (clientRepository = new ClientRepository()),
+    schedule: () => scheduleRepository || (scheduleRepository = new ScheduleRepository()),
+    userConfig: () => userConfigRepository || (userConfigRepository = new UserConfigRepository()),
+    subscription: () => subscriptionRepository || (subscriptionRepository = new SubscriptionRepository())
+};
 
-const createSubscriptionCheckoutUseCase = new CreateSubscriptionCheckoutUseCase(
-    userRepository,
-    subscriptionRepository,
-    userConfigRepository,
-    abacatePayAdapter
-);
-const handleAbacatePayWebhookUseCase = new HandleAbacatePayWebhookUseCase(
-    subscriptionRepository
-);
-
-const connectWhatsappUseCase = new ConnectWhatsappUseCase(
-    userConfigRepository,
-    evolutionAdapter
-);
-
-const disconnectWhatsappUseCase = new DisconnectWhatsappUseCase(
-    userConfigRepository,
-    evolutionAdapter
-);
-
-const syncCalendarQueue = new SyncCalendarQueue();
-const syncCalendarWorker = new SyncCalendarWorker(syncCalendarUseCase);
-const notifyQueue = new NotifyQueue();
-const notifyWorker = new NotifyWorker(notifyUpcomingAppointmentsUseCase, userConfigRepository);
-
-const subMiddleware = subscriptionMiddleware(subscriptionRepository);
-
-const repositories = {
-    user: () => userRepository,
-    client: () => clientRepository,
-    schedule: () => scheduleRepository,
-    userConfig: () => userConfigRepository,
-    subscription: () => subscriptionRepository
-}
-
-const adapters = {
-    fastify: () => adapterInstance,
-    evolution: () => evolutionAdapter,
-    google: () => googleCalendarAdapter,
-    abacate: () => abacatePayAdapter
-}
-
-const controllers = {
-    app: () => new AppController(adapterInstance),
-    auth: () => new AuthController(
-        adapterInstance,
-        generateGoogleAuthUrlUseCase,
-        exchangeGoogleCodeUseCase,
-        userRepository,
+const getUseCase = {
+    generateGoogleAuthUrl: () => new GenerateGoogleAuthUrlUseCase(googleCalendarAdapter),
+    exchangeGoogleCode: () => new ExchangeGoogleCodeUseCase(googleCalendarAdapter, getRepo.userConfig()),
+    syncCalendar: () => new SyncCalendarUseCase(googleCalendarAdapter, getRepo.schedule(), getRepo.userConfig()),
+    notifyUpcomingAppointments: () => new NotifyUpcomingAppointmentsUseCase(
+        getRepo.schedule(),
+        getRepo.userConfig(),
+        getRepo.client(),
+        evolutionAdapter
+    ),
+    confirmAppointment: () => new ConfirmAppointmentUseCase(
+        getRepo.schedule(),
+        getRepo.userConfig(),
         googleCalendarAdapter
     ),
-    calendar: () => new CalendarController(
-        adapterInstance,
-        syncCalendarQueue,
-        notifyQueue,
-        scheduleRepository,
-        subMiddleware
+    cancelAppointment: () => new CancelAppointmentUseCase(
+        getRepo.schedule(),
+        getRepo.userConfig(),
+        googleCalendarAdapter
     ),
-    webhook: () => new EvolutionWebhookController(
-        adapterInstance,
-        handleEvolutionWebhookUseCase
+    handleEvolutionWebhook: () => new HandleEvolutionWebhookUseCase(
+        getRepo.userConfig(),
+        getUseCase.confirmAppointment(),
+        getUseCase.cancelAppointment(),
+        evolutionAdapter
     ),
-    subscription: () => new SubscriptionController(
-        adapterInstance,
-        createSubscriptionCheckoutUseCase,
-        handleAbacatePayWebhookUseCase,
-        subscriptionRepository
+    createSubscriptionCheckout: () => new CreateSubscriptionCheckoutUseCase(
+        getRepo.user(),
+        getRepo.subscription(),
+        getRepo.userConfig(),
+        abacatePayAdapter
     ),
-    whatsapp: () => new WhatsappController(
-        adapterInstance,
-        connectWhatsappUseCase,
-        disconnectWhatsappUseCase,
-        subMiddleware,
-        adminMiddleware
+    handleAbacatePayWebhook: () => new HandleAbacatePayWebhookUseCase(
+        getRepo.subscription()
+    ),
+    connectWhatsapp: () => new ConnectWhatsappUseCase(
+        getRepo.userConfig(),
+        evolutionAdapter
+    ),
+    disconnectWhatsapp: () => new DisconnectWhatsappUseCase(
+        getRepo.userConfig(),
+        evolutionAdapter
     )
-}
+};
+
+const getMiddleware = {
+    subscription: () => subscriptionMiddleware(getRepo.subscription())
+};
 
 export const factory = {
-    adapters: adapters,
-    repositories: repositories,
-    controller: controllers,
+    adapters: {
+        fastify: () => adapterInstance,
+        evolution: () => evolutionAdapter,
+        google: () => googleCalendarAdapter,
+        abacate: () => abacatePayAdapter
+    },
+    repositories: getRepo,
+    controller: {
+        app: () => new AppController(adapterInstance),
+        auth: () => new AuthController(
+            adapterInstance,
+            getUseCase.generateGoogleAuthUrl(),
+            getUseCase.exchangeGoogleCode(),
+            getRepo.user(),
+            googleCalendarAdapter
+        ),
+        calendar: () => new CalendarController(
+            adapterInstance,
+            factory.queues.sync(),
+            factory.queues.notify(),
+            getRepo.schedule(),
+            getMiddleware.subscription()
+        ),
+        webhook: () => new EvolutionWebhookController(
+            adapterInstance,
+            getUseCase.handleEvolutionWebhook()
+        ),
+        subscription: () => new SubscriptionController(
+            adapterInstance,
+            getUseCase.createSubscriptionCheckout(),
+            getUseCase.handleAbacatePayWebhook(),
+            getRepo.subscription()
+        ),
+        whatsapp: () => new WhatsappController(
+            adapterInstance,
+            getUseCase.connectWhatsapp(),
+            getUseCase.disconnectWhatsapp(),
+            getMiddleware.subscription(),
+            adminMiddleware
+        )
+    },
     queues: {
-        sync: () => syncCalendarQueue,
-        notify: () => notifyQueue
+        sync: () => syncCalendarQueue || (syncCalendarQueue = new SyncCalendarQueue()),
+        notify: () => notifyQueue || (notifyQueue = new NotifyQueue())
+    },
+    workers: {
+        sync: () => new SyncCalendarWorker(getUseCase.syncCalendar()),
+        notify: () => new NotifyWorker(getUseCase.notifyUpcomingAppointments(), getRepo.userConfig())
     }
-}
+};

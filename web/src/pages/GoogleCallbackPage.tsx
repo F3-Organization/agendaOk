@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../features/auth/auth.store';
 import { authService } from '../features/auth/auth.service';
@@ -8,20 +8,28 @@ export const GoogleCallbackPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const setAuth = useAuthStore((state) => state.setAuth);
+  const isExchanging = useRef(false);
 
   useEffect(() => {
     const code = searchParams.get('code');
-    if (code) {
+    
+    if (code && !isExchanging.current) {
+      isExchanging.current = true;
+      console.log('[GoogleCallbackPage] Starting code exchange...', code.substring(0, 10) + '...');
+      
       authService.exchangeCode(code)
         .then((data) => {
+          console.log('[GoogleCallbackPage] Exchange successful');
           setAuth(data.user, data.token);
           navigate('/dashboard');
         })
         .catch((err) => {
-          console.error('Authentication failed', err);
+          console.error('[GoogleCallbackPage] Authentication failed', err);
+          // If exchange failed, reset to allow retry (though codes are single-use anyway)
+          isExchanging.current = false;
           navigate('/login');
         });
-    } else {
+    } else if (!code) {
       navigate('/login');
     }
   }, [searchParams, navigate, setAuth]);

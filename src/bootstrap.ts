@@ -3,29 +3,37 @@ import { factory } from "./infra/factory/factory";
 
 async function bootstrap() {
     try {
+        // 1. Initialize Database
         await AppDataSource.initialize();
-        console.log("Data Source has been initialized!");
+        console.log("[Bootstrap] Data Source has been initialized!");
 
-        // 1. Setup adapter (Swagger, etc.)
+        // 2. Setup API Adapter (Swagger, etc.)
         const adapter = factory.adapters.fastify();
         await adapter.setup();
+        console.log("[Bootstrap] Fastify Adapter setup complete.");
 
-        // 2. Initialize controllers (which register routes)
+        // 3. Initialize Controllers (Register Routes)
+        // Note: These must be called AFTER adapter.setup() to ensure decorations are ready
         factory.controller.app();
         factory.controller.auth();
         factory.controller.calendar();
         factory.controller.webhook();
         factory.controller.subscription();
         factory.controller.whatsapp();
+        console.log("[Bootstrap] Controllers and routes registered.");
 
-        // Start workers
-        factory.queues.sync();
-        factory.queues.notify();
+        // 4. Start Background Workers
+        // We call the worker factory methods to instantiate the bullmq workers
+        factory.workers.sync();
+        factory.workers.notify();
+        console.log("[Bootstrap] Background workers started.");
 
-        // Start the server
+        // 5. Start the server
         adapter.listen();
+        console.log("[Bootstrap] Server is listening...");
+
     } catch (err) {
-        console.error("Error during Data Source initialization", err);
+        console.error("[Bootstrap] Critical error during initialization:", err);
         process.exit(1);
     }
 }

@@ -77,7 +77,11 @@ export const LoginPage = () => {
               </div>
             </div>
 
-            <Button className="w-full h-12 text-sm font-bold tracking-wide uppercase" size="lg">
+            <Button 
+              className="w-full h-12 text-sm font-bold tracking-wide uppercase" 
+              size="lg"
+              onClick={() => window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/auth/google`}
+            >
               {t('common.signIn')}
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>

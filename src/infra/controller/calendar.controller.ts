@@ -7,6 +7,7 @@ export class CalendarController {
         private readonly fastify: FastifyAdapter,
         private readonly syncQueue: SyncCalendarQueue,
         private readonly notifyQueue: NotifyQueue,
+        private readonly scheduleRepo: any,
         private readonly subMiddleware?: any
     ) {
         this.registerRoutes();
@@ -54,6 +55,37 @@ export class CalendarController {
                     properties: {
                         message: { type: 'string' },
                         userId: { type: 'string', format: 'uuid' }
+                    }
+                }
+            }
+        }, this.subMiddleware);
+
+        this.fastify.addProtectedRoute("GET", "/calendar/appointments", async (request, reply) => {
+            const userId = (request.user as any).id;
+            try {
+                const appointments = await this.scheduleRepo.findByUserId(userId);
+                reply.send(appointments);
+            } catch (error: any) {
+                reply.code(500).send({ error: "Error fetching appointments", message: error.message });
+            }
+        }, {
+            tags: ["Calendar"],
+            summary: "Lists user appointments",
+            description: "Returns all schedules/appointments synchronized from Google Calendar for the authenticated user.",
+            response: {
+                200: {
+                    type: 'array',
+                    items: {
+                        type: 'object',
+                        properties: {
+                            id: { type: 'string' },
+                            title: { type: 'string' },
+                            status: { type: 'string' },
+                            startAt: { type: 'string', format: 'date-time' },
+                            endAt: { type: 'string', format: 'date-time' },
+                            clientName: { type: 'string' },
+                            clientPhone: { type: 'string' }
+                        }
                     }
                 }
             }

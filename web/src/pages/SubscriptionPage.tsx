@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { 
   Check, 
   ArrowRight, 
@@ -8,32 +9,48 @@ import {
   Download,
   Zap,
   Star,
-  ShieldEllipsis
+  ShieldEllipsis,
+  Loader2
 } from 'lucide-react';
 import { PageLayout } from '../shared/ui/PageLayout';
 import { Card } from '../shared/ui/Card';
 import { Button } from '../shared/ui/Button';
+import { subscriptionService } from '../features/subscription/subscription.service';
 
 export const SubscriptionPage = () => {
   const { t } = useTranslation();
 
+  const { data: subStatus, isLoading } = useQuery({
+    queryKey: ['subscription-status'],
+    queryFn: subscriptionService.getStatus,
+  });
+
+  const checkoutMutation = useMutation({
+    mutationFn: subscriptionService.createCheckout,
+    onSuccess: (data) => {
+      window.open(data.url, '_blank');
+    },
+  });
+
   const plans = [
     {
+      id: 'FREE',
       name: t('subscription.plans.standard.name'),
-      price: '$49',
+      price: '$0',
       description: t('subscription.plans.standard.description'),
       features: [
-        `500 ${t('subscription.features.monthlyConfirmations')}`,
+        `100 ${t('subscription.features.monthlyConfirmations')}`,
         `1 ${t('subscription.features.whatsappDevices')}`,
         t('subscription.features.support'),
         t('subscription.features.reporting')
       ],
-      current: false,
-      cta: t('common.connect')
+      current: subStatus?.plan === 'FREE' || !subStatus,
+      cta: subStatus?.plan === 'FREE' ? t('common.currentPlan') : t('common.connect')
     },
     {
+      id: 'PRO',
       name: t('subscription.plans.pro.name'),
-      price: '$129',
+      price: '$49',
       description: t('subscription.plans.pro.description'),
       features: [
         t('subscription.features.unlimitedConfirmations'),
@@ -42,12 +59,13 @@ export const SubscriptionPage = () => {
         t('subscription.features.apiAccess'),
         t('subscription.features.branding')
       ],
-      current: true,
-      cta: t('common.currentPlan')
+      current: subStatus?.plan === 'PRO',
+      cta: subStatus?.plan === 'PRO' ? t('common.currentPlan') : t('common.connect')
     },
     {
+      id: 'ENTERPRISE',
       name: t('subscription.plans.enterprise.name'),
-      price: t('subscription.plans.enterprise.name') === 'Enterprise' ? 'Custom' : 'Sob medida',
+      price: 'Custom',
       description: t('subscription.plans.enterprise.description'),
       features: [
         t('subscription.features.unlimitedConfirmations'),
@@ -55,16 +73,26 @@ export const SubscriptionPage = () => {
         t('subscription.features.onPremise'),
         t('subscription.features.hipaa')
       ],
-      current: false,
+      current: subStatus?.plan === 'ENTERPRISE',
       cta: t('common.contactSales')
     }
   ];
 
   const history = [
-    { id: 'INV-4921', date: 'Oct 01, 2023', amount: '$129.00', status: t('subscription.billing.paid') },
-    { id: 'INV-3810', date: 'Sep 01, 2023', amount: '$129.00', status: t('subscription.billing.paid') },
-    { id: 'INV-2291', date: 'Aug 01, 2023', amount: '$129.00', status: t('subscription.billing.paid') },
+    { id: 'INV-4921', date: 'Oct 01, 2023', amount: '$49.00', status: t('subscription.billing.paid') },
+    { id: 'INV-3810', date: 'Sep 01, 2023', amount: '$49.00', status: t('subscription.billing.paid') },
   ];
+
+  if (isLoading) {
+    return (
+      <PageLayout title={t('subscription.title')} subtitle={t('subscription.subtitle')}>
+        <div className="h-[60vh] flex flex-col items-center justify-center gap-4">
+          <Loader2 className="w-12 h-12 animate-spin text-primary" />
+          <p className="text-muted-foreground font-medium">Fetching billing info...</p>
+        </div>
+      </PageLayout>
+    );
+  }
 
   return (
     <PageLayout 
@@ -88,7 +116,7 @@ export const SubscriptionPage = () => {
             <div className="mb-10">
               <h3 className="text-2xl font-bold tracking-tight mb-2 flex items-center gap-2">
                 {plan.name}
-                {plan.name === t('subscription.plans.enterprise.name') && <ShieldEllipsis className="w-5 h-5 text-muted-foreground" />}
+                {plan.id === 'ENTERPRISE' && <ShieldEllipsis className="w-5 h-5 text-muted-foreground" />}
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 {plan.description}
@@ -97,7 +125,7 @@ export const SubscriptionPage = () => {
 
             <div className="mb-10 flex items-baseline gap-1">
               <span className="text-5xl font-extrabold tracking-tighter">{plan.price}</span>
-              {(plan.price !== 'Custom' && plan.price !== 'Sob medida') && <span className="text-muted-foreground font-semibold">/mo</span>}
+              {(plan.price !== 'Custom') && <span className="text-muted-foreground font-semibold">/mo</span>}
             </div>
 
             <div className="space-y-4 mb-12 flex-1">
@@ -114,8 +142,10 @@ export const SubscriptionPage = () => {
             <Button 
               variant={plan.current ? 'primary' : 'secondary'} 
               className={`w-full py-4 text-xs font-bold tracking-widest uppercase transition-all ${plan.current ? 'shadow-xl shadow-primary-dim/30' : ''}`}
-              disabled={plan.current}
+              disabled={plan.current || checkoutMutation.isPending}
+              onClick={() => plan.id === 'PRO' && checkoutMutation.mutate()}
             >
+              {checkoutMutation.isPending && plan.id === 'PRO' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               {plan.cta}
               {!plan.current && <ArrowRight className="w-3 h-3 ml-2 group-hover:translate-x-1 transition-transform" />}
             </Button>

@@ -1,17 +1,43 @@
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   RefreshCw, 
   ShieldCheck, 
   HelpCircle, 
   ChevronRight,
-  Zap
+  Loader2,
+  XCircle,
+  CheckCircle2
 } from 'lucide-react';
 import { PageLayout } from '../shared/ui/PageLayout';
 import { Card } from '../shared/ui/Card';
 import { Button } from '../shared/ui/Button';
+import { whatsappService, type WhatsAppQR } from '../features/whatsapp/whatsapp.service';
 
 export const WhatsAppPage = () => {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const [qrData, setQrData] = useState<WhatsAppQR | null>(null);
+
+  const connectMutation = useMutation({
+    mutationFn: whatsappService.connect,
+    onSuccess: (data) => {
+      setQrData(data);
+    },
+  });
+
+  const disconnectMutation = useMutation({
+    mutationFn: whatsappService.disconnect,
+    onSuccess: () => {
+      setQrData(null);
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-status'] });
+    },
+  });
+
+  useEffect(() => {
+    connectMutation.mutate();
+  }, []);
 
   return (
     <PageLayout 
@@ -24,7 +50,7 @@ export const WhatsAppPage = () => {
           <div className="space-y-8">
             <h2 className="text-3xl font-bold tracking-tight mb-8">{t('whatsapp.stepsTitle')}</h2>
             <div className="space-y-6">
-              {(t('whatsapp.steps', { returnObjects: true }) as string[]).map((step, i) => (
+              {(t('whatsapp.steps', { returnObjects: true }) as string[]).map((step: string, i: number) => (
                 <div key={i} className="flex gap-6 group">
                   <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-surface-low border border-outline-variant/50 flex items-center justify-center font-bold text-primary group-hover:border-primary/40 transition-colors">
                     {i + 1}
@@ -64,44 +90,79 @@ export const WhatsAppPage = () => {
             <div className="absolute inset-0 bg-radial-gradient from-primary/5 to-transparent blur-3xl rounded-full scale-150 -z-10" />
             
             <div className="w-full aspect-square bg-white p-6 rounded-2xl shadow-2xl shadow-black mb-10 flex items-center justify-center relative group">
-              {/* Simulated QR Code with Lucide-Style Blocks */}
-              <div className="w-full h-full border-4 border-slate-900 rounded-lg flex flex-col items-center justify-center p-2 opacity-90 group-hover:opacity-100 transition-opacity">
-                <div className="grid grid-cols-4 grid-rows-4 gap-2 w-full h-full p-2">
-                   {[...Array(16)].map((_, i) => (
-                     <div key={i} className={`rounded-sm bg-slate-900 ${i % 3 === 0 ? 'opacity-100' : 'opacity-20 '}`} />
-                   ))}
+              {connectMutation.isPending ? (
+                <div className="flex flex-col items-center gap-4 text-slate-900">
+                  <Loader2 className="w-12 h-12 animate-spin text-primary" />
+                  <span className="text-xs font-bold uppercase tracking-widest">Generating QR...</span>
                 </div>
-                {/* Center Logo Overlay */}
-                <div className="absolute bg-white p-2 rounded-xl shadow-lg border border-slate-100">
-                  <Zap className="w-8 h-8 text-primary fill-current" />
+              ) : qrData?.qrcode?.base64 ? (
+                <div className="w-full h-full relative">
+                  <img 
+                    src={qrData.qrcode.base64} 
+                    alt="WhatsApp QR Code" 
+                    className="w-full h-full object-contain"
+                  />
+                  {/* Expiration Overlay */}
+                  <div 
+                    className="absolute inset-0 bg-white/60 backdrop-blur-[2px] rounded-2xl flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all cursor-pointer text-slate-900"
+                    onClick={() => connectMutation.mutate()}
+                  >
+                    <RefreshCw className="w-10 h-10 animate-spin-slow mb-4" />
+                    <span className="text-xs font-bold tracking-widest uppercase">{t('whatsapp.clickToRefresh')}</span>
+                  </div>
                 </div>
-              </div>
-              
-              {/* Expiration Overlay (Fake) */}
-              <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] rounded-2xl flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all pointer-events-none text-slate-900">
-                <RefreshCw className="w-10 h-10 animate-spin-slow mb-4" />
-                <span className="text-xs font-bold tracking-widest uppercase">{t('whatsapp.clickToRefresh')}</span>
-              </div>
+              ) : connectMutation.isError ? (
+                <div className="flex flex-col items-center gap-4 text-red-500">
+                  <XCircle className="w-12 h-12" />
+                  <span className="text-xs font-bold uppercase tracking-widest">Failed to load QR</span>
+                  <Button variant="ghost" size="sm" onClick={() => connectMutation.mutate()}>Retry</Button>
+                </div>
+              ) : (
+                 <div className="flex flex-col items-center gap-4 text-green-500">
+                  <CheckCircle2 className="w-12 h-12" />
+                  <span className="text-xs font-bold uppercase tracking-widest">Connected</span>
+                  <Button variant="ghost" size="sm" onClick={() => disconnectMutation.mutate()} className="text-red-400 hover:text-red-500">Disconnect</Button>
+                </div>
+              )}
             </div>
 
             <div className="space-y-4 w-full">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center justify-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                {t('whatsapp.waitingScan')}
-              </p>
-              <h3 className="text-xl font-bold tracking-tight">{t('whatsapp.expiresIn')} <span className="text-primary-dim">45s</span></h3>
-              <p className="text-sm text-muted-foreground leading-relaxed max-w-[200px] mx-auto">
-                {t('whatsapp.cantScan')}{' '}
-                <span className="text-primary cursor-pointer hover:underline font-bold">{t('whatsapp.mobileAppLink')}</span>{' '}
-                {t('whatsapp.instead')}
-              </p>
-              
-              <div className="pt-6">
-                 <Button variant="secondary" className="w-full h-12 gap-2 text-xs font-bold tracking-widest uppercase group">
-                    <RefreshCw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
-                    {t('whatsapp.regenerate')}
-                 </Button>
-              </div>
+              {!qrData?.qrcode?.base64 && !connectMutation.isPending && !connectMutation.isError ? (
+                 <div className="pt-6">
+                    <Button 
+                      variant="primary" 
+                      className="w-full h-12 gap-2 text-xs font-bold tracking-widest uppercase"
+                      onClick={() => connectMutation.mutate()}
+                    >
+                      Connect WhatsApp
+                    </Button>
+                 </div>
+              ) : (
+                <>
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center justify-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                    {t('whatsapp.waitingScan')}
+                  </p>
+                  <h3 className="text-xl font-bold tracking-tight">{t('whatsapp.expiresIn')} <span className="text-primary-dim">45s</span></h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed max-w-[200px] mx-auto">
+                    {t('whatsapp.cantScan')}{' '}
+                    <span className="text-primary cursor-pointer hover:underline font-bold">{t('whatsapp.mobileAppLink')}</span>{' '}
+                    {t('whatsapp.instead')}
+                  </p>
+                  
+                  <div className="pt-6">
+                    <Button 
+                      variant="secondary" 
+                      className="w-full h-12 gap-2 text-xs font-bold tracking-widest uppercase group"
+                      onClick={() => connectMutation.mutate()}
+                      disabled={connectMutation.isPending}
+                    >
+                      {connectMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />}
+                      {t('whatsapp.regenerate')}
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
           </Card>
         </div>

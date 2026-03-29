@@ -124,6 +124,7 @@ const controllers = {
         adapterInstance,
         syncCalendarQueue,
         notifyQueue,
+        scheduleRepository,
         subMiddleware
     ),
     webhook: () => new EvolutionWebhookController(

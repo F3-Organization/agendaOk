@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   ArrowUpRight, 
   CheckCircle2, 
@@ -7,26 +8,35 @@ import {
   MoreVertical,
   CalendarDays,
   User,
-  Phone
+  Phone,
+  Loader2,
+  RefreshCw
 } from 'lucide-react';
 import { PageLayout } from '../shared/ui/PageLayout';
 import { Card } from '../shared/ui/Card';
 import { Button } from '../shared/ui/Button';
+import { calendarService, type Appointment } from '../features/calendar/calendar.service';
 
 export const DashboardPage = () => {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
+
+  const { data: appointments, isLoading, isError } = useQuery({
+    queryKey: ['appointments'],
+    queryFn: calendarService.getAppointments,
+  });
+
+  const syncMutation = useMutation({
+    mutationFn: calendarService.sync,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+    },
+  });
 
   const stats = [
-    { label: t('dashboard.stats.confirmations'), value: '1,284', icon: CheckCircle2, change: '+12.5%', color: 'text-green-400' },
+    { label: t('dashboard.stats.confirmations'), value: appointments?.length.toString() || '0', icon: CheckCircle2, change: '+12.5%', color: 'text-green-400' },
     { label: t('dashboard.stats.deliveryRate'), value: '98.2%', icon: ArrowUpRight, change: '+0.5%', color: 'text-primary' },
     { label: t('dashboard.stats.replies'), value: '412', icon: MessageCircle, change: '+8.2%', color: 'text-secondary' },
-  ];
-
-  const appointments = [
-    { name: 'Alexander Low', phone: '+1 (555) 012-3456', date: 'Oct 24, 2023', time: '09:30 AM', status: t('common.confirmed') },
-    { name: 'Sarah Miller', phone: '+1 (555) 987-6543', date: 'Oct 24, 2023', time: '11:15 AM', status: t('common.pending') },
-    { name: 'David Wright', phone: '+1 (555) 234-5678', date: 'Oct 25, 2023', time: '02:00 PM', status: t('common.confirmed') },
-    { name: 'Emma Wilson', phone: '+1 (555) 345-6789', date: 'Oct 25, 2023', time: '04:30 PM', status: t('common.cancelled') },
   ];
 
   return (
@@ -66,59 +76,82 @@ export const DashboardPage = () => {
           </div>
 
           <div className="overflow-x-auto no-scrollbar">
-            <table className="w-full text-left border-collapse">
-              <thead className="bg-surface-high/50 border-b border-outline-variant/20">
-                <tr>
-                  <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('dashboard.table.patient')}</th>
-                  <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('dashboard.table.schedule')}</th>
-                  <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('dashboard.table.status')}</th>
-                  <th className="px-8 py-4 text-right"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-outline-variant/10">
-                {appointments.map((apt, i) => (
-                  <tr key={i} className="group hover:bg-surface-high/30 transition-all cursor-pointer">
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-full bg-surface-low flex items-center justify-center border border-outline-variant/50">
-                          <User className="w-5 h-5 text-muted-foreground" />
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="font-bold text-sm group-hover:text-primary transition-colors">{apt.name}</span>
-                          <span className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5 scale-90 translate-x-[-5%]">
-                            <Phone className="w-3 h-3" />
-                            {apt.phone}
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-8 py-6">
-                      <div className="flex flex-col">
-                        <span className="text-sm font-semibold">{apt.date}</span>
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
-                          <Clock className="w-3 h-3" />
-                          {apt.time}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-8 py-6">
-                      <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wide border
-                        ${apt.status === t('common.confirmed') ? 'bg-green-500/10 border-green-500/20 text-green-400' : 
-                          apt.status === t('common.pending') ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-500' : 
-                          'bg-red-500/10 border-red-500/20 text-red-400'}`}>
-                        <div className={`w-1.5 h-1.5 rounded-full ${apt.status === t('common.confirmed') ? 'bg-green-400' : apt.status === t('common.pending') ? 'bg-yellow-500' : 'bg-red-400'}`} />
-                        {apt.status}
-                      </div>
-                    </td>
-                    <td className="px-8 py-6 text-right">
-                      <button className="p-2 rounded-lg hover:bg-surface-high transition-colors text-muted-foreground">
-                        <MoreVertical className="w-4 h-4" />
-                      </button>
-                    </td>
+            {isLoading ? (
+              <div className="p-20 flex flex-col items-center justify-center text-muted-foreground gap-4">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <p className="text-sm font-medium">Loading your schedule...</p>
+              </div>
+            ) : isError ? (
+              <div className="p-20 flex flex-col items-center justify-center text-red-400 gap-4">
+                <p className="text-sm font-medium">Failed to load appointments.</p>
+                <Button variant="ghost" size="sm" onClick={() => queryClient.invalidateQueries({ queryKey: ['appointments'] })}>
+                  Try Again
+                </Button>
+              </div>
+            ) : (
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-surface-high/50 border-b border-outline-variant/20">
+                  <tr>
+                    <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('dashboard.table.patient')}</th>
+                    <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('dashboard.table.schedule')}</th>
+                    <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('dashboard.table.status')}</th>
+                    <th className="px-8 py-4 text-right"></th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-outline-variant/10">
+                  {appointments?.map((apt: Appointment) => (
+                    <tr key={apt.id} className="group hover:bg-surface-high/30 transition-all cursor-pointer">
+                      <td className="px-8 py-6">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-full bg-surface-low flex items-center justify-center border border-outline-variant/50">
+                            <User className="w-5 h-5 text-muted-foreground" />
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="font-bold text-sm group-hover:text-primary transition-colors">{apt.clientName || apt.title}</span>
+                            <span className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5 scale-90 translate-x-[-5%]">
+                              <Phone className="w-3 h-3" />
+                              {apt.clientPhone || 'No phone'}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-semibold">
+                            {new Date(apt.startAt).toLocaleDateString()}
+                          </span>
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
+                            <Clock className="w-3 h-3" />
+                            {new Date(apt.startAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wide border
+                          ${apt.status === 'CONFIRMED' ? 'bg-green-500/10 border-green-500/20 text-green-400' : 
+                            apt.status === 'PENDING' ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-500' : 
+                            'bg-red-500/10 border-red-500/20 text-red-400'}`}>
+                          <div className={`w-1.5 h-1.5 rounded-full ${apt.status === 'CONFIRMED' ? 'bg-green-400' : apt.status === 'PENDING' ? 'bg-yellow-500' : 'bg-red-400'}`} />
+                          {t(`common.${apt.status.toLowerCase()}`)}
+                        </div>
+                      </td>
+                      <td className="px-8 py-6 text-right">
+                        <button className="p-2 rounded-lg hover:bg-surface-high transition-colors text-muted-foreground">
+                          <MoreVertical className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {(appointments?.length === 0 || !appointments) && !isLoading && (
+                    <tr>
+                      <td colSpan={4} className="px-8 py-20 text-center text-muted-foreground text-sm italic">
+                        No appointments found. Sync your calendar to start.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
         </Card>
 
@@ -135,7 +168,14 @@ export const DashboardPage = () => {
               <p className="text-sm text-foreground/80 leading-relaxed mb-8">
                 {t('dashboard.syncCalendar.description')}
               </p>
-              <Button className="w-full text-xs font-bold tracking-widest uppercase py-3 group-hover:scale-[1.02] transition-transform">
+              <Button 
+                className="w-full text-xs font-bold tracking-widest uppercase py-3 group-hover:scale-[1.02] transition-transform"
+                onClick={() => syncMutation.mutate()}
+                disabled={syncMutation.isPending}
+              >
+                {syncMutation.isPending ? (
+                  <RefreshCw className="w-4 h-4 animate-spin mr-2" />
+                ) : null}
                 {t('dashboard.syncCalendar.button')}
               </Button>
             </div>

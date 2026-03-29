@@ -115,9 +115,11 @@ export class FastifyAdapter {
         path: string,
         handler: (request: FastifyRequest, reply: FastifyReply) => void, schema?: any
     ) {
+        const url = `/api${path}`;
+        console.log(`[FastifyAdapter] Registering route: ${method} ${url}`);
         this.app.route({
             method: method,
-            url: `/api${path}`,
+            url: url,
             handler: handler,
             schema: schema
         });
@@ -130,6 +132,8 @@ export class FastifyAdapter {
         schema?: any,
         preHandler?: any
     ) {
+        const url = `/api${path}`;
+        console.log(`[FastifyAdapter] Registering protected route: ${method} ${url}`);
         const preHandlers = [this.app.authenticate];
         if (preHandler) {
             if (Array.isArray(preHandler)) {
@@ -141,7 +145,7 @@ export class FastifyAdapter {
 
         this.app.route({
             method: method,
-            url: `/api${path}`,
+            url: url,
             handler: handler,
             schema: {
                 ...schema,

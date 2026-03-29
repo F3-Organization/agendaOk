@@ -10,6 +10,7 @@ export class CalendarController {
         private readonly scheduleRepo: any,
         private readonly subMiddleware?: any
     ) {
+        console.log("[CalendarController] Initializing and registering routes...");
         this.registerRoutes();
     }
 

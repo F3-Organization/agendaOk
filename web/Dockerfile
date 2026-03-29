@@ -1,6 +1,6 @@
 # Stage Dev: Para desenvolvimento rápido via Compose
 FROM node:20-alpine AS dev
-WORKDIR /usr/src/app
+WORKDIR /app
 
 # No Monorepo, o contexto de build é a raiz. Copiamos o que é necessário.
 COPY web/package*.json ./
@@ -15,7 +15,7 @@ CMD ["npm", "run", "dev", "--", "--host"]
 
 # Stage 1: Build para produção
 FROM node:20-alpine AS build
-WORKDIR /usr/src/app
+WORKDIR /app
 
 COPY web/package*.json ./
 RUN npm install

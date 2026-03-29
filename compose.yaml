@@ -80,9 +80,9 @@ services:
     environment:
       - VITE_API_URL=http://localhost:3000
     volumes:
-      - ./web:/usr/src/app
+      - ./web:/app
       - ./shared:/usr/src/shared
-      - /usr/src/app/node_modules
+      - /app/node_modules
     depends_on:
       - api
 

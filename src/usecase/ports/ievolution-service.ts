@@ -26,4 +26,6 @@ export interface IEvolutionService {
     setWebhook(instanceName: string, url: string): Promise<void>;
     logoutInstance(instanceName: string): Promise<void>;
     deleteInstance(instanceName: string): Promise<void>;
+    health(): Promise<boolean>;
 }
+

@@ -75,8 +75,17 @@ const getRepo = {
     subscription: () => subscriptionRepository || (subscriptionRepository = new SubscriptionRepository())
 };
 
+import { GetHealthStatusUseCase } from "../../usecase/system/get-health-status.usecase";
+import { AppDataSource } from "../config/data-source";
+
 const getUseCase = {
+    getHealthStatus: () => new GetHealthStatusUseCase(
+        AppDataSource,
+        redisService,
+        evolutionAdapter
+    ),
     generateGoogleAuthUrl: () => new GenerateGoogleAuthUrlUseCase(googleCalendarAdapter),
+
     exchangeGoogleCode: () => new ExchangeGoogleCodeUseCase(googleCalendarAdapter, getRepo.userConfig()),
     syncCalendar: () => new SyncCalendarUseCase(googleCalendarAdapter, getRepo.schedule(), getRepo.userConfig()),
     notifyUpcomingAppointments: () => new NotifyUpcomingAppointmentsUseCase(
@@ -166,8 +175,12 @@ export const factory = {
     },
     repositories: getRepo,
     controller: {
-        app: () => new AppController(adapterInstance),
+        app: () => new AppController(
+            adapterInstance,
+            getUseCase.getHealthStatus()
+        ),
         auth: () => new AuthController(
+
             adapterInstance,
             getUseCase.generateGoogleAuthUrl(),
             getUseCase.authenticateGoogle(),

@@ -23,4 +23,14 @@ export class RedisService {
     async del(key: string): Promise<void> {
         await this.client.del(key);
     }
+
+    async health(): Promise<boolean> {
+        try {
+            const res = await this.client.ping();
+            return res === "PONG";
+        } catch (error) {
+            return false;
+        }
+    }
 }
+

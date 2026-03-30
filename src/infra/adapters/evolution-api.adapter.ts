@@ -116,4 +116,15 @@ export class EvolutionApiAdapter implements IEvolutionService {
     async deleteInstance(instanceName: string): Promise<void> {
         await this.request(`/instance/delete/${instanceName}`, "DELETE");
     }
+
+    async health(): Promise<boolean> {
+        try {
+            // A basic check to see if the server responds
+            await this.request("/instance/fetchInstances", "GET");
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
 }
+

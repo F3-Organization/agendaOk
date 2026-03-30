@@ -96,12 +96,7 @@ export const LoginPage = () => {
             {t('login.heroDescription')}
           </p>
 
-          <footer className="flex items-center gap-8 mt-12 opacity-40 grayscale transition-all hover:grayscale-0 hover:opacity-100">
-             <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-pulse-gradient" />
-                <span className="text-xs font-bold tracking-widest uppercase">{t('login.trustedBy')}</span>
-             </div>
-          </footer>
+
         </div>
       </div>
 

@@ -47,8 +47,8 @@ export const pt = {
   login: {
     heroTitle: 'Automatize seus agendamentos sem esforço.',
     heroSubtitle: 'A camada de curadoria premium para a comunicação do seu negócio. Experimente agendamentos sem atrito com fluxos automatizados de confirmação pelo WhatsApp.',
-    trustedBy: 'CONFIADO POR MAIS DE 500 CLÍNICAS',
-    v2Live: 'V 2.0 ESTÁ NO AR',
+    trustedBy: '',
+    v2Live: 'ESTA É UMA VERSÃO BETA',
     limitedAccess: 'BETA DE ACESSO LIMITADO',
     automateWhatsApp: 'Automatize o',
     engagement: 'Engajamento',

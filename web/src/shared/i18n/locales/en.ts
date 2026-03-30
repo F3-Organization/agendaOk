@@ -47,8 +47,8 @@ export const en = {
   login: {
     heroTitle: 'Automate your appointments effortlessly.',
     heroSubtitle: 'The premium curation layer for your business communication. Experience zero-friction scheduling with automated WhatsApp confirmation flows.',
-    trustedBy: 'TRUSTED BY 500+ CLINICS',
-    v2Live: 'V 2.0 IS LIVE',
+    trustedBy: '',
+    v2Live: 'THIS IS A BETA VERSION',
     limitedAccess: 'LIMITED ACCESS BETA',
     automateWhatsApp: 'Automate',
     engagement: 'Engagement',

@@ -1,9 +1,9 @@
 import { z } from "zod";
 
 export const AuthUserSchema = z.object({
-    id: z.string().uuid(),
+    id: z.uuid(),
     name: z.string(),
-    email: z.string().email(),
+    email: z.email(),
     role: z.enum(["ADMIN", "USER"])
 });
 
@@ -22,12 +22,12 @@ export const LoginInputSchema = z.object({
 
 export const RegisterInputSchema = z.object({
     name: z.string().min(2),
-    email: z.string().email(),
+    email: z.email(),
     password: z.string().min(6)
 });
 
 export const VerifyRegistrationInputSchema = z.object({
-    email: z.string().email(),
+    email: z.email(),
     code: z.string().length(6),
     password: z.string().min(6)
 });

@@ -26,8 +26,16 @@ export const RegisterInputSchema = z.object({
     password: z.string().min(6)
 });
 
+export const VerifyRegistrationInputSchema = z.object({
+    email: z.string().email(),
+    code: z.string().length(6),
+    password: z.string().min(6)
+});
+
 export type AuthUser = z.infer<typeof AuthUserSchema>;
 export type LoginResponse = z.infer<typeof LoginResponseSchema>;
 export type AuthMeResponse = z.infer<typeof AuthMeResponseSchema>;
 export type LoginInput = z.infer<typeof LoginInputSchema>;
 export type RegisterInput = z.infer<typeof RegisterInputSchema>;
+export type VerifyRegistrationInput = z.infer<typeof VerifyRegistrationInputSchema>;
+

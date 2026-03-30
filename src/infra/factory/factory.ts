@@ -30,12 +30,20 @@ import { SyncCalendarWorker } from "../queue/sync-calendar.worker";
 import { NotifyQueue } from "../queue/notify.queue";
 import { NotifyWorker } from "../queue/notify.worker";
 import { subscriptionMiddleware } from "../middleware/subscription.middleware";
+import { NodemailerAdapter } from "../adapters/nodemailer.adapter";
+import { RedisService } from "../database/redis.service";
+import { SendEmailVerificationUseCase } from "../../usecase/auth/send-email-verification.usecase";
+import { VerifyEmailSetPasswordUseCase } from "../../usecase/auth/verify-email-set-password.usecase";
+
 
 // Singletons (non-TypeORM dependent)
 const adapterInstance = new FastifyAdapter();
 const evolutionAdapter = new EvolutionApiAdapter();
 const googleCalendarAdapter = new GoogleCalendarAdapter();
 const abacatePayAdapter = new AbacatePayAdapter();
+const mailAdapter = new NodemailerAdapter();
+const redisService = new RedisService();
+
 
 // Lazy Instances
 let userRepository: UserRepository;
@@ -97,8 +105,17 @@ const getUseCase = {
     disconnectWhatsapp: () => new DisconnectWhatsappUseCase(
         getRepo.userConfig(),
         evolutionAdapter
+    ),
+    sendEmailVerification: () => new SendEmailVerificationUseCase(
+        mailAdapter,
+        redisService
+    ),
+    verifyEmailSetPassword: () => new VerifyEmailSetPasswordUseCase(
+        getRepo.user(),
+        redisService
     )
 };
+
 
 const getMiddleware = {
     subscription: () => subscriptionMiddleware(getRepo.subscription())
@@ -119,8 +136,11 @@ export const factory = {
             getUseCase.generateGoogleAuthUrl(),
             getUseCase.exchangeGoogleCode(),
             getRepo.user(),
-            googleCalendarAdapter
+            googleCalendarAdapter,
+            getUseCase.sendEmailVerification(),
+            getUseCase.verifyEmailSetPassword()
         ),
+
         calendar: () => new CalendarController(
             adapterInstance,
             factory.queues.sync(),

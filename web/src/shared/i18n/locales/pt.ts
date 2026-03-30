@@ -34,7 +34,16 @@ export const pt = {
     loginFailed: 'Falha no login. Verifique suas credenciais.',
     joinConfirmaZap: 'Junte-se ao ConfirmaZap para automatizar seus agendamentos.',
     createAccount: 'Criar Conta',
+    verifyEmail: 'Verifique seu E-mail',
+    verificationCode: 'Código de Verificação',
+    verificationCodeSent: 'Enviamos um código de 6 dígitos para',
+    verifyAndComplete: 'Verificar e Completar',
+    didntReceiveCode: 'Não recebeu o código?',
+    backToLogin: 'Voltar ao login',
+    verificationFailed: 'Falha na verificação. Por favor, verifique o código.',
+    newPassword: 'Nova Senha',
   },
+
   login: {
     heroTitle: 'Automatize seus agendamentos sem esforço.',
     heroSubtitle: 'A camada de curadoria premium para a comunicação do seu negócio. Experimente agendamentos sem atrito com fluxos automatizados de confirmação pelo WhatsApp.',

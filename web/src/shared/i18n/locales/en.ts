@@ -34,7 +34,16 @@ export const en = {
     loginFailed: 'Login failed. Please check your credentials.',
     joinConfirmaZap: 'Join ConfirmaZap to automate your appointments.',
     createAccount: 'Create Account',
+    verifyEmail: 'Verify Your Email',
+    verificationCode: 'Verification Code',
+    verificationCodeSent: "We've sent a 6-digit code to",
+    verifyAndComplete: 'Verify and Complete',
+    didntReceiveCode: "Didn't receive the code?",
+    backToLogin: 'Back to login',
+    verificationFailed: 'Verification failed. Please check the code.',
+    newPassword: 'New Password',
   },
+
   login: {
     heroTitle: 'Automate your appointments effortlessly.',
     heroSubtitle: 'The premium curation layer for your business communication. Experience zero-friction scheduling with automated WhatsApp confirmation flows.',

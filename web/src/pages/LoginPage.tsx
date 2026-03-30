@@ -54,6 +54,12 @@ export const LoginPage = () => {
     setError(null);
     try {
       const response = await authService.register(data);
+      
+      if (response.status === 'PENDING_VERIFICATION') {
+        navigate('/auth/verify', { state: { email: data.email } });
+        return;
+      }
+
       setAuth(response.user, response.token);
       navigate('/dashboard');
     } catch (err: any) {
@@ -62,6 +68,7 @@ export const LoginPage = () => {
       setIsLoading(false);
     }
   };
+
 
   const handleGoogleLogin = () => {
     window.location.href = authService.getAuthUrl().url;

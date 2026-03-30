@@ -5,6 +5,7 @@ import { DashboardPage } from '../pages/DashboardPage';
 import { WhatsAppPage } from '../pages/WhatsAppPage';
 import { SubscriptionPage } from '../pages/SubscriptionPage';
 import { GoogleCallbackPage } from '../pages/GoogleCallbackPage';
+import { EmailVerificationPage } from '../pages/EmailVerificationPage';
 
 export const AppRouter = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -12,7 +13,9 @@ export const AppRouter = () => {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/auth/verify" element={<EmailVerificationPage />} />
       <Route path="/auth/google/callback" element={<GoogleCallbackPage />} />
+
       
       {/* Protected Routes */}
       <Route 

@@ -39,5 +39,12 @@ export const env = {
         planName: process.env.PLAN_NAME || 'ConfirmaZap Pro',
         planPrice: parseInt(process.env.PLAN_PRICE_CENTS || '4990'),
         webhookSecret: process.env.ABACATE_WEBHOOK_SECRET || '',
+    },
+    smtp: {
+        host: process.env.SMTP_HOST || 'localhost',
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        user: process.env.SMTP_USER || '',
+        pass: process.env.SMTP_PASS || '',
+        from: process.env.SMTP_FROM || 'no-reply@agendaok.com.br',
     }
 }

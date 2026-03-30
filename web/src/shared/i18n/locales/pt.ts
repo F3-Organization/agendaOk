@@ -79,6 +79,21 @@ export const pt = {
     loadingSchedule: 'Carregando sua agenda...',
     failedToLoad: 'Falha ao carregar agendamentos.',
     noAppointments: 'Nenhum agendamento encontrado. Sincronize seu calendário para começar.',
+    appointmentDetails: {
+      title: 'Detalhes do Agendamento',
+      clientName: 'Nome do Cliente',
+      clientPhone: 'Telefone do Cliente',
+      startAt: 'Data e Hora de Início',
+      endAt: 'Data e Hora de Término',
+      participants: 'Participantes',
+      status: {
+        accepted: 'Aceitou',
+        declined: 'Recusou',
+        tentative: 'Talvez',
+        needsAction: 'Pendente'
+      },
+      close: 'Fechar'
+    },
     newAppointment: {
       button: 'Novo Agendamento',
       title: 'Agendar Horário',

@@ -58,6 +58,7 @@ export class SyncCalendarUseCase {
                 existing.description = event.description;
                 existing.startAt = startAt;
                 existing.endAt = endAt;
+                existing.attendees = event.attendees || [];
                 await this.scheduleRepository.save(existing);
                 continue;
             }
@@ -68,6 +69,7 @@ export class SyncCalendarUseCase {
             schedule.description = event.description;
             schedule.startAt = startAt;
             schedule.endAt = endAt;
+            schedule.attendees = event.attendees || [];
             schedule.status = ScheduleStatus.PENDING;
             schedule.userId = userId;
 

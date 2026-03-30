@@ -116,7 +116,18 @@ export class CalendarController {
                             startAt: { type: "string", format: "date-time" },
                             endAt: { type: "string", format: "date-time" },
                             clientName: { type: "string" },
-                            clientPhone: { type: "string" }
+                            clientPhone: { type: "string" },
+                            attendees: {
+                                type: "array",
+                                items: {
+                                    type: "object",
+                                    properties: {
+                                        email: { type: "string" },
+                                        displayName: { type: "string" },
+                                        responseStatus: { type: "string" }
+                                    }
+                                }
+                            }
                         }
                     }
                 },

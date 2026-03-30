@@ -79,6 +79,21 @@ export const en = {
     loadingSchedule: 'Loading your schedule...',
     failedToLoad: 'Failed to load appointments.',
     noAppointments: 'No appointments found. Sync your calendar to start.',
+    appointmentDetails: {
+      title: 'Appointment Details',
+      clientName: 'Client Name',
+      clientPhone: 'Client Phone',
+      startAt: 'Start Time',
+      endAt: 'End Time',
+      participants: 'Attendees',
+      status: {
+        accepted: 'Accepted',
+        declined: 'Declined',
+        tentative: 'Maybe',
+        needsAction: 'Pending'
+      },
+      close: 'Close'
+    },
     newAppointment: {
       button: 'New Appointment',
       title: 'Schedule Appointment',

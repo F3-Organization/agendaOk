@@ -22,6 +22,9 @@ export class Schedule {
     @Column({ type: "text", nullable: true })
     description?: string;
 
+    @Column({ type: "jsonb", nullable: true })
+    attendees?: any[];
+
     @Column({ name: "start_at" })
     startAt!: Date;
 

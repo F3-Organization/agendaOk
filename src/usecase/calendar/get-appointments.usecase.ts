@@ -4,7 +4,7 @@ import { Schedule } from "../../infra/database/entities/schedule.entity";
 export class GetAppointmentsUseCase {
     constructor(private readonly scheduleRepo: IScheduleRepository) {}
 
-    async execute(userId: string): Promise<(Schedule & { clientName: string; clientPhone: string })[]> {
+    async execute(userId: string): Promise<(Schedule & { clientName: string; clientPhone: string; attendees: any[] })[]> {
         const schedules = await this.scheduleRepo.findByUserId(userId);
         
         return schedules.map(schedule => {
@@ -22,7 +22,8 @@ export class GetAppointmentsUseCase {
             return {
                 ...schedule,
                 clientName,
-                clientPhone
+                clientPhone,
+                attendees: schedule.attendees || []
             };
         });
     }

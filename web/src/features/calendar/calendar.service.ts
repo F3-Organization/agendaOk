@@ -6,8 +6,13 @@ export interface Appointment {
   status: 'PENDING' | 'CONFIRMED' | 'CANCELLED';
   startAt: string;
   endAt: string;
-  clientName: string;
-  clientPhone: string;
+  clientName?: string;
+  clientPhone?: string;
+  attendees?: Array<{
+    email: string;
+    displayName?: string;
+    responseStatus?: string;
+  }>;
 }
 
 export interface CreateAppointmentDto {

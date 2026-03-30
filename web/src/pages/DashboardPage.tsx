@@ -20,6 +20,7 @@ import { Button } from '../shared/ui/Button';
 import { calendarService, type Appointment } from '../features/calendar/calendar.service';
 import { dashboardService } from '../features/dashboard/dashboard.service';
 import { NewAppointmentModal } from '../features/calendar/components/NewAppointmentModal';
+import { AppointmentDetailsModal } from '../features/calendar/components/AppointmentDetailsModal';
 import { Plus } from 'lucide-react';
 
 
@@ -28,6 +29,7 @@ export const DashboardPage = () => {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [detailsAppointment, setDetailsAppointment] = useState<Appointment | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const { data: appointments, isLoading, isError } = useQuery({
@@ -164,7 +166,11 @@ export const DashboardPage = () => {
                 </thead>
                 <tbody className="divide-y divide-outline-variant/10">
                   {appointments?.map((apt: Appointment) => (
-                    <tr key={apt.id} className="group hover:bg-surface-high/30 transition-all cursor-pointer">
+                    <tr 
+                      key={apt.id} 
+                      className="group hover:bg-surface-high/30 transition-all cursor-pointer"
+                      onClick={() => setDetailsAppointment(apt)}
+                    >
                       <td className="px-8 py-6">
                         <div className="flex items-center gap-4">
                           <div className="w-10 h-10 rounded-full bg-surface-low flex items-center justify-center border border-outline-variant/50">
@@ -283,6 +289,12 @@ export const DashboardPage = () => {
           setSelectedAppointment(null);
         }} 
         initialData={selectedAppointment}
+      />
+
+      <AppointmentDetailsModal
+        isOpen={!!detailsAppointment}
+        onClose={() => setDetailsAppointment(null)}
+        appointment={detailsAppointment}
       />
 
       {deleteId && (

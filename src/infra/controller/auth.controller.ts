@@ -111,8 +111,28 @@ export class AuthController {
             });
         }, {
             tags: ["Auth"],
-            summary: "Obtém dados do usuário autenticado"
+            summary: "Obtém dados do usuário autenticado",
+            description: "Retorna o perfil do usuário logado baseado no token JWT.",
+            response: {
+                200: {
+                    type: "object",
+                    properties: {
+                        id: { type: "string", format: "uuid" },
+                        name: { type: "string" },
+                        email: { type: "string" },
+                        role: { type: "string" }
+                    }
+                },
+                401: {
+                    type: "object",
+                    properties: {
+                        error: { type: "string" },
+                        message: { type: "string" }
+                    }
+                }
+            }
         });
+
 
         this.fastify.addRoute("POST", "/auth/register", async (request: FastifyRequest, reply: FastifyReply) => {
             const parseResult = RegisterInputSchema.safeParse(request.body);
@@ -154,8 +174,45 @@ export class AuthController {
             }
         }, {
             tags: ["Auth"],
-            summary: "Registers a new user or starts verification for existing Google users"
+            summary: "Registers a new user or starts verification for existing Google users",
+            description: "Creates a new account. If user exists but only has Google login, sends a verification code to set password.",
+            body: {
+                type: "object",
+                required: ["name", "email", "password"],
+                properties: {
+                    name: { type: "string" },
+                    email: { type: "string", format: "email" },
+                    password: { type: "string", minLength: 6 }
+                }
+            },
+            response: {
+                200: {
+                    type: "object",
+                    properties: {
+                        message: { type: "string" },
+                        token: { type: "string" },
+                        user: {
+                            type: "object",
+                            properties: {
+                                id: { type: "string" },
+                                name: { type: "string" },
+                                email: { type: "string" },
+                                role: { type: "string" }
+                            }
+                        },
+                        status: { type: "string" }
+                    }
+                },
+                400: {
+                    type: "object",
+                    properties: {
+                        error: { type: "string" },
+                        message: { type: "string" }
+                    }
+                }
+            }
         });
+
 
         this.fastify.addRoute("POST", "/auth/register/verify", async (request: FastifyRequest, reply: FastifyReply) => {
             const parseResult = VerifyRegistrationInputSchema.safeParse(request.body);
@@ -185,8 +242,44 @@ export class AuthController {
             }
         }, {
             tags: ["Auth"],
-            summary: "Verifies email and sets password for existing Google users"
+            summary: "Verifies email and sets password for existing Google users",
+            description: "Finalizes password setup for Google-authenticated users who want to add email/password login.",
+            body: {
+                type: "object",
+                required: ["email", "code", "password"],
+                properties: {
+                    email: { type: "string", format: "email" },
+                    code: { type: "string" },
+                    password: { type: "string" }
+                }
+            },
+            response: {
+                200: {
+                    type: "object",
+                    properties: {
+                        message: { type: "string" },
+                        token: { type: "string" },
+                        user: {
+                            type: "object",
+                            properties: {
+                                id: { type: "string" },
+                                name: { type: "string" },
+                                email: { type: "string" },
+                                role: { type: "string" }
+                            }
+                        }
+                    }
+                },
+                400: {
+                    type: "object",
+                    properties: {
+                        error: { type: "string" },
+                        message: { type: "string" }
+                    }
+                }
+            }
         });
+
 
         this.fastify.addRoute("POST", "/auth/login", async (request: FastifyRequest, reply: FastifyReply) => {
             const parseResult = LoginInputSchema.safeParse(request.body);
@@ -216,7 +309,41 @@ export class AuthController {
             }
         }, {
             tags: ["Auth"],
-            summary: "Logins a user with email and password"
+            summary: "Logins a user with email and password",
+            description: "Authenticates the user and returns a JWT access token.",
+            body: {
+                type: "object",
+                required: ["email", "password"],
+                properties: {
+                    email: { type: "string", format: "email" },
+                    password: { type: "string" }
+                }
+            },
+            response: {
+                200: {
+                    type: "object",
+                    properties: {
+                        message: { type: "string" },
+                        token: { type: "string" },
+                        user: {
+                            type: "object",
+                            properties: {
+                                id: { type: "string" },
+                                name: { type: "string" },
+                                email: { type: "string" },
+                                role: { type: "string" }
+                            }
+                        }
+                    }
+                },
+                401: {
+                    type: "object",
+                    properties: {
+                        error: { type: "string" }
+                    }
+                }
+            }
         });
+
     }
 }

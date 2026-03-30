@@ -42,8 +42,16 @@ export class SubscriptionController {
                     properties: {
                         url: { type: "string" }
                     }
+                },
+                500: {
+                    type: "object",
+                    properties: {
+                        error: { type: "string" },
+                        message: { type: "string" }
+                    }
                 }
             }
+
         });
 
         // 2. Ver Status da Assinatura
@@ -65,13 +73,20 @@ export class SubscriptionController {
                 200: {
                     type: "object",
                     properties: {
-                        status: { type: "string" },
+                        status: { type: "string", enum: ["active", "inactive", "pending"] },
                         plan: { type: "string" },
                         currentPeriodEnd: { type: "string", format: "date-time" },
                         checkoutUrl: { type: "string" }
                     }
+                },
+                500: {
+                    type: "object",
+                    properties: {
+                        error: { type: "string" }
+                    }
                 }
             }
+
         });
 
         // 3. Webhook do Abacate Pay (Público)
@@ -118,12 +133,31 @@ export class SubscriptionController {
             tags: ["Webhook"],
             summary: "Abacate Pay event receiver",
             description: "Public endpoint for automatic payment notifications and billing updates.",
+            body: {
+                type: "object",
+                required: ["event", "data"],
+                properties: {
+                    event: { type: "string" },
+                    data: { 
+                        type: "object",
+                        required: ["id"],
+                        properties: {
+                            id: { type: "string" }
+                        }
+                    }
+                }
+            },
             response: {
                 200: { 
                     type: "object", 
                     properties: { status: { type: "string" } } 
+                },
+                401: {
+                    type: "object",
+                    properties: { error: { type: "string" } }
                 }
             }
+
         });
     }
 }

@@ -45,12 +45,24 @@ export class EvolutionWebhookController {
             tags: ["Webhook"],
             summary: "Receives notifications from the Evolution API",
             description: "Main endpoint for receiving webhooks from the Evolution API.",
+            body: {
+                type: "object",
+                required: ["event", "instance"],
+                properties: {
+                    event: { type: "string" },
+                    instance: { type: "string" },
+                    data: { type: "object" },
+                    sender: { type: "string" },
+                    apikey: { type: "string" }
+                }
+            },
             response: {
                 200: {
                     type: "object",
                     properties: { status: { type: "string" } }
                 }
             }
+
         });
     }
 }

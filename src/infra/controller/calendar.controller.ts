@@ -34,13 +34,21 @@ export class CalendarController {
             description: "Registers an asynchronous task to fetch the latest events from the user's Google account. Requires JWT Token and Active Subscription.",
             response: {
                 200: {
-                    type: 'object',
+                    type: "object",
                     properties: {
-                        message: { type: 'string' },
-                        userId: { type: 'string', format: 'uuid' }
+                        message: { type: "string" },
+                        userId: { type: "string", format: "uuid" }
+                    }
+                },
+                500: {
+                    type: "object",
+                    properties: {
+                        error: { type: "string" },
+                        message: { type: "string" }
                     }
                 }
             }
+
         }, this.subMiddleware);
 
         this.fastify.addProtectedRoute("POST", "/calendar/notify", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -59,13 +67,21 @@ export class CalendarController {
             description: "Triggers the check for events in the next 24 hours. Requires JWT Token and Active Subscription.",
             response: {
                 200: {
-                    type: 'object',
+                    type: "object",
                     properties: {
-                        message: { type: 'string' },
-                        userId: { type: 'string', format: 'uuid' }
+                        message: { type: "string" },
+                        userId: { type: "string", format: "uuid" }
+                    }
+                },
+                500: {
+                    type: "object",
+                    properties: {
+                        error: { type: "string" },
+                        message: { type: "string" }
                     }
                 }
             }
+
         }, this.subMiddleware);
 
         this.fastify.addProtectedRoute("GET", "/calendar/appointments", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -84,21 +100,29 @@ export class CalendarController {
             description: "Returns all schedules/appointments synchronized from Google Calendar for the authenticated user.",
             response: {
                 200: {
-                    type: 'array',
+                    type: "array",
                     items: {
-                        type: 'object',
+                        type: "object",
                         properties: {
-                            id: { type: 'string' },
-                            title: { type: 'string' },
-                            status: { type: 'string' },
-                            startAt: { type: 'string', format: 'date-time' },
-                            endAt: { type: 'string', format: 'date-time' },
-                            clientName: { type: 'string' },
-                            clientPhone: { type: 'string' }
+                            id: { type: "string" },
+                            title: { type: "string" },
+                            status: { type: "string" },
+                            startAt: { type: "string", format: "date-time" },
+                            endAt: { type: "string", format: "date-time" },
+                            clientName: { type: "string" },
+                            clientPhone: { type: "string" }
                         }
+                    }
+                },
+                500: {
+                    type: "object",
+                    properties: {
+                        error: { type: "string" },
+                        message: { type: "string" }
                     }
                 }
             }
+
         }, this.subMiddleware);
     }
 }

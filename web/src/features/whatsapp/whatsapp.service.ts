@@ -1,10 +1,9 @@
 import { apiClient } from '../../shared/api/api-client';
 
 export interface WhatsAppQR {
-  qrcode: {
-    base64: string;
-  };
   instance: string;
+  base64: string;
+  code: string;
 }
 
 export const whatsappService = {

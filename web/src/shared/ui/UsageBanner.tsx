@@ -12,9 +12,11 @@ export const UsageBanner = ({ plan, count }: UsageBannerProps) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  if (plan !== 'FREE' || count < 40) return null;
+  const safeCount = Number(count) || 0;
 
-  const isLimitReached = count >= 50;
+  if (plan !== 'FREE' || safeCount < 40) return null;
+
+  const isLimitReached = safeCount >= 50;
 
   return (
     <div className={`transition-all duration-500 border-b backdrop-blur-md sticky top-0 z-[100] ${
@@ -33,9 +35,9 @@ export const UsageBanner = ({ plan, count }: UsageBannerProps) => {
             <p className="text-sm font-bold tracking-tight leading-tight">
               {isLimitReached 
                 ? t('subscription.usage.limitReachedTitle') 
-                : t('subscription.usage.limitWarningTitle', { count: 50 - count })}
+                : t('subscription.usage.limitWarningTitle', { count: 50 - safeCount })}
             </p>
-            <p className="text-[10px] opacity-70 font-medium tracking-tight">
+            <p className="text-[10px] opacity-70 font-medium tracking-tight whitespace-nowrap">
               {isLimitReached 
                 ? t('subscription.usage.limitReachedDesc') 
                 : t('subscription.usage.limitWarningDesc')}

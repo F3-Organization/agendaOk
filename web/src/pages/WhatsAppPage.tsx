@@ -95,11 +95,11 @@ export const WhatsAppPage = () => {
                   <Loader2 className="w-12 h-12 animate-spin text-primary" />
                   <span className="text-xs font-bold uppercase tracking-widest text-[#0F172A]">{t('whatsapp.generatingQR')}</span>
                 </div>
-              ) : qrData?.qrcode?.base64 ? (
+              ) : qrData?.base64 ? (
                 <div className="w-full h-full relative">
                   <img 
-                    src={qrData.qrcode.base64} 
-                    alt="WhatsApp QR Code" 
+                    src={qrData.base64} 
+                    alt={t('whatsapp.qrCodeAlt')}
                     className="w-full h-full object-contain"
                   />
                   {/* Expiration Overlay */}
@@ -127,7 +127,7 @@ export const WhatsAppPage = () => {
             </div>
 
             <div className="space-y-4 w-full">
-              {!qrData?.qrcode?.base64 && !connectMutation.isPending && !connectMutation.isError ? (
+              {!qrData?.base64 && !connectMutation.isPending && !connectMutation.isError ? (
                  <div className="pt-6">
                     <Button 
                       variant="primary" 

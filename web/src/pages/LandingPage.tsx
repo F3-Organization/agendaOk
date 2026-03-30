@@ -1,9 +1,15 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Zap, Check, ArrowRight, Calendar, MessageSquare, BarChart3, ShieldCheck, ZapOff, Layers, Sparkles } from 'lucide-react';
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 import { Button } from '../shared/ui/Button';
 import { Card } from '../shared/ui/Card';
 import { useAuthStore } from '../features/auth/auth.store';
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 const HeroVisual = () => (
   <div className="relative w-full max-w-xl mx-auto aspect-square flex items-center justify-center scale-75 md:scale-100">
@@ -48,7 +54,7 @@ const HeroVisual = () => (
 );
 
 export const LandingPage = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
@@ -87,6 +93,28 @@ export const LandingPage = () => {
           </div>
 
           <div className="flex items-center gap-4">
+            {/* Language Switcher */}
+            <div className="flex items-center bg-surface-high/50 rounded-lg p-1 border border-outline-variant/30 mr-2">
+              <button 
+                onClick={() => i18n.changeLanguage('pt')} 
+                className={cn(
+                  "px-2 py-1 rounded text-[10px] font-bold uppercase transition-all",
+                  i18n.language === 'pt' ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                PT
+              </button>
+              <button 
+                onClick={() => i18n.changeLanguage('en')} 
+                className={cn(
+                  "px-2 py-1 rounded text-[10px] font-bold uppercase transition-all",
+                  i18n.language === 'en' ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                EN
+              </button>
+            </div>
+
             {isAuthenticated ? (
               <Button onClick={() => navigate('/dashboard')} variant="secondary" size="sm" className="font-bold tracking-widest uppercase text-[10px]">
                 {t('common.dashboard')}

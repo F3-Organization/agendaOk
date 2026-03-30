@@ -52,7 +52,7 @@ export const en = {
     limitedAccess: 'LIMITED ACCESS BETA',
     automateWhatsApp: 'Automate',
     engagement: 'Engagement',
-    heroDescription: 'The ultimate tool for medical clinics and service providers to automate confirmation messages and reduce no-shows.',
+    heroDescription: 'The ultimate tool for service providers and independent professionals to automate confirmation messages and reduce no-shows.',
   },
   dashboard: {
     title: 'Overview',
@@ -109,7 +109,7 @@ export const en = {
     plans: {
       standard: {
         name: 'Standard',
-        description: 'Perfect for local clinics and small businesses',
+        description: 'Perfect for professionals and small businesses',
       },
       pro: {
         name: 'Pro',
@@ -117,7 +117,7 @@ export const en = {
       },
       enterprise: {
         name: 'Enterprise',
-        description: 'Scalable solutions for large healthcare networks',
+        description: 'Scalable solutions for large-scale operations',
         customPrice: 'Custom',
       }
     },

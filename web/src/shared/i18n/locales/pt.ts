@@ -52,7 +52,7 @@ export const pt = {
     limitedAccess: 'BETA DE ACESSO LIMITADO',
     automateWhatsApp: 'Automatize o',
     engagement: 'Engajamento',
-    heroDescription: 'A ferramenta definitiva para clínicas médicas e prestadores de serviços automatizarem mensagens de confirmação e reduzirem faltas.',
+    heroDescription: 'A ferramenta definitiva para profissionais liberais e prestadores de serviços automatizarem mensagens de confirmação e reduzirem faltas.',
   },
   dashboard: {
     title: 'Visão Geral',
@@ -109,7 +109,7 @@ export const pt = {
     plans: {
       standard: {
         name: 'Padrão',
-        description: 'Perfeito para clínicas locais e pequenas empresas',
+        description: 'Perfeito para profissionais liberais e pequenas empresas',
       },
       pro: {
         name: 'Profissional',
@@ -117,7 +117,7 @@ export const pt = {
       },
       enterprise: {
         name: 'Enterprise',
-        description: 'Soluções escaláveis para grandes redes de saúde',
+        description: 'Soluções escaláveis para grandes redes e operações',
         customPrice: 'Personalizado',
       }
     },

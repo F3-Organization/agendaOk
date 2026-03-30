@@ -95,8 +95,7 @@ export const SubscriptionPage = () => {
       features: [
         t('subscription.features.unlimitedConfirmations'),
         t('subscription.features.dedicatedManager'),
-        t('subscription.features.onPremise'),
-        t('subscription.features.hipaa')
+        t('subscription.features.onPremise')
       ],
       current: subStatus?.plan === 'ENTERPRISE',
       cta: t('common.contactSales')

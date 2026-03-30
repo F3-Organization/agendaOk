@@ -20,6 +20,10 @@ O sistema deve tentar encontrar o telefone do cliente final em duas etapas (Fall
 - **Checkout Lock:** Um usuário com assinatura ativa (`status = ACTIVE`) não pode gerar novos checkouts de assinatura. Ele deve ser redirecionado para o dashboard.
 - **Requisitos de Cadastro:** Para iniciar o checkout, o Profissional DEVE preencher obrigatoriamente seu `taxId` (CPF/CNPJ) e `whatsappNumber` nas configurações (`UserConfig`). O Use Case deve bloquear a criação de checkout se estes dados forem nulos.
 - **Status da Assinatura:** O sistema gerencia através de Webhooks o status `ACTIVE` e `INACTIVE`. Assinaturas `INACTIVE` bloqueiam recursos premium (ex: sincronização automática).
+- **Rastreamento de Histórico (SubscriptionPayment):** 
+    - Toda tentativa de checkout (`create-checkout`) deve gerar um registro `PENDING` no histórico.
+    - O Registro de histórico deve armazenar o valor exato no momento da cobrança (`amount`) proveniente das configurações de sistema (`.env`).
+    - O Webhook de `billing.paid` deve conciliar o ID da cobrança (`billingId`) para marcar o registro histórico como `PAID` e registrar a data exata do pagamento (`paidAt`).
 
 ## 5. Status e Conciliação (Google Calendar Sync)
 Quando o cliente responde no WhatsApp:

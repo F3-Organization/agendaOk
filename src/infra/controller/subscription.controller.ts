@@ -3,6 +3,7 @@ import { FastifyAdapter } from "../adapters/fastfy.adapter";
 import { CreateSubscriptionCheckoutUseCase } from "../../usecase/subscription/create-checkout.usecase";
 import { HandleAbacatePayWebhookUseCase } from "../../usecase/subscription/handle-abacate-webhook.usecase";
 import { GetSubscriptionStatusUseCase } from "../../usecase/subscription/get-subscription-status.usecase";
+import { GetSubscriptionPaymentHistoryUseCase } from "../../usecase/subscription/get-payment-history.usecase";
 import { AuthUserPayload } from "../types/auth.types";
 import { env } from "../config/configs";
 import { createHmac } from "crypto";
@@ -13,7 +14,8 @@ export class SubscriptionController {
         private readonly fastify: FastifyAdapter,
         private readonly createCheckout: CreateSubscriptionCheckoutUseCase,
         private readonly handleWebhook: HandleAbacatePayWebhookUseCase,
-        private readonly getStatus: GetSubscriptionStatusUseCase
+        private readonly getStatus: GetSubscriptionStatusUseCase,
+        private readonly getHistory: GetSubscriptionPaymentHistoryUseCase
     ) {
         this.fastify.logInfo("[SubscriptionController] Initializing...");
         this.registerRoutes();
@@ -89,7 +91,46 @@ export class SubscriptionController {
 
         });
 
-        // 3. Webhook do Abacate Pay (Público)
+        // 3. Histórico de Pagamentos
+        this.fastify.addProtectedRoute("GET", "/subscription/payments", async (request: FastifyRequest, reply: FastifyReply) => {
+            const user = request.user as AuthUserPayload;
+            const userId = user.id;
+
+            try {
+                const history = await this.getHistory.execute(userId);
+                reply.send(history);
+            } catch (error: any) {
+                this.fastify.logInfo("[SubscriptionController] Failed to get history", { error: error.message });
+                reply.code(500).send({ error: "History retrieval failed" });
+            }
+        }, {
+            tags: ["Subscription"],
+            summary: "Gets the payment history of the user's subscription",
+            response: {
+                200: {
+                    type: "array",
+                    items: {
+                        type: "object",
+                        properties: {
+                            id: { type: "string" },
+                            status: { type: "string" },
+                            amount: { type: "number" },
+                            paidAt: { type: "string", format: "date-time", nullable: true },
+                            createdAt: { type: "string", format: "date-time" },
+                            checkoutUrl: { type: "string" }
+                        }
+                    }
+                },
+                500: {
+                    type: "object",
+                    properties: {
+                        error: { type: "string" }
+                    }
+                }
+            }
+        });
+
+        // 4. Webhook do Abacate Pay (Público)
         this.fastify.addRoute("POST", "/webhook/abacatepay", async (request: FastifyRequest, reply: FastifyReply) => {
             const signature = request.headers["x-abacatepay-signature"] as string;
             
@@ -157,7 +198,6 @@ export class SubscriptionController {
                     properties: { error: { type: "string" } }
                 }
             }
-
         });
     }
 }

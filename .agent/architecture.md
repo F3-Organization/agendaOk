@@ -28,6 +28,9 @@ graph TD
 ### 📂 `src/infra` (Infraestrutura)
 - **O Mundo Externo e Dados**: Implementações técnicas e persistência.
     - **database/entities/**: Contém as entidades do TypeORM (Modelos do Banco).
+        - `User`, `Client`, `Schedule`, `UserConfig`.
+        - `Subscription`: Dados da assinatura PRO atual.
+        - `SubscriptionPayment`: Histórico detalhado de pagamentos e cobranças.
     - **database/repositories/**: Contém as implementações concretas de persistência de dados.
     - **adapters/**: Adaptadores para bibliotecas externas (ex: `FastifyAdapter`, `GoogleCalendarAdapter`, `AbacatePayAdapter`).
     - **controller/**: Porta de entrada para requisições externas (HTTP/REST).

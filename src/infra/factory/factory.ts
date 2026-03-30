@@ -13,6 +13,7 @@ import { ClientRepository } from "../database/repositories/client.repository";
 import { ScheduleRepository } from "../database/repositories/schedule.repository";
 import { UserConfigRepository } from "../database/repositories/user-config.repository";
 import { SubscriptionRepository } from "../database/repositories/subscription.repository";
+import { SubscriptionPaymentRepository } from "../database/repositories/subscription-payment.repository";
 import { GenerateGoogleAuthUrlUseCase } from "../../usecase/auth/generate-google-auth-url.usecase";
 import { ExchangeGoogleCodeUseCase } from "../../usecase/auth/exchange-google-code.usecase";
 import { SyncCalendarUseCase } from "../../usecase/calendar/sync-calendar.usecase";
@@ -22,6 +23,7 @@ import { NotifyUpcomingAppointmentsUseCase } from "../../usecase/notification/no
 import { HandleEvolutionWebhookUseCase } from "../../usecase/notification/handle-evolution-webhook.usecase";
 import { CreateSubscriptionCheckoutUseCase } from "../../usecase/subscription/create-checkout.usecase";
 import { HandleAbacatePayWebhookUseCase } from "../../usecase/subscription/handle-abacate-webhook.usecase";
+import { GetSubscriptionPaymentHistoryUseCase } from "../../usecase/subscription/get-payment-history.usecase";
 import { ConnectWhatsappUseCase } from "../../usecase/notification/connect-whatsapp.usecase";
 import { DisconnectWhatsappUseCase } from "../../usecase/notification/disconnect-whatsapp.usecase";
 import { WhatsappController } from "../controller/whatsapp.controller";
@@ -33,10 +35,6 @@ import { LoginUseCase } from "../../usecase/auth/login.usecase";
 import { AuthenticateGoogleUseCase } from "../../usecase/auth/authenticate-google.usecase";
 import { GetSubscriptionStatusUseCase } from "../../usecase/subscription/get-subscription-status.usecase";
 
-
-
-
-
 import { SyncCalendarQueue } from "../queue/sync-calendar.queue";
 import { SyncCalendarWorker } from "../queue/sync-calendar.worker";
 import { NotifyQueue } from "../queue/notify.queue";
@@ -46,7 +44,8 @@ import { NodemailerAdapter } from "../adapters/nodemailer.adapter";
 import { RedisService } from "../database/redis.service";
 import { SendEmailVerificationUseCase } from "../../usecase/auth/send-email-verification.usecase";
 import { VerifyEmailSetPasswordUseCase } from "../../usecase/auth/verify-email-set-password.usecase";
-
+import { GetHealthStatusUseCase } from "../../usecase/system/get-health-status.usecase";
+import { AppDataSource } from "../config/data-source";
 
 // Singletons (non-TypeORM dependent)
 const adapterInstance = new FastifyAdapter();
@@ -56,13 +55,13 @@ const abacatePayAdapter = new AbacatePayAdapter();
 const mailAdapter = new NodemailerAdapter();
 const redisService = new RedisService();
 
-
 // Lazy Instances
 let userRepository: UserRepository;
 let clientRepository: ClientRepository;
 let scheduleRepository: ScheduleRepository;
 let userConfigRepository: UserConfigRepository;
 let subscriptionRepository: SubscriptionRepository;
+let subscriptionPaymentRepository: SubscriptionPaymentRepository;
 
 let syncCalendarQueue: SyncCalendarQueue;
 let notifyQueue: NotifyQueue;
@@ -72,11 +71,9 @@ const getRepo = {
     client: () => clientRepository || (clientRepository = new ClientRepository()),
     schedule: () => scheduleRepository || (scheduleRepository = new ScheduleRepository()),
     userConfig: () => userConfigRepository || (userConfigRepository = new UserConfigRepository()),
-    subscription: () => subscriptionRepository || (subscriptionRepository = new SubscriptionRepository())
+    subscription: () => subscriptionRepository || (subscriptionRepository = new SubscriptionRepository()),
+    subscriptionPayment: () => subscriptionPaymentRepository || (subscriptionPaymentRepository = new SubscriptionPaymentRepository())
 };
-
-import { GetHealthStatusUseCase } from "../../usecase/system/get-health-status.usecase";
-import { AppDataSource } from "../config/data-source";
 
 const getUseCase = {
     getHealthStatus: () => new GetHealthStatusUseCase(
@@ -114,10 +111,16 @@ const getUseCase = {
         getRepo.user(),
         getRepo.subscription(),
         getRepo.userConfig(),
-        abacatePayAdapter
+        abacatePayAdapter,
+        getRepo.subscriptionPayment()
     ),
     handleAbacatePayWebhook: () => new HandleAbacatePayWebhookUseCase(
-        getRepo.subscription()
+        getRepo.subscription(),
+        getRepo.subscriptionPayment()
+    ),
+    getSubscriptionPaymentHistory: () => new GetSubscriptionPaymentHistoryUseCase(
+        getRepo.subscription(),
+        getRepo.subscriptionPayment()
     ),
     connectWhatsapp: () => new ConnectWhatsappUseCase(
         getRepo.userConfig(),
@@ -157,11 +160,6 @@ const getUseCase = {
     )
 };
 
-
-
-
-
-
 const getMiddleware = {
     subscription: () => subscriptionMiddleware(getRepo.subscription())
 };
@@ -180,7 +178,6 @@ export const factory = {
             getUseCase.getHealthStatus()
         ),
         auth: () => new AuthController(
-
             adapterInstance,
             getUseCase.generateGoogleAuthUrl(),
             getUseCase.authenticateGoogle(),
@@ -189,7 +186,6 @@ export const factory = {
             getUseCase.sendEmailVerification(),
             getUseCase.verifyEmailSetPassword()
         ),
-
         calendar: () => new CalendarController(
             adapterInstance,
             factory.queues.sync(),
@@ -205,7 +201,8 @@ export const factory = {
             adapterInstance,
             getUseCase.createSubscriptionCheckout(),
             getUseCase.handleAbacatePayWebhook(),
-            getUseCase.getSubscriptionStatus()
+            getUseCase.getSubscriptionStatus(),
+            getUseCase.getSubscriptionPaymentHistory()
         ),
         whatsapp: () => new WhatsappController(
             adapterInstance,
@@ -219,8 +216,6 @@ export const factory = {
             getUseCase.getDashboardStats()
         )
     },
-
-
     queues: {
         sync: () => syncCalendarQueue || (syncCalendarQueue = new SyncCalendarQueue()),
         notify: () => notifyQueue || (notifyQueue = new NotifyQueue())

@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn, OneToMany } from "typeorm";
 import { User } from "./user.entity";
+import { SubscriptionPayment } from "./subscription-payment.entity";
 
 export enum SubscriptionStatus {
     ACTIVE = "ACTIVE",
@@ -42,6 +43,9 @@ export class Subscription {
 
     @Column({ name: "checkout_url", type: "text", nullable: true })
     checkoutUrl?: string;
+
+    @OneToMany(() => SubscriptionPayment, (payment) => payment.subscription)
+    payments!: SubscriptionPayment[];
 
     @CreateDateColumn({ name: "created_at" })
     createdAt!: Date;

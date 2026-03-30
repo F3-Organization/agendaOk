@@ -90,7 +90,7 @@ export const SubscriptionPage = () => {
     {
       id: 'ENTERPRISE',
       name: t('subscription.plans.enterprise.name'),
-      price: 'Personalizado',
+      price: t('subscription.plans.enterprise.customPrice'),
       description: t('subscription.plans.enterprise.description'),
       features: [
         t('subscription.features.unlimitedConfirmations'),
@@ -108,7 +108,7 @@ export const SubscriptionPage = () => {
       <PageLayout title={t('subscription.title')} subtitle={t('subscription.subtitle')}>
         <div className="h-[60vh] flex flex-col items-center justify-center gap-4">
           <Loader2 className="w-12 h-12 animate-spin text-primary" />
-          <p className="text-muted-foreground font-medium">Carregando informações de cobrança...</p>
+          <p className="text-muted-foreground font-medium">{t('subscription.billing.loadingStatus')}</p>
         </div>
       </PageLayout>
     );
@@ -145,7 +145,7 @@ export const SubscriptionPage = () => {
 
             <div className="mb-10 flex items-baseline gap-1">
               <span className="text-5xl font-extrabold tracking-tighter">{plan.price}</span>
-              {(plan.id !== 'ENTERPRISE' && plan.price !== 'R$ 0') && <span className="text-muted-foreground font-semibold">/mês</span>}
+              {(plan.id !== 'ENTERPRISE' && plan.price !== 'R$ 0') && <span className="text-muted-foreground font-semibold">{t('subscription.pricing.perMonth')}</span>}
             </div>
 
             <div className="space-y-4 mb-12 flex-1">
@@ -192,7 +192,7 @@ export const SubscriptionPage = () => {
           {isHistoryLoading ? (
             <div className="py-12 flex flex-col items-center justify-center gap-4">
               <Loader2 className="w-8 h-8 animate-spin text-primary/50" />
-              <p className="text-xs text-muted-foreground">Buscando histórico...</p>
+              <p className="text-xs text-muted-foreground">{t('subscription.billing.loadingHistory')}</p>
             </div>
           ) : paymentHistory && paymentHistory.length > 0 ? (
             <table className="w-full text-left border-collapse">
@@ -258,8 +258,8 @@ export const SubscriptionPage = () => {
                <div className="w-16 h-16 rounded-2xl bg-surface-low flex items-center justify-center mb-4 border border-outline-variant/30">
                   <FileX className="w-8 h-8 text-muted-foreground/30" />
                </div>
-               <h4 className="text-lg font-bold tracking-tight mb-1">Nenhum pagamento encontrado</h4>
-               <p className="text-sm text-muted-foreground max-w-xs">Você ainda não possui faturas ou assinaturas registradas no sistema.</p>
+               <h4 className="text-lg font-bold tracking-tight mb-1">{t('subscription.billing.noPayments')}</h4>
+               <p className="text-sm text-muted-foreground max-w-xs">{t('subscription.billing.noPaymentsDescription')}</p>
             </div>
           )}
         </div>

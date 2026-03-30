@@ -118,6 +118,7 @@ export const en = {
       enterprise: {
         name: 'Enterprise',
         description: 'Scalable solutions for large healthcare networks',
+        customPrice: 'Custom',
       }
     },
     features: {
@@ -145,6 +146,13 @@ export const en = {
       requestStatement: 'Request Statement',
       paid: 'Paid',
       downloadPdf: 'PDF',
+      loadingStatus: 'Loading billing information...',
+      loadingHistory: 'Fetching history...',
+      noPayments: 'No payments found',
+      noPaymentsDescription: 'You do not have any invoices or subscriptions registered in the system yet.',
+    },
+    pricing: {
+      perMonth: '/mo',
     },
     enterpriseCta: {
       title: 'Need a custom enterprise solution?',

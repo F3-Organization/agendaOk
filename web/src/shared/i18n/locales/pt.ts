@@ -118,6 +118,7 @@ export const pt = {
       enterprise: {
         name: 'Enterprise',
         description: 'Soluções escaláveis para grandes redes de saúde',
+        customPrice: 'Personalizado',
       }
     },
     features: {
@@ -145,6 +146,13 @@ export const pt = {
       requestStatement: 'Solicitar Extrato',
       paid: 'Pago',
       downloadPdf: 'PDF',
+      loadingStatus: 'Carregando informações de cobrança...',
+      loadingHistory: 'Buscando histórico...',
+      noPayments: 'Nenhum pagamento encontrado',
+      noPaymentsDescription: 'Você ainda não possui faturas ou assinaturas registradas no sistema.',
+    },
+    pricing: {
+      perMonth: '/mês',
     },
     enterpriseCta: {
       title: 'Precisa de uma solução enterprise personalizada?',

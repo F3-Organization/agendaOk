@@ -49,7 +49,7 @@ export const AppointmentDetailsModal = ({ isOpen, onClose, appointment }: Appoin
       />
       
       {/* Modal */}
-      <div className="relative w-full max-w-md bg-surface border border-outline-variant rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-2xl min-w-[320px] bg-surface border border-outline-variant rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 resize flex flex-col max-h-[90vh]">
         
         {/* Header */}
         <div className="p-6 border-b border-outline-variant/30 flex items-center justify-between bg-surface-high">
@@ -70,7 +70,7 @@ export const AppointmentDetailsModal = ({ isOpen, onClose, appointment }: Appoin
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 overflow-y-auto flex-1 custom-scrollbar">
           
           <div className="space-y-1">
             <h3 className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
@@ -124,7 +124,7 @@ export const AppointmentDetailsModal = ({ isOpen, onClose, appointment }: Appoin
                 <Users className="w-4 h-4" />
                 {t('dashboard.appointmentDetails.participants')} ({appointment.attendees.length})
               </div>
-              <div className="space-y-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+              <div className="space-y-3 pr-2">
                 {appointment.attendees.map((attendee, idx) => (
                   <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-surface-low border border-outline-variant/30 hover:border-primary/20 transition-colors">
                     <div className="flex items-center gap-3 overflow-hidden">

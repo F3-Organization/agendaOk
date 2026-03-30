@@ -24,6 +24,7 @@ import { HandleEvolutionWebhookUseCase } from "../../usecase/notification/handle
 import { CreateSubscriptionCheckoutUseCase } from "../../usecase/subscription/create-checkout.usecase";
 import { HandleAbacatePayWebhookUseCase } from "../../usecase/subscription/handle-abacate-webhook.usecase";
 import { GetSubscriptionPaymentHistoryUseCase } from "../../usecase/subscription/get-payment-history.usecase";
+import { GenerateInvoicePdfUseCase } from "../../usecase/subscription/generate-invoice-pdf.usecase";
 import { ConnectWhatsappUseCase } from "../../usecase/notification/connect-whatsapp.usecase";
 import { DisconnectWhatsappUseCase } from "../../usecase/notification/disconnect-whatsapp.usecase";
 import { WhatsappController } from "../controller/whatsapp.controller";
@@ -122,6 +123,10 @@ const getUseCase = {
         getRepo.subscription(),
         getRepo.subscriptionPayment()
     ),
+    generateInvoicePdf: () => new GenerateInvoicePdfUseCase(
+        getRepo.subscriptionPayment(),
+        getRepo.user()
+    ),
     connectWhatsapp: () => new ConnectWhatsappUseCase(
         getRepo.userConfig(),
         evolutionAdapter
@@ -202,7 +207,8 @@ export const factory = {
             getUseCase.createSubscriptionCheckout(),
             getUseCase.handleAbacatePayWebhook(),
             getUseCase.getSubscriptionStatus(),
-            getUseCase.getSubscriptionPaymentHistory()
+            getUseCase.getSubscriptionPaymentHistory(),
+            getUseCase.generateInvoicePdf()
         ),
         whatsapp: () => new WhatsappController(
             adapterInstance,

@@ -24,7 +24,12 @@ Este checklist deve ser seguido obrigatoriamente após a conclusão de qualquer 
 - [ ] **Imports e Dead Code:** Imports não utilizados e variáveis órfãs foram removidos?
 - [ ] **Logs de Debug:** `console.log` usados durante o desenvolvimento foram limpos?
 
+### 5. Banco de Dados e Migrations
+- [ ] **Nova Entidade ou Alteração:** Foi gerada uma migration (`typeorm migration:generate`) para refletir as mudanças no esquema do banco?
+- [ ] **Rollback:** A migration possui um método `down` funcional que reverte exatamente o que o `up` faz?
+- [ ] **Tipagem:** A entidade está devidamente registrada no `AppDataSource` em `src/infra/config/data-source.ts`?
+
 ---
 
 > [!IMPORTANT]
-> **NUNCA** finalize uma tarefa sem antes passar por este checklist. A qualidade do AgendaOk depende da nossa disciplina em não deixar dívida técnica acumular.
+> **NUNCA** finalize uma tarefa que envolva persistência sem antes passar por este checklist. A integridade do banco de dados do AgendaOk e a capacidade de deploy via CI/CD dependem de migrations consistentes.

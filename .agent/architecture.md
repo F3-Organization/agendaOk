@@ -62,6 +62,16 @@ O ciclo de vida da aplicação segue uma sequência rigorosa em `src/bootstrap.t
 
 ---
 
+## 4. Evolução do Banco de Dados (Migrations)
+
+O projeto utiliza **Migrations** para qualquer alteração no esquema do banco de dados (DDL). 
+
+- **Geração**: Use sempre `typeorm migration:generate` para criar novas migrations baseadas nas entidades.
+- **Execução**: As migrations são executadas automaticamente no `bootstrap` através de `AppDataSource.runMigrations()`.
+- **Regra de Ouro**: Nunca utilize `synchronize: true` em nenhum ambiente. Toda alteração de tabela deve ser rastreável via arquivo de migration na pasta `src/migrations`.
+
+---
+
 ## 4. API Routing & Middleware
 
 - **Prefixo de Rota**: Todas as rotas de API são automaticamente prefixadas com `/api` pelo `FastifyAdapter`.

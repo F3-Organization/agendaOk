@@ -24,6 +24,7 @@ O sistema deve tentar encontrar o telefone do cliente final em duas etapas (Fall
     - Toda tentativa de checkout (`create-checkout`) deve gerar um registro `PENDING` no histórico.
     - O Registro de histórico deve armazenar o valor exato no momento da cobrança (`amount`) proveniente das configurações de sistema (`.env`).
     - O Webhook de `billing.paid` deve conciliar o ID da cobrança (`billingId`) para marcar o registro histórico como `PAID` e registrar a data exata do pagamento (`paidAt`).
+- **Faturas em PDF:** O sistema permite o download de comprovantes de pagamento em formato PDF apenas para transações com status `PAID`. As faturas são geradas dinamicamente com os dados do usuário e da cobrança.
 
 ## 5. Status e Conciliação (Google Calendar Sync)
 Quando o cliente responde no WhatsApp:

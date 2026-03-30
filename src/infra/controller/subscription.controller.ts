@@ -4,6 +4,7 @@ import { CreateSubscriptionCheckoutUseCase } from "../../usecase/subscription/cr
 import { HandleAbacatePayWebhookUseCase } from "../../usecase/subscription/handle-abacate-webhook.usecase";
 import { GetSubscriptionStatusUseCase } from "../../usecase/subscription/get-subscription-status.usecase";
 import { GetSubscriptionPaymentHistoryUseCase } from "../../usecase/subscription/get-payment-history.usecase";
+import { GenerateInvoicePdfUseCase } from "../../usecase/subscription/generate-invoice-pdf.usecase";
 import { AuthUserPayload } from "../types/auth.types";
 import { env } from "../config/configs";
 import { createHmac } from "crypto";
@@ -15,7 +16,8 @@ export class SubscriptionController {
         private readonly createCheckout: CreateSubscriptionCheckoutUseCase,
         private readonly handleWebhook: HandleAbacatePayWebhookUseCase,
         private readonly getStatus: GetSubscriptionStatusUseCase,
-        private readonly getHistory: GetSubscriptionPaymentHistoryUseCase
+        private readonly getHistory: GetSubscriptionPaymentHistoryUseCase,
+        private readonly generatePdf: GenerateInvoicePdfUseCase
     ) {
         this.fastify.logInfo("[SubscriptionController] Initializing...");
         this.registerRoutes();
@@ -37,23 +39,10 @@ export class SubscriptionController {
         }, {
             tags: ["Subscription"],
             summary: "Creates a payment link for PRO subscription",
-            description: "Registers the user in Abacate Pay and returns a payment URL for PIX or Credit Card.",
             response: {
-                200: {
-                    type: "object",
-                    properties: {
-                        url: { type: "string" }
-                    }
-                },
-                500: {
-                    type: "object",
-                    properties: {
-                        error: { type: "string" },
-                        message: { type: "string" }
-                    }
-                }
+                200: { type: "object", properties: { url: { type: "string" } } },
+                500: { type: "object", properties: { error: { type: "string" }, message: { type: "string" } } }
             }
-
         });
 
         // 2. Ver Status da Assinatura
@@ -81,14 +70,8 @@ export class SubscriptionController {
                         checkoutUrl: { type: "string" }
                     }
                 },
-                500: {
-                    type: "object",
-                    properties: {
-                        error: { type: "string" }
-                    }
-                }
+                500: { type: "object", properties: { error: { type: "string" } } }
             }
-
         });
 
         // 3. Histórico de Pagamentos
@@ -121,16 +104,35 @@ export class SubscriptionController {
                         }
                     }
                 },
-                500: {
-                    type: "object",
-                    properties: {
-                        error: { type: "string" }
-                    }
-                }
+                500: { type: "object", properties: { error: { type: "string" } } }
             }
         });
 
-        // 4. Webhook do Abacate Pay (Público)
+        // 4. Download PDF da Fatura
+        this.fastify.addProtectedRoute("GET", "/subscription/payments/:id/pdf", async (request: FastifyRequest, reply: FastifyReply) => {
+            const params = request.params as { id: string };
+            const user = request.user as AuthUserPayload;
+            const userId = user.id;
+
+            try {
+                const pdfBuffer = await this.generatePdf.execute(params.id, userId);
+                reply.type("application/pdf")
+                     .header("Content-Disposition", `attachment; filename=invoice-${params.id}.pdf`)
+                     .send(pdfBuffer);
+            } catch (error: any) {
+                this.fastify.logInfo("[SubscriptionController] PDF generation failed", { error: error.message });
+                reply.code(500).send({ error: "PDF generation failed" });
+            }
+        }, {
+            tags: ["Subscription"],
+            summary: "Downloads a PDF invoice for a specific payment",
+            response: {
+                200: { type: "string", format: "binary" },
+                500: { type: "object", properties: { error: { type: "string" } } }
+            }
+        });
+
+        // 5. Webhook do Abacate Pay (Público)
         this.fastify.addRoute("POST", "/webhook/abacatepay", async (request: FastifyRequest, reply: FastifyReply) => {
             const signature = request.headers["x-abacatepay-signature"] as string;
             
@@ -173,30 +175,17 @@ export class SubscriptionController {
         }, {
             tags: ["Webhook"],
             summary: "Abacate Pay event receiver",
-            description: "Public endpoint for automatic payment notifications and billing updates.",
             body: {
                 type: "object",
                 required: ["event", "data"],
                 properties: {
                     event: { type: "string" },
-                    data: { 
-                        type: "object",
-                        required: ["id"],
-                        properties: {
-                            id: { type: "string" }
-                        }
-                    }
+                    data: { type: "object", required: ["id"], properties: { id: { type: "string" } } }
                 }
             },
             response: {
-                200: { 
-                    type: "object", 
-                    properties: { status: { type: "string" } } 
-                },
-                401: {
-                    type: "object",
-                    properties: { error: { type: "string" } }
-                }
+                200: { type: "object", properties: { status: { type: "string" } } },
+                401: { type: "object", properties: { error: { type: "string" } } }
             }
         });
     }

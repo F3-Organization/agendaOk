@@ -10,7 +10,8 @@ import {
   Zap,
   Star,
   ShieldEllipsis,
-  Loader2
+  Loader2,
+  FileX
 } from 'lucide-react';
 import { PageLayout } from '../shared/ui/PageLayout';
 import { Card } from '../shared/ui/Card';
@@ -20,9 +21,14 @@ import { subscriptionService } from '../features/subscription/subscription.servi
 export const SubscriptionPage = () => {
   const { t } = useTranslation();
 
-  const { data: subStatus, isLoading } = useQuery({
+  const { data: subStatus, isLoading: isStatusLoading } = useQuery({
     queryKey: ['subscription-status'],
     queryFn: subscriptionService.getStatus,
+  });
+
+  const { data: paymentHistory, isLoading: isHistoryLoading } = useQuery({
+    queryKey: ['subscription-payments'],
+    queryFn: subscriptionService.getPaymentHistory,
   });
 
   const checkoutMutation = useMutation({
@@ -32,11 +38,30 @@ export const SubscriptionPage = () => {
     },
   });
 
+  const formatDate = (dateString: string | undefined | null) => {
+    if (!dateString) return '-';
+    // DD/MM/AAAA format as requested
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-BR');
+  };
+
+  const formatAmount = (amount: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(amount / 100);
+  };
+
+  const handleDownloadPdf = (paymentId: string) => {
+    const url = subscriptionService.getInvoicePdfUrl(paymentId);
+    window.open(url, '_blank');
+  };
+
   const plans = [
     {
       id: 'FREE',
       name: t('subscription.plans.standard.name'),
-      price: '$0',
+      price: 'R$ 0',
       description: t('subscription.plans.standard.description'),
       features: [
         `100 ${t('subscription.features.monthlyConfirmations')}`,
@@ -50,7 +75,7 @@ export const SubscriptionPage = () => {
     {
       id: 'PRO',
       name: t('subscription.plans.pro.name'),
-      price: '$49',
+      price: 'R$ 49',
       description: t('subscription.plans.pro.description'),
       features: [
         t('subscription.features.unlimitedConfirmations'),
@@ -65,7 +90,7 @@ export const SubscriptionPage = () => {
     {
       id: 'ENTERPRISE',
       name: t('subscription.plans.enterprise.name'),
-      price: 'Custom',
+      price: 'Personalizado',
       description: t('subscription.plans.enterprise.description'),
       features: [
         t('subscription.features.unlimitedConfirmations'),
@@ -78,17 +103,12 @@ export const SubscriptionPage = () => {
     }
   ];
 
-  const history = [
-    { id: 'INV-4921', date: 'Oct 01, 2023', amount: '$49.00', status: t('subscription.billing.paid') },
-    { id: 'INV-3810', date: 'Sep 01, 2023', amount: '$49.00', status: t('subscription.billing.paid') },
-  ];
-
-  if (isLoading) {
+  if (isStatusLoading) {
     return (
       <PageLayout title={t('subscription.title')} subtitle={t('subscription.subtitle')}>
         <div className="h-[60vh] flex flex-col items-center justify-center gap-4">
           <Loader2 className="w-12 h-12 animate-spin text-primary" />
-          <p className="text-muted-foreground font-medium">Fetching billing info...</p>
+          <p className="text-muted-foreground font-medium">Carregando informações de cobrança...</p>
         </div>
       </PageLayout>
     );
@@ -125,7 +145,7 @@ export const SubscriptionPage = () => {
 
             <div className="mb-10 flex items-baseline gap-1">
               <span className="text-5xl font-extrabold tracking-tighter">{plan.price}</span>
-              {(plan.price !== 'Custom') && <span className="text-muted-foreground font-semibold">/mo</span>}
+              {(plan.id !== 'ENTERPRISE' && plan.price !== 'R$ 0') && <span className="text-muted-foreground font-semibold">/mês</span>}
             </div>
 
             <div className="space-y-4 mb-12 flex-1">
@@ -166,55 +186,82 @@ export const SubscriptionPage = () => {
                 <p className="text-xs text-muted-foreground">{t('subscription.billing.subtitle')}</p>
              </div>
           </div>
-          <Button variant="ghost" size="sm" className="hidden sm:flex text-[10px] font-bold tracking-widest uppercase opacity-60 hover:opacity-100 transition-opacity">
-            {t('subscription.billing.requestStatement')}
-          </Button>
         </div>
 
         <div className="overflow-x-auto no-scrollbar">
-          <table className="w-full text-left border-collapse">
-             <thead className="bg-surface-high/50 border-b border-outline-variant/20">
-               <tr>
-                 <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('subscription.billing.invoiceId')}</th>
-                 <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('subscription.billing.date')}</th>
-                 <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('subscription.billing.amount')}</th>
-                 <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('subscription.billing.status')}</th>
-                 <th className="px-8 py-4 text-right"></th>
-               </tr>
-             </thead>
-             <tbody className="divide-y divide-outline-variant/10">
-               {history.map((inv, i) => (
-                 <tr key={i} className="group hover:bg-surface-high/50 transition-all cursor-pointer">
-                   <td className="px-8 py-6">
-                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-surface-low border border-outline-variant/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
-                           <CreditCard className="w-4 h-4 text-muted-foreground" />
-                        </div>
-                        <span className="font-bold text-sm tracking-tight group-hover:translate-x-[-12px] lg:group-hover:translate-x-0 transition-transform">{inv.id}</span>
-                     </div>
-                   </td>
-                   <td className="px-8 py-6">
-                     <span className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
-                       <Calendar className="w-3 h-3" />
-                       {inv.date}
-                     </span>
-                   </td>
-                   <td className="px-8 py-6 font-bold text-sm">{inv.amount}</td>
-                   <td className="px-8 py-6">
-                     <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-[10px] font-bold tracking-widest uppercase">
-                       {inv.status}
-                     </div>
-                   </td>
-                   <td className="px-8 py-6 text-right">
-                      <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Download className="w-4 h-4 mr-2" />
-                        {t('subscription.billing.downloadPdf')}
-                      </Button>
-                   </td>
+          {isHistoryLoading ? (
+            <div className="py-12 flex flex-col items-center justify-center gap-4">
+              <Loader2 className="w-8 h-8 animate-spin text-primary/50" />
+              <p className="text-xs text-muted-foreground">Buscando histórico...</p>
+            </div>
+          ) : paymentHistory && paymentHistory.length > 0 ? (
+            <table className="w-full text-left border-collapse">
+               <thead className="bg-surface-high/50 border-b border-outline-variant/20">
+                 <tr>
+                   <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('subscription.billing.invoiceId')}</th>
+                   <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('subscription.billing.date')}</th>
+                   <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('subscription.billing.amount')}</th>
+                   <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('subscription.billing.status')}</th>
+                   <th className="px-8 py-4 text-right"></th>
                  </tr>
-               ))}
-             </tbody>
-          </table>
+               </thead>
+               <tbody className="divide-y divide-outline-variant/10">
+                 {paymentHistory.map((payment, i) => (
+                   <tr key={i} className="group hover:bg-surface-high/50 transition-all">
+                     <td className="px-8 py-6">
+                       <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-surface-low border border-outline-variant/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all text-muted-foreground">
+                             <CreditCard className="w-4 h-4" />
+                          </div>
+                          <span className="font-bold text-sm tracking-tight group-hover:translate-x-[-12px] lg:group-hover:translate-x-0 transition-transform">
+                            {payment.id.split('-')[0].toUpperCase()}
+                          </span>
+                       </div>
+                     </td>
+                     <td className="px-8 py-6">
+                       <span className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                         <Calendar className="w-3 h-3" />
+                         {formatDate(payment.paidAt || payment.createdAt)}
+                       </span>
+                     </td>
+                     <td className="px-8 py-6 font-bold text-sm">{formatAmount(payment.amount)}</td>
+                     <td className="px-8 py-6">
+                       <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase border ${
+                         payment.status === 'PAID' 
+                           ? 'bg-green-500/10 border-green-500/20 text-green-400' 
+                           : payment.status === 'PENDING'
+                           ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400'
+                           : 'bg-red-500/10 border-red-500/20 text-red-400'
+                       }`}>
+                         {payment.status === 'PAID' ? t('subscription.billing.paid') : payment.status}
+                       </div>
+                     </td>
+                     <td className="px-8 py-6 text-right">
+                        {payment.status === 'PAID' && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => handleDownloadPdf(payment.id)}
+                          >
+                            <Download className="w-4 h-4 mr-2" />
+                            {t('subscription.billing.downloadPdf')}
+                          </Button>
+                        )}
+                     </td>
+                   </tr>
+                 ))}
+               </tbody>
+            </table>
+          ) : (
+            <div className="py-20 flex flex-col items-center justify-center text-center px-4">
+               <div className="w-16 h-16 rounded-2xl bg-surface-low flex items-center justify-center mb-4 border border-outline-variant/30">
+                  <FileX className="w-8 h-8 text-muted-foreground/30" />
+               </div>
+               <h4 className="text-lg font-bold tracking-tight mb-1">Nenhum pagamento encontrado</h4>
+               <p className="text-sm text-muted-foreground max-w-xs">Você ainda não possui faturas ou assinaturas registradas no sistema.</p>
+            </div>
+          )}
         </div>
       </Card>
       

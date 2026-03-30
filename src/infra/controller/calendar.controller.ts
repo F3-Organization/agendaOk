@@ -123,6 +123,6 @@ export class CalendarController {
                 }
             }
 
-        }, this.subMiddleware);
+        });
     }
 }

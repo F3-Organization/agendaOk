@@ -110,13 +110,17 @@ export class FastifyAdapter {
         await this.app.after();
     }
 
+    public logInfo(msg: string, obj?: any) {
+        this.app.log.info(obj ? { ...obj, msg } : msg);
+    }
+
     public addRoute(
         method: HTTPMethods | HTTPMethods[],
         path: string,
         handler: (request: FastifyRequest, reply: FastifyReply) => void, schema?: any
     ) {
         const url = `/api${path}`;
-        console.log(`[FastifyAdapter] Registering route: ${method} ${url}`);
+        this.app.log.info({ method, url }, "[FastifyAdapter] Registering route");
         this.app.route({
             method: method,
             url: url,
@@ -133,8 +137,8 @@ export class FastifyAdapter {
         preHandler?: any
     ) {
         const url = `/api${path}`;
-        console.log(`[FastifyAdapter] Registering protected route: ${method} ${url}`);
-        const preHandlers = [this.app.authenticate];
+        this.app.log.info({ method, url }, "[FastifyAdapter] Registering protected route");
+        const preHandlers = [(this.app as any).authenticate];
         if (preHandler) {
             if (Array.isArray(preHandler)) {
                 preHandlers.push(...preHandler);
@@ -163,11 +167,10 @@ export class FastifyAdapter {
         this.app.decorate(name, fn);
     }
 
-    public listen() {
-        this.app.listen({
+    public async listen(): Promise<string> {
+        return this.app.listen({
             port: env.port as number,
-            host: '0.0.0.0'
-        })
+            host: "0.0.0.0"
+        });
     }
-
 }

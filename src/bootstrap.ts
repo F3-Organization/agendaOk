@@ -14,6 +14,7 @@ async function bootstrap() {
 
         // 3. Initialize Controllers (Register Routes)
         // Note: These must be called AFTER adapter.setup() to ensure decorations are ready
+        console.log("[Bootstrap] Registering controllers...");
         factory.controller.app();
         factory.controller.auth();
         factory.controller.calendar();
@@ -22,6 +23,7 @@ async function bootstrap() {
         factory.controller.whatsapp();
         console.log("[Bootstrap] Controllers and routes registered.");
 
+
         // 4. Start Background Workers
         // We call the worker factory methods to instantiate the bullmq workers
         factory.workers.sync();
@@ -29,7 +31,7 @@ async function bootstrap() {
         console.log("[Bootstrap] Background workers started.");
 
         // 5. Start the server
-        adapter.listen();
+        await adapter.listen();
         console.log("[Bootstrap] Server is listening...");
 
     } catch (err) {

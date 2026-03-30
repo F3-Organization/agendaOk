@@ -1,12 +1,13 @@
-import { ISubscriptionRepository } from "../repositories/isubscription-repository";
 import { SubscriptionStatus } from "../../infra/database/entities/subscription.entity";
+import { ISubscriptionRepository } from "../repositories/isubscription-repository";
 
 export interface SubscriptionStatusResponse {
     status: SubscriptionStatus;
     plan: string;
-    currentPeriodEnd?: Date;
-    checkoutUrl?: string;
+    currentPeriodEnd?: Date | undefined;
+    checkoutUrl?: string | undefined;
 }
+
 
 export class GetSubscriptionStatusUseCase {
     constructor(private readonly subscriptionRepo: ISubscriptionRepository) {}

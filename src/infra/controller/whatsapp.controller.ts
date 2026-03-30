@@ -18,7 +18,6 @@ export class WhatsappController {
 
     private registerRoutes() {
         const connectMiddlewares = [];
-        if (this.adminMiddleware) connectMiddlewares.push(this.adminMiddleware);
         if (this.subMiddleware) connectMiddlewares.push(this.subMiddleware);
 
         this.fastify.addProtectedRoute("POST", "/whatsapp/connect", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -94,6 +93,6 @@ export class WhatsappController {
                 }
             }
 
-        }, this.adminMiddleware);
+        }, this.subMiddleware ? [this.subMiddleware] : []);
     }
 }

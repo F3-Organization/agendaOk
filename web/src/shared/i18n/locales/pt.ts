@@ -72,6 +72,9 @@ export const pt = {
       schedule: 'Horário',
       status: 'Status',
     },
+    loadingSchedule: 'Carregando sua agenda...',
+    failedToLoad: 'Falha ao carregar agendamentos.',
+    noAppointments: 'Nenhum agendamento encontrado. Sincronize seu calendário para começar.',
     syncCalendar: {
       title: 'Sincronizar Calendário',
       description: 'Conecte seu Google Calendar para enviar automaticamente lembretes de WhatsApp para cada nova reserva criada.',

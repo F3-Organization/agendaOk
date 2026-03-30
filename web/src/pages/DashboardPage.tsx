@@ -112,13 +112,13 @@ export const DashboardPage = () => {
             {isLoading ? (
               <div className="p-20 flex flex-col items-center justify-center text-muted-foreground gap-4">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                <p className="text-sm font-medium">Loading your schedule...</p>
+                <p className="text-sm font-medium">{t('dashboard.loadingSchedule')}</p>
               </div>
             ) : isError ? (
               <div className="p-20 flex flex-col items-center justify-center text-red-400 gap-4">
-                <p className="text-sm font-medium">Failed to load appointments.</p>
+                <p className="text-sm font-medium">{t('dashboard.failedToLoad')}</p>
                 <Button variant="ghost" size="sm" onClick={() => queryClient.invalidateQueries({ queryKey: ['appointments'] })}>
-                  Try Again
+                  {t('common.retry')}
                 </Button>
               </div>
             ) : (
@@ -178,7 +178,7 @@ export const DashboardPage = () => {
                   {(appointments?.length === 0 || !appointments) && !isLoading && (
                     <tr>
                       <td colSpan={4} className="px-8 py-20 text-center text-muted-foreground text-sm italic">
-                        No appointments found. Sync your calendar to start.
+                        {t('dashboard.noAppointments')}
                       </td>
                     </tr>
                   )}

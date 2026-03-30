@@ -72,6 +72,9 @@ export const en = {
       schedule: 'Schedule',
       status: 'Status',
     },
+    loadingSchedule: 'Loading your schedule...',
+    failedToLoad: 'Failed to load appointments.',
+    noAppointments: 'No appointments found. Sync your calendar to start.',
     syncCalendar: {
       title: 'Sync Calendar',
       description: 'Connect your Google Calendar to automatically send WhatsApp reminders for every new booking created.',

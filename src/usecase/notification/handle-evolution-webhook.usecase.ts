@@ -23,7 +23,12 @@ export class HandleEvolutionWebhookUseCase {
         if (!config) return;
 
         const remoteJid = data.key.remoteJid;
+        if (!remoteJid) return;
+
         const phoneNumber = remoteJid.split("@")[0];
+        if (!phoneNumber) return;
+
+
         const messageText = data.message?.conversation || data.message?.extendedTextMessage?.text || "";
 
         if (this.isConfirmation(messageText)) {

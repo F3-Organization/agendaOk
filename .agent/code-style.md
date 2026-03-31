@@ -32,6 +32,7 @@
   - **I**nterface Segregation: Interfaces específicas são melhores que uma interface geral.
   - **D**ependency Inversion: Depender de abstrações (Interfaces/Ports), não de implementações.
 - **Código Limpo (Clean Code):** O código deve ser autoexplicativo através de nomes semânticos de variáveis, funções e classes.
+- **Evitar Duplicação (DRY):** Lógicas redundantes entre Use Cases (ex: verificações de horário, formatação complexa) DEVEM ser extraídas para funções auxiliares (Helpers) em `src/shared/utils` para garantir consistência e diminuir boilerplate.
 - **SEM COMENTÁRIOS:** Não deixe comentários no código explicando "o que" ele faz. Se um trecho precisa de explicação, ele deve ser refatorado para ser mais legível. Comentários só são permitidos em casos EXTREMAMENTE raros para explicar o "porquê" de uma decisão técnica obscura ou workaround.
 
 ## 6. Segurança e Dados Hardcoded

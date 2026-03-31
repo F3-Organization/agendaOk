@@ -15,6 +15,10 @@ export class EvolutionWebhookController {
 
     private registerRoutes() {
         this.fastify.addRoute("POST", "/webhook/evolution", async (request: FastifyRequest, reply: FastifyReply) => {
+            this.fastify.logInfo("[EvolutionWebhookController] Webhook Body", { 
+                body: request.body
+            });
+
             const parseResult = EvolutionWebhookSchema.safeParse(request.body);
             if (!parseResult.success) {
                 return reply.code(400).send({ 

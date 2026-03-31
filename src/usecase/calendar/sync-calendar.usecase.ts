@@ -6,6 +6,7 @@ import { IEvolutionService } from "../ports/ievolution-service";
 import { CheckUsageLimitUseCase } from "../subscription/check-usage-limit.usecase";
 import { Schedule, ScheduleStatus } from "../../infra/database/entities/schedule.entity";
 import { env } from "../../infra/config/configs";
+import { isWithinSilentWindow } from "../../shared/utils/time.util";
 
 export class SyncCalendarUseCase {
     constructor(
@@ -110,37 +111,14 @@ export class SyncCalendarUseCase {
                 if (!config.whatsappNumber) continue;
 
                 if (selfAttendee && selfAttendee.responseStatus === 'needsAction') {
-                    // Check silent window (Temporarily bypassed for testing)
-                    /*
-                    if (this.isWithinSilentWindow(config.silentWindowStart, config.silentWindowEnd)) {
+                    // Temporariamente removido para testes
+                    if (isWithinSilentWindow(config.silentWindowStart, config.silentWindowEnd)) {
                         console.log(`[SyncCalendar] Message suppressed: Current time within silent window (${config.silentWindowStart}-${config.silentWindowEnd})`);
                         continue;
                     }
-                    */
-
                     await this.notifyExternalInvite(config.whatsappNumber, schedule, userId);
                 }
             }
-        }
-    }
-
-    private isWithinSilentWindow(start: string, end: string): boolean {
-        const now = new Date();
-        const currentTime = now.getHours() * 60 + now.getMinutes();
-
-        const [startHour, startMin] = start.split(':').map(Number);
-        const [endHour, endMin] = end.split(':').map(Number);
-        
-        if (startHour === undefined || startMin === undefined || endHour === undefined || endMin === undefined) return false;
-
-        const startTime = startHour * 60 + startMin;
-        const endTime = endHour * 60 + endMin;
-
-        if (startTime < endTime) {
-            return currentTime >= startTime && currentTime <= endTime;
-        } else {
-            // Overnights (e.g., 21:00 to 08:00)
-            return currentTime >= startTime || currentTime <= endTime;
         }
     }
 

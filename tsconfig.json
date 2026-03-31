@@ -12,11 +12,12 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "lib": [
-      "esnext"
+      "esnext",
+      "dom"
     ],
-    // "types": [
-    //   "node"
-    // ],
+    "types": [
+      "node"
+    ],
     // and npm install -D @types/node
     // Other Outputs
     "sourceMap": true,

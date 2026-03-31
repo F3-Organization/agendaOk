@@ -6,8 +6,8 @@ import { CancelAppointmentUseCase } from "../calendar/cancel-appointment.usecase
 import { AcceptInviteUseCase } from "../calendar/accept-invite.usecase";
 import { EvolutionWebhookPayload } from "../../../shared/schemas/evolution.schema";
 import { env } from "../../infra/config/configs";
-
 import { CheckUsageLimitUseCase } from "../subscription/check-usage-limit.usecase";
+import { isWithinSilentWindow } from "../../shared/utils/time.util";
 
 export class HandleEvolutionWebhookUseCase {
     constructor(
@@ -29,12 +29,16 @@ export class HandleEvolutionWebhookUseCase {
         const instanceName = payload.instance;
         if (!instanceName) return;
 
-        const remoteJid = data.key.remoteJid;
-        if (!remoteJid) return;
-        const phoneNumber = remoteJid.split("@")[0];
+        // Prioritize 'sender' field from Evolution API v2 (handles @lid virtual IDs)
+        const fullJid = payload.sender || data.key?.remoteJid;
+        if (!fullJid) return;
+        
+        const phoneNumber = (fullJid as string).split("@")[0] || "";
         if (!phoneNumber) return;
 
         const messageText = data.message?.conversation || data.message?.extendedTextMessage?.text || "";
+        
+        console.log(`[HandleWebhook] Received message from ${phoneNumber}: "${messageText}" on instance ${instanceName}`);
 
         // 1. Handle System Bot (Direct message to/from user)
         if (instanceName === env.evolution.systemBotInstance) {
@@ -49,6 +53,13 @@ export class HandleEvolutionWebhookUseCase {
         const usage = await this.checkUsageLimit.execute(config.userId);
         if (!usage.canSend) {
             console.log(`[HandleWebhook] User ${config.userId} quota reached. Skipping auto-reply.`);
+            return;
+        }
+
+        // 3. Check Silent Window (only if not confirming via SIM/NAO)
+        const isConfirmation = this.isConfirmation(messageText) || this.isCancellation(messageText);
+        if (!isConfirmation && isWithinSilentWindow(config.silentWindowStart, config.silentWindowEnd)) {
+            console.log(`[HandleWebhook] Skipping message due to silent window for user ${config.userId}`);
             return;
         }
 
@@ -71,9 +82,13 @@ export class HandleEvolutionWebhookUseCase {
 
     private async handleSystemBotMessage(phoneNumber: string, text: string): Promise<void> {
         if (!this.isConfirmation(text)) return;
-
-        const config = await this.userConfigRepository.findByWhatsappNumber(phoneNumber);
-        if (!config) return;
+        
+        const normalizedNumber = this.normalizeNumber(phoneNumber);
+        const config = await this.userConfigRepository.findByWhatsappNumber(normalizedNumber);
+        if (!config) {
+            console.log(`[HandleWebhook] User config not found for normalized number: ${normalizedNumber}`);
+            return;
+        }
 
         const usage = await this.checkUsageLimit.execute(config.userId);
         if (!usage.canSend) return;
@@ -103,5 +118,9 @@ export class HandleEvolutionWebhookUseCase {
         const keywords = ["não", "nao", "cancelar", "desistir", "remarcar", "não vou", "nao vou", "cancela"];
         const normalized = text.toLowerCase().trim();
         return keywords.some(k => normalized.includes(k));
+    }
+
+    private normalizeNumber(number: string): string {
+        return number.replace(/\D/g, "").replace(/^55/, "");
     }
 }

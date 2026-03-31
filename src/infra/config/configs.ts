@@ -7,6 +7,7 @@ export const env = {
     logLevel: (process.env.LOG_LEVEL || 'info') as 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace',
     port: parseInt(process.env.PORT || '3000'),
     domain: process.env.DOMAIN || 'localhost',
+    appInternalUrl: process.env.APP_INTERNAL_URL || 'http://api:3000',
     jwt: {
         secret: process.env.JWT_SECRET!,
         expiresIn: process.env.JWT_EXPIRES_IN || '7d',
@@ -28,6 +29,7 @@ export const env = {
         apiKey: process.env.EVO_API_KEY!,
         serverUrl: process.env.EVO_SERVER_URL || 'http://localhost:8080',
         systemBotInstance: process.env.SYSTEM_BOT_INSTANCE || 'AgendaOk-Admin',
+        webhookUrl: `${process.env.APP_INTERNAL_URL || 'http://api:3000'}/api/webhook/evolution`,
     },
     google: {
         clientId: process.env.GOOGLE_CLIENT_ID || '',

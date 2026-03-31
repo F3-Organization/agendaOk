@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "schema:sync": "typeorm schema:sync -d dist/src/infra/config/data-source.js",
-    "schema:diff": "typeorm schema:log -d dist/src/infra/config/data-source.js"
+    "schema:diff": "typeorm schema:log -d dist/src/infra/config/data-source.js",
+    "setup:evolution": "ts-node src/infra/scripts/setup-evolution.ts"
   },
   "keywords": [],
   "author": "",
@@ -34,6 +35,7 @@
     "nodemailer": "^8.0.4",
     "pdfkit": "^0.18.0",
     "pg": "^8.20.0",
+    "qrcode-terminal": "^0.12.0",
     "reflect-metadata": "^0.2.2",
     "typeorm": "^0.3.28",
     "zod": "^4.3.6"
@@ -46,6 +48,7 @@
     "@types/node": "^25.5.0",
     "@types/nodemailer": "^7.0.11",
     "@types/pdfkit": "^0.17.5",
+    "@types/qrcode-terminal": "^0.12.2",
     "@vitest/coverage-v8": "^3.0.7",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.2",

@@ -23,7 +23,15 @@ export class UserConfigRepository implements IUserConfigRepository {
     }
 
     async findByWhatsappNumber(number: string): Promise<UserConfig | null> {
-        return await this.repository.findOneBy({ whatsappNumber: number });
+        const cleaned = number.replace(/\D/g, "");
+        // Search for the number exactly or with/without the 55 prefix
+        const numberWithout55 = cleaned.startsWith("55") ? cleaned.substring(2) : cleaned;
+        
+        return await this.repository.createQueryBuilder("config")
+            .where("config.whatsapp_number = :number", { number: cleaned })
+            .orWhere("config.whatsapp_number = :without55", { without55: numberWithout55 })
+            .orWhere("config.whatsapp_number = :with55", { with55: `55${numberWithout55}` })
+            .getOne();
     }
 
     async findAllActive(): Promise<UserConfig[]> {

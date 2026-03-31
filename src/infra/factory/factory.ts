@@ -28,6 +28,7 @@ import { GenerateInvoicePdfUseCase } from "../../usecase/subscription/generate-i
 import { ConnectWhatsappUseCase } from "../../usecase/notification/connect-whatsapp.usecase";
 import { DisconnectWhatsappUseCase } from "../../usecase/notification/disconnect-whatsapp.usecase";
 import { GetWhatsappStatusUseCase } from "../../usecase/notification/get-whatsapp-status.usecase";
+import { UpdateUserConfigUseCase } from "../../usecase/notification/update-user-config.usecase";
 import { WhatsappController } from "../controller/whatsapp.controller";
 import { DashboardController } from "../controller/dashboard.controller";
 import { GetDashboardStatsUseCase } from "../../usecase/dashboard/get-dashboard-stats.usecase";
@@ -171,6 +172,7 @@ const getUseCase = {
         getRepo.user(),
         redisService
     ),
+    updateUserConfig: () => new UpdateUserConfigUseCase(getRepo.userConfig()),
     getDashboardStats: () => new GetDashboardStatsUseCase(getRepo.schedule(), getRepo.userConfig()),
     getAppointments: () => new GetAppointmentsUseCase(
         getRepo.schedule()
@@ -196,7 +198,8 @@ const getUseCase = {
         getRepo.userConfig()
     ),
     registerUser: () => new RegisterUserUseCase(
-        getRepo.user()
+        getRepo.user(),
+        getRepo.userConfig()
     ),
     login: () => new LoginUseCase(
         getRepo.user()
@@ -237,7 +240,8 @@ export const factory = {
             getUseCase.registerUser(),
             getUseCase.login(),
             getUseCase.sendEmailVerification(),
-            getUseCase.verifyEmailSetPassword()
+            getUseCase.verifyEmailSetPassword(),
+            getUseCase.updateUserConfig()
         ),
         calendar: () => new CalendarController(
             adapterInstance,

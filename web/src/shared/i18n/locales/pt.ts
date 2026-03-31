@@ -117,6 +117,13 @@ export const pt = {
       button: 'Conectar Google Calendar',
       connectedButton: 'Sincronizar Agora'
     },
+    onboarding: {
+      phoneTitle: 'Complete seu Perfil',
+      phoneDescription: 'Para enviar notificações aos seus pacientes, precisamos do seu número de WhatsApp com DDD.',
+      phonePlaceholder: 'Ex: 11999999999',
+      phoneButton: 'Salvar Telefone',
+      phoneSuccess: 'Telefone salvo com sucesso!'
+    },
     newConnection: {
       title: 'Nova Conexão?',
       subtitle: 'Configurar outra instância de WhatsApp',

@@ -23,7 +23,8 @@ export const LoginInputSchema = z.object({
 export const RegisterInputSchema = z.object({
     name: z.string().min(2),
     email: z.email(),
-    password: z.string().min(6)
+    password: z.string().min(6),
+    whatsappNumber: z.string().min(10).describe("WhatsApp number with DDD")
 });
 
 export const VerifyRegistrationInputSchema = z.object({

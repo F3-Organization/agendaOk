@@ -32,7 +32,18 @@ export class DashboardController {
                         confirmationsChange: { type: "string" },
                         repliesChange: { type: "string" },
                         conversionRateChange: { type: "string" },
-                        calendarConnected: { type: "boolean" }
+                        calendarConnected: { type: "boolean" },
+                        whatsappNumberMissing: { type: "boolean" },
+                        appointmentStats: {
+                            type: "array",
+                            items: {
+                                type: "object",
+                                properties: {
+                                    status: { type: "string" },
+                                    count: { type: "number" }
+                                }
+                            }
+                        }
                     }
                 }
 

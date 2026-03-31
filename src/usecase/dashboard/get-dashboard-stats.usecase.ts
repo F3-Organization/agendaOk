@@ -58,26 +58,31 @@ export class GetDashboardStatsUseCase {
 
         const cpRate = getRate(cpConfirmations, cpConfirmations); // Since totalConfirmations is based on isNotified
         // Wait, cpConfirmations in my code is "totalConfirmations = allSchedules.filter(s => s.isNotified).length"
-
         // Let's refine the variables for clarity:
         const currentNotified = cpSchedules.filter(s => s.isNotified).length;
         const currentConfirmed = cpSchedules.filter(s => s.status === ScheduleStatus.CONFIRMED).length;
         
         const previousNotified = ppSchedules.filter(s => s.isNotified).length;
         const previousConfirmed = ppSchedules.filter(s => s.status === ScheduleStatus.CONFIRMED).length;
-
         const currentRateValue = getRate(currentConfirmed, currentNotified);
         const previousRateValue = getRate(previousConfirmed, previousNotified);
 
+        // 4. Appointment stats by status
+        const appointmentStats = Object.values(ScheduleStatus).map(status => ({
+            status,
+            count: allSchedules.filter(s => s.status === status).length
+        }));
+
         return {
-            totalConfirmations: allSchedules.filter(s => s.isNotified).length,
+            totalConfirmations,
             managedReplies,
             conversionRate: `${currentRateValue.toFixed(1)}%`,
             confirmationsChange: calculateChange(cpConfirmations, ppConfirmations),
             repliesChange: calculateChange(cpReplies, ppReplies),
             conversionRateChange: calculateChange(currentRateValue, previousRateValue),
-            calendarConnected
+            appointmentStats,
+            calendarConnected,
+            whatsappNumberMissing: !config || !config.whatsappNumber
         };
-
     }
 }

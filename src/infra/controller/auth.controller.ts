@@ -6,6 +6,7 @@ import { RegisterUserUseCase } from "../../usecase/auth/register-user.usecase";
 import { LoginUseCase } from "../../usecase/auth/login.usecase";
 import { SendEmailVerificationUseCase } from "../../usecase/auth/send-email-verification.usecase";
 import { VerifyEmailSetPasswordUseCase } from "../../usecase/auth/verify-email-set-password.usecase";
+import { UpdateUserConfigUseCase } from "../../usecase/notification/update-user-config.usecase";
 import { AuthUserPayload } from "../types/auth.types";
 import { z } from "zod";
 import { 
@@ -22,7 +23,8 @@ export class AuthController {
         private readonly registerUser: RegisterUserUseCase,
         private readonly login: LoginUseCase,
         private readonly sendEmailVerification: SendEmailVerificationUseCase,
-        private readonly verifyEmailSetPassword: VerifyEmailSetPasswordUseCase
+        private readonly verifyEmailSetPassword: VerifyEmailSetPasswordUseCase,
+        private readonly updateUserConfig: UpdateUserConfigUseCase
     ) {
         this.fastify.logInfo("[AuthController] Initializing...");
         this.registerRoutes();
@@ -140,10 +142,10 @@ export class AuthController {
                 return reply.code(400).send({ error: "Validation failed", details: parseResult.error.format() });
             }
 
-            const { name, email, password } = parseResult.data;
+            const { name, email, password, whatsappNumber } = parseResult.data;
 
             try {
-                const user = await this.registerUser.execute({ name, email, password });
+                const user = await this.registerUser.execute({ name, email, password, whatsappNumber });
 
                 const token = this.fastify.sign({
                     id: user.id,
@@ -178,11 +180,12 @@ export class AuthController {
             description: "Creates a new account. If user exists but only has Google login, sends a verification code to set password.",
             body: {
                 type: "object",
-                required: ["name", "email", "password"],
+                required: ["name", "email", "password", "whatsappNumber"],
                 properties: {
                     name: { type: "string" },
                     email: { type: "string", format: "email" },
-                    password: { type: "string", minLength: 6 }
+                    password: { type: "string", minLength: 6 },
+                    whatsappNumber: { type: "string" }
                 }
             },
             response: {
@@ -340,6 +343,49 @@ export class AuthController {
                     type: "object",
                     properties: {
                         error: { type: "string" }
+                    }
+                }
+            }
+        });
+
+        this.fastify.addProtectedRoute("PATCH", "/auth/config", async (request: FastifyRequest, reply: FastifyReply) => {
+            const user = request.user as AuthUserPayload;
+            const schema = z.object({
+                whatsappNumber: z.string().optional(),
+                syncEnabled: z.boolean().optional(),
+                silentWindowStart: z.string().optional(),
+                silentWindowEnd: z.string().optional()
+            });
+
+            const parseResult = schema.safeParse(request.body);
+            if (!parseResult.success) {
+                return reply.code(400).send({ error: "Validation failed", details: parseResult.error.format() });
+            }
+
+            try {
+                await this.updateUserConfig.execute(user.id, parseResult.data);
+                reply.send({ message: "Configuration updated successfully" });
+            } catch (error: any) {
+                reply.code(500).send({ error: "Failed to update configuration", message: error.message });
+            }
+        }, {
+            tags: ["Auth"],
+            summary: "Update user configuration",
+            description: "Updates the user's configuration, such as WhatsApp number and sync settings.",
+            body: {
+                type: "object",
+                properties: {
+                    whatsappNumber: { type: "string" },
+                    syncEnabled: { type: "boolean" },
+                    silentWindowStart: { type: "string" },
+                    silentWindowEnd: { type: "string" }
+                }
+            },
+            response: {
+                200: {
+                    type: "object",
+                    properties: {
+                        message: { type: "string" }
                     }
                 }
             }

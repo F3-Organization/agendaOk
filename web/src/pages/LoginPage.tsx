@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Zap, ArrowRight, Mail, Lock, User as UserIcon, Loader2 } from 'lucide-react';
+import { Zap, ArrowRight, Mail, Lock, User as UserIcon, Loader2, Phone } from 'lucide-react';
 import { Button } from '../shared/ui/Button';
 import { Input } from '../shared/ui/Input';
 import { Card } from '../shared/ui/Card';
@@ -150,16 +150,29 @@ export const LoginPage = () => {
               onSubmit={isRegister ? handleSignupSubmit(onSignup) : handleLoginSubmit(onLogin)}
             >
               {isRegister && (
-                <div className="relative">
-                  <Input
-                    {...signupRegister('name')}
-                    label={t('common.fullName')}
-                    placeholder="John Doe"
-                    className="pl-10"
-                    error={signupErrors.name?.message as string}
-                  />
-                  <UserIcon className="absolute left-3 top-[38px] w-4 h-4 text-muted-foreground" />
-                </div>
+                <>
+                  <div className="relative">
+                    <Input
+                      {...signupRegister('name')}
+                      label={t('common.fullName')}
+                      placeholder="John Doe"
+                      className="pl-10"
+                      error={signupErrors.name?.message as string}
+                    />
+                    <UserIcon className="absolute left-3 top-[38px] w-4 h-4 text-muted-foreground" />
+                  </div>
+
+                  <div className="relative">
+                    <Input
+                      {...signupRegister('whatsappNumber')}
+                      label="WhatsApp"
+                      placeholder="11999999999"
+                      className="pl-10"
+                      error={signupErrors.whatsappNumber?.message as string}
+                    />
+                    <Phone className="absolute left-3 top-[38px] w-4 h-4 text-muted-foreground" />
+                  </div>
+                </>
               )}
 
               <div className="relative">

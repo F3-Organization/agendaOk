@@ -24,6 +24,7 @@ import { NewAppointmentModal } from '../features/calendar/components/NewAppointm
 import { AppointmentDetailsModal } from '../features/calendar/components/AppointmentDetailsModal';
 import { Plus } from 'lucide-react';
 import { apiClient } from '../shared/api/api-client';
+import { authService } from '../features/auth/auth.service';
 
 export const DashboardPage = () => {
   const { t } = useTranslation();
@@ -32,6 +33,7 @@ export const DashboardPage = () => {
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [detailsAppointment, setDetailsAppointment] = useState<Appointment | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [showPhoneSuccess, setShowPhoneSuccess] = useState(false);
 
   const { data: appointments, isLoading, isError } = useQuery({
     queryKey: ['appointments'],
@@ -64,6 +66,15 @@ export const DashboardPage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['appointments'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+    },
+  });
+
+  const onboardingMutation = useMutation({
+    mutationFn: (whatsappNumber: string) => authService.updateConfig({ whatsappNumber }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      setShowPhoneSuccess(true);
+      setTimeout(() => setShowPhoneSuccess(false), 3000);
     },
   });
 
@@ -115,6 +126,52 @@ export const DashboardPage = () => {
       title={t('dashboard.title')} 
       subtitle={t('dashboard.subtitle')}
     >
+      {dashboardStats?.whatsappNumberMissing && (
+        <Card variant="glass" className="mb-8 p-6 bg-primary/5 border-primary/20 border-2">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <Phone className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold tracking-tight">{t('dashboard.onboarding.phoneTitle')}</h2>
+                <p className="text-sm text-muted-foreground">{t('dashboard.onboarding.phoneDescription')}</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              {showPhoneSuccess ? (
+                <div className="flex items-center gap-2 text-green-400 font-bold animate-in fade-in slide-in-from-right-4">
+                  <CheckCircle2 className="w-5 h-5" />
+                  {t('dashboard.onboarding.phoneSuccess')}
+                </div>
+              ) : (
+                <>
+                  <input 
+                    type="text"
+                    placeholder={t('dashboard.onboarding.phonePlaceholder')}
+                    className="flex-1 md:w-64 bg-surface-low border border-outline-variant/30 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-primary/50"
+                    id="onboarding-whatsapp"
+                  />
+                  <Button 
+                    size="sm"
+                    onClick={() => {
+                      const input = document.getElementById('onboarding-whatsapp') as HTMLInputElement;
+                      if (input && input.value.length >= 10) {
+                        onboardingMutation.mutate(input.value);
+                      }
+                    }}
+                    disabled={onboardingMutation.isPending}
+                  >
+                    {onboardingMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : t('dashboard.onboarding.phoneButton')}
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </Card>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
         {statsList.map((stat, i) => (
 

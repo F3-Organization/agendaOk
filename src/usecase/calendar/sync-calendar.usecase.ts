@@ -57,6 +57,9 @@ export class SyncCalendarUseCase {
 
             const startAt = new Date(event.start?.dateTime || event.start?.date);
             const endAt = new Date(event.end?.dateTime || event.end?.date);
+            const isOwner = event.organizer ? event.organizer.self !== false : true;
+
+            let schedule: Schedule;
 
             if (existing) {
                 existing.title = event.summary || "Sem Título";
@@ -64,32 +67,39 @@ export class SyncCalendarUseCase {
                 existing.startAt = startAt;
                 existing.endAt = endAt;
                 existing.attendees = event.attendees || [];
-                existing.isOwner = event.organizer ? event.organizer.self !== false : true;
+                existing.isOwner = isOwner;
                 await this.scheduleRepository.save(existing);
+                schedule = existing;
+            } else {
+                schedule = new Schedule();
+                schedule.googleEventId = event.id;
+                schedule.title = event.summary || "Sem Título";
+                schedule.description = event.description;
+                schedule.startAt = startAt;
+                schedule.endAt = endAt;
+                schedule.attendees = event.attendees || [];
+                schedule.isOwner = isOwner;
+                schedule.status = ScheduleStatus.PENDING;
+                schedule.userId = userId;
                 
-                // If invite status changed to needsAction, we might want to notify, 
-                // but usually sync handles new events mostly.
-                continue;
+                await this.scheduleRepository.save(schedule);
             }
 
-            const schedule = new Schedule();
-            schedule.googleEventId = event.id;
-            schedule.title = event.summary || "Sem Título";
-            schedule.description = event.description;
-            schedule.startAt = startAt;
-            schedule.endAt = endAt;
-            schedule.attendees = event.attendees || [];
-            schedule.isOwner = event.organizer ? event.organizer.self !== false : true;
-            schedule.status = ScheduleStatus.PENDING;
-            schedule.userId = userId;
-
-            await this.scheduleRepository.save(schedule);
-
-            // Notify user if it's an external invite they haven't responded to yet
+            // Diagnostic logging for external invites
             if (!schedule.isOwner) {
                 const attendees = schedule.attendees || [];
                 const selfAttendee = attendees.find((a: any) => a.self);
-                if (selfAttendee && selfAttendee.responseStatus === 'needsAction' && config.whatsappNumber) {
+                
+                console.log(`[SyncCalendar] External invite detected: "${schedule.title}"`, {
+                    id: schedule.id,
+                    isNotified: schedule.isNotified,
+                    selfFound: !!selfAttendee,
+                    responseStatus: selfAttendee?.responseStatus,
+                    whatsappNumber: !!config.whatsappNumber
+                });
+
+                // Notify user if it's an external invite they haven't responded to yet
+                if (!schedule.isNotified && selfAttendee && selfAttendee.responseStatus === 'needsAction' && config.whatsappNumber) {
                     await this.notifyExternalInvite(config.whatsappNumber, schedule, userId);
                 }
             }

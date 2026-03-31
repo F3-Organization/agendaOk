@@ -8,6 +8,7 @@ export interface DashboardStats {
   repliesChange: string;
   conversionRateChange: string;
   calendarConnected: boolean;
+  whatsappNumberMissing: boolean;
 }
 
 

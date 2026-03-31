@@ -30,5 +30,9 @@ export const authService = {
     const { data } = await apiClient.get('/auth/me');
     return data;
   },
+
+  updateConfig: async (configData: { whatsappNumber?: string; syncEnabled?: boolean }): Promise<void> => {
+    await apiClient.patch('/auth/config', configData);
+  },
 };
 

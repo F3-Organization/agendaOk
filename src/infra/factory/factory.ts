@@ -92,7 +92,13 @@ const getUseCase = {
     generateGoogleAuthUrl: () => new GenerateGoogleAuthUrlUseCase(googleCalendarAdapter),
 
     exchangeGoogleCode: () => new ExchangeGoogleCodeUseCase(googleCalendarAdapter, getRepo.userConfig()),
-    syncCalendar: () => new SyncCalendarUseCase(googleCalendarAdapter, getRepo.schedule(), getRepo.userConfig()),
+    syncCalendar: () => new SyncCalendarUseCase(
+        googleCalendarAdapter, 
+        getRepo.schedule(), 
+        getRepo.userConfig(),
+        evolutionAdapter,
+        getUseCase.checkUsageLimit()
+    ),
     
     checkUsageLimit: () => new CheckUsageLimitUseCase(
         getRepo.subscription(),
@@ -119,8 +125,10 @@ const getUseCase = {
     ),
     handleEvolutionWebhook: () => new HandleEvolutionWebhookUseCase(
         getRepo.userConfig(),
+        getRepo.schedule(),
         getUseCase.confirmAppointment(),
         getUseCase.cancelAppointment(),
+        getUseCase.acceptInvite(),
         evolutionAdapter,
         getUseCase.checkUsageLimit()
     ),
@@ -163,9 +171,7 @@ const getUseCase = {
         getRepo.user(),
         redisService
     ),
-    getDashboardStats: () => new GetDashboardStatsUseCase(
-        getRepo.schedule()
-    ),
+    getDashboardStats: () => new GetDashboardStatsUseCase(getRepo.schedule(), getRepo.userConfig()),
     getAppointments: () => new GetAppointmentsUseCase(
         getRepo.schedule()
     ),

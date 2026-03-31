@@ -27,6 +27,7 @@ export const env = {
         apiUrl: process.env.EVOLUTION_API_URL || 'http://evolution-api:8080',
         apiKey: process.env.EVO_API_KEY!,
         serverUrl: process.env.EVO_SERVER_URL || 'http://localhost:8080',
+        systemBotInstance: process.env.SYSTEM_BOT_INSTANCE || 'AgendaOk-Admin',
     },
     google: {
         clientId: process.env.GOOGLE_CLIENT_ID || '',

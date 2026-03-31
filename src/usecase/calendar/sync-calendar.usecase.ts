@@ -1,13 +1,18 @@
 import { IGoogleCalendarService } from "../ports/igoogle-calendar-service";
 import { IScheduleRepository } from "../repositories/ischedule-repository";
 import { IUserConfigRepository } from "../repositories/iuser-config-repository";
+import { IEvolutionService } from "../ports/ievolution-service";
+import { CheckUsageLimitUseCase } from "../subscription/check-usage-limit.usecase";
 import { Schedule, ScheduleStatus } from "../../infra/database/entities/schedule.entity";
+import { env } from "../../infra/config/configs";
 
 export class SyncCalendarUseCase {
     constructor(
         private readonly googleService: IGoogleCalendarService,
         private readonly scheduleRepository: IScheduleRepository,
-        private readonly userConfigRepository: IUserConfigRepository
+        private readonly userConfigRepository: IUserConfigRepository,
+        private readonly evolutionService: IEvolutionService,
+        private readonly checkUsageLimit: CheckUsageLimitUseCase
     ) {}
 
     async execute(userId: string): Promise<void> {
@@ -61,6 +66,9 @@ export class SyncCalendarUseCase {
                 existing.attendees = event.attendees || [];
                 existing.isOwner = event.organizer ? event.organizer.self !== false : true;
                 await this.scheduleRepository.save(existing);
+                
+                // If invite status changed to needsAction, we might want to notify, 
+                // but usually sync handles new events mostly.
                 continue;
             }
 
@@ -76,6 +84,41 @@ export class SyncCalendarUseCase {
             schedule.userId = userId;
 
             await this.scheduleRepository.save(schedule);
+
+            // Notify user if it's an external invite they haven't responded to yet
+            if (!schedule.isOwner) {
+                const attendees = schedule.attendees || [];
+                const selfAttendee = attendees.find((a: any) => a.self);
+                if (selfAttendee && selfAttendee.responseStatus === 'needsAction' && config.whatsappNumber) {
+                    await this.notifyExternalInvite(config.whatsappNumber, schedule, userId);
+                }
+            }
+        }
+    }
+
+    private async notifyExternalInvite(number: string, schedule: Schedule, userId: string): Promise<void> {
+        const usage = await this.checkUsageLimit.execute(userId);
+        if (!usage.canSend) {
+            console.log(`[SyncCalendar] Skipping notification for user ${userId}: Quota reached.`);
+            return;
+        }
+
+        const dateStr = schedule.startAt.toLocaleDateString('pt-BR');
+        const timeStr = schedule.startAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        
+        const message = `📅 *Novo Convite de Agendamento*\n\n` +
+            `Você foi convidado para: *${schedule.title}*\n` +
+            `Data: ${dateStr} às ${timeStr}\n\n` +
+            `Deseja aceitar este compromisso? Responda *SIM* para confirmar no seu Google Calendar.`;
+
+        try {
+            await this.evolutionService.sendText(env.evolution.systemBotInstance, number, message);
+            // Charge the quota by marking as notified
+            schedule.isNotified = true;
+            schedule.notifiedAt = new Date();
+            await this.scheduleRepository.save(schedule);
+        } catch (error) {
+            console.error(`[SyncCalendar] Failed to send notification to user ${userId}:`, error);
         }
     }
 

@@ -1,11 +1,17 @@
 import { IScheduleRepository } from "../repositories/ischedule-repository";
+import { IUserConfigRepository } from "../repositories/iuser-config-repository";
 import { ScheduleStatus, Schedule } from "../../infra/database/entities/schedule.entity";
 import { DashboardStats } from "../../../shared/schemas/dashboard.schema";
 
 export class GetDashboardStatsUseCase {
-    constructor(private readonly scheduleRepo: IScheduleRepository) {}
+    constructor(
+        private readonly scheduleRepo: IScheduleRepository,
+        private readonly userConfigRepo: IUserConfigRepository
+    ) {}
 
     public async execute(userId: string): Promise<DashboardStats> {
+        const config = await this.userConfigRepo.findByUserId(userId);
+        const calendarConnected = !!(config && config.googleRefreshToken);
         const now = new Date();
         const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
@@ -69,7 +75,8 @@ export class GetDashboardStatsUseCase {
             conversionRate: `${currentRateValue.toFixed(1)}%`,
             confirmationsChange: calculateChange(cpConfirmations, ppConfirmations),
             repliesChange: calculateChange(cpReplies, ppReplies),
-            conversionRateChange: calculateChange(currentRateValue, previousRateValue)
+            conversionRateChange: calculateChange(currentRateValue, previousRateValue),
+            calendarConnected
         };
 
     }

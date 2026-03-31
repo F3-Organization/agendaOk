@@ -10,4 +10,5 @@ export interface IScheduleRepository {
     updateNotified(id: string, userId: string, isNotified: boolean, notifiedAt?: Date): Promise<void>;
     countMonthlyNotifications(userId: string, startDate: Date, endDate: Date): Promise<number>;
     delete(id: string, userId: string): Promise<void>;
+    findLastPendingInvite(userId: string): Promise<Schedule | null>;
 }

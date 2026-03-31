@@ -6,7 +6,8 @@ export const DashboardStatsSchema = z.object({
     conversionRate: z.string(),
     confirmationsChange: z.string(),
     repliesChange: z.string(),
-    conversionRateChange: z.string()
+    conversionRateChange: z.string(),
+    calendarConnected: z.boolean()
 });
 
 

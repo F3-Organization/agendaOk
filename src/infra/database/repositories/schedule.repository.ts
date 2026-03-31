@@ -60,4 +60,17 @@ export class ScheduleRepository implements IScheduleRepository {
     async delete(id: string, userId: string): Promise<void> {
         await this.repository.delete({ id, userId });
     }
+
+    async findLastPendingInvite(userId: string): Promise<Schedule | null> {
+        return await this.repository.findOne({
+            where: {
+                userId,
+                isOwner: false,
+                status: ScheduleStatus.PENDING
+            },
+            order: {
+                startAt: "DESC"
+            }
+        });
+    }
 }

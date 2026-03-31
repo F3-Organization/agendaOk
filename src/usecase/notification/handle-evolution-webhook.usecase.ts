@@ -1,16 +1,21 @@
 import { IUserConfigRepository } from "../repositories/iuser-config-repository";
+import { IScheduleRepository } from "../repositories/ischedule-repository";
 import { IEvolutionService } from "../ports/ievolution-service";
 import { ConfirmAppointmentUseCase } from "../calendar/confirm-appointment.usecase";
 import { CancelAppointmentUseCase } from "../calendar/cancel-appointment.usecase";
+import { AcceptInviteUseCase } from "../calendar/accept-invite.usecase";
 import { EvolutionWebhookPayload } from "../../../shared/schemas/evolution.schema";
+import { env } from "../../infra/config/configs";
 
 import { CheckUsageLimitUseCase } from "../subscription/check-usage-limit.usecase";
 
 export class HandleEvolutionWebhookUseCase {
     constructor(
         private readonly userConfigRepository: IUserConfigRepository,
+        private readonly scheduleRepository: IScheduleRepository,
         private readonly confirmAppointment: ConfirmAppointmentUseCase,
         private readonly cancelAppointment: CancelAppointmentUseCase,
+        private readonly acceptInvite: AcceptInviteUseCase,
         private readonly evolutionService: IEvolutionService,
         private readonly checkUsageLimit: CheckUsageLimitUseCase
     ) {}
@@ -22,38 +27,69 @@ export class HandleEvolutionWebhookUseCase {
         if (!data.key || data.key.fromMe) return;
 
         const instanceName = payload.instance;
+        if (!instanceName) return;
+
+        const remoteJid = data.key.remoteJid;
+        if (!remoteJid) return;
+        const phoneNumber = remoteJid.split("@")[0];
+        if (!phoneNumber) return;
+
+        const messageText = data.message?.conversation || data.message?.extendedTextMessage?.text || "";
+
+        // 1. Handle System Bot (Direct message to/from user)
+        if (instanceName === env.evolution.systemBotInstance) {
+            await this.handleSystemBotMessage(phoneNumber, messageText);
+            return;
+        }
+
+        // 2. Handle User Instance (Agent for client confirmation)
         const config = await this.userConfigRepository.findByInstanceName(instanceName);
         if (!config) return;
 
         const usage = await this.checkUsageLimit.execute(config.userId);
         if (!usage.canSend) {
-            console.log(`[HandleWebhook] User ${config.userId} has reached the 50-message limit. Skipping auto-reply.`);
+            console.log(`[HandleWebhook] User ${config.userId} quota reached. Skipping auto-reply.`);
             return;
         }
-
-        const remoteJid = data.key.remoteJid;
-        if (!remoteJid) return;
-
-        const phoneNumber = remoteJid.split("@")[0];
-        if (!phoneNumber) return;
-
-
-        const messageText = data.message?.conversation || data.message?.extendedTextMessage?.text || "";
 
         if (this.isConfirmation(messageText)) {
             try {
                 await this.confirmAppointment.execute(config.userId, phoneNumber);
                 await this.evolutionService.sendText(instanceName, phoneNumber, "✅ Ótimo! Seu agendamento foi confirmado com sucesso. Te esperamos!");
             } catch (error) {
-                // Silently log or handle via system logger if injected
+                // Silently log
             }
         } else if (this.isCancellation(messageText)) {
             try {
                 await this.cancelAppointment.execute(config.userId, phoneNumber);
                 await this.evolutionService.sendText(instanceName, phoneNumber, "❌ Certo, seu agendamento foi cancelado. Entre em contato para remarcar quando puder.");
             } catch (error) {
-                // Silently log or handle via system logger if injected
+                // Silently log
             }
+        }
+    }
+
+    private async handleSystemBotMessage(phoneNumber: string, text: string): Promise<void> {
+        if (!this.isConfirmation(text)) return;
+
+        const config = await this.userConfigRepository.findByWhatsappNumber(phoneNumber);
+        if (!config) return;
+
+        const usage = await this.checkUsageLimit.execute(config.userId);
+        if (!usage.canSend) return;
+
+        const lastInvite = await this.scheduleRepository.findLastPendingInvite(config.userId);
+        if (!lastInvite) {
+            await this.evolutionService.sendText(env.evolution.systemBotInstance, phoneNumber, "⚠️ Não encontrei nenhum convite pendente para aceitar no momento.");
+            return;
+        }
+
+        try {
+            await this.acceptInvite.execute(config.userId, lastInvite.id);
+            await this.evolutionService.sendText(env.evolution.systemBotInstance, phoneNumber, `✅ Perfeito! O compromisso *"${lastInvite.title}"* foi aceito e confirmado no seu Google Calendar.`);
+        } catch (error: any) {
+            console.error(`[HandleSystemBot] Error accepting invite for user ${config.userId}:`, error);
+            await this.evolutionService.sendText(env.evolution.systemBotInstance, phoneNumber, "❌ Ops, tive um problema ao tentar aceitar seu convite no Google Calendar. Tente novamente em instantes.");
         }
     }
 

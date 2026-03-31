@@ -12,7 +12,8 @@ import {
   Loader2,
   RefreshCw,
   Edit2,
-  Trash2
+  Trash2,
+  ExternalLink
 } from 'lucide-react';
 import { PageLayout } from '../shared/ui/PageLayout';
 import { Card } from '../shared/ui/Card';
@@ -22,7 +23,7 @@ import { dashboardService } from '../features/dashboard/dashboard.service';
 import { NewAppointmentModal } from '../features/calendar/components/NewAppointmentModal';
 import { AppointmentDetailsModal } from '../features/calendar/components/AppointmentDetailsModal';
 import { Plus } from 'lucide-react';
-
+import { apiClient } from '../shared/api/api-client';
 
 export const DashboardPage = () => {
   const { t } = useTranslation();
@@ -44,6 +45,14 @@ export const DashboardPage = () => {
 
   const syncMutation = useMutation({
     mutationFn: calendarService.sync,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+    },
+  });
+
+  const acceptMutation = useMutation({
+    mutationFn: calendarService.acceptInvite,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['appointments'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
@@ -197,12 +206,26 @@ export const DashboardPage = () => {
                         </div>
                       </td>
                       <td className="px-8 py-6">
-                        <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wide border
-                          ${apt.status === 'CONFIRMED' ? 'bg-green-500/10 border-green-500/20 text-green-400' : 
-                            apt.status === 'PENDING' ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-500' : 
-                            'bg-red-500/10 border-red-500/20 text-red-400'}`}>
-                          <div className={`w-1.5 h-1.5 rounded-full ${apt.status === 'CONFIRMED' ? 'bg-green-400' : apt.status === 'PENDING' ? 'bg-yellow-500' : 'bg-red-400'}`} />
-                          {t(`common.${apt.status.toLowerCase()}`)}
+                        <div className="flex flex-col items-start gap-2">
+                          <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wide border
+                            ${apt.status === 'CONFIRMED' ? 'bg-green-500/10 border-green-500/20 text-green-400' : 
+                              apt.status === 'PENDING' ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-500' : 
+                              'bg-red-500/10 border-red-500/20 text-red-400'}`}>
+                            <div className={`w-1.5 h-1.5 rounded-full ${apt.status === 'CONFIRMED' ? 'bg-green-400' : apt.status === 'PENDING' ? 'bg-yellow-500' : 'bg-red-400'}`} />
+                            {t(`common.${apt.status.toLowerCase()}`)}
+                          </div>
+                          
+                          {apt.status === 'PENDING' && apt.isOwner === false && (
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              className="text-[10px] py-0 h-6 border border-green-500/30 text-green-500 hover:bg-green-500/20"
+                              onClick={(e) => { e.stopPropagation(); acceptMutation.mutate(apt.id); }}
+                              disabled={acceptMutation.isPending}
+                            >
+                              {acceptMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Aceitar'}
+                            </Button>
+                          )}
                         </div>
                       </td>
                       <td className="px-8 py-6 text-right">
@@ -252,19 +275,31 @@ export const DashboardPage = () => {
               <div className="w-12 h-12 rounded-xl bg-primary-dim flex items-center justify-center mb-6 shadow-xl shadow-primary-dim/40">
                 <CalendarDays className="w-6 h-6 text-primary-foreground" />
               </div>
-              <h3 className="text-xl font-bold tracking-tight mb-3">{t('dashboard.syncCalendar.title')}</h3>
+              <h3 className="text-xl font-bold tracking-tight mb-3">
+                {dashboardStats?.calendarConnected ? 'Calendário Sincronizado' : t('dashboard.syncCalendar.title')}
+              </h3>
               <p className="text-sm text-foreground/80 leading-relaxed mb-8">
-                {t('dashboard.syncCalendar.description')}
+                {dashboardStats?.calendarConnected 
+                  ? 'Sua conta do Google está vinculada. Clique abaixo para forçar uma atualização manual dos seus compromissos.'
+                  : t('dashboard.syncCalendar.description')}
               </p>
               <Button 
                 className="w-full text-xs font-bold tracking-widest uppercase py-3 group-hover:scale-[1.02] transition-transform"
-                onClick={() => syncMutation.mutate()}
+                onClick={() => {
+                  if (dashboardStats?.calendarConnected) {
+                    syncMutation.mutate();
+                  } else {
+                    window.location.href = `${apiClient.defaults.baseURL}/auth/google`;
+                  }
+                }}
                 disabled={syncMutation.isPending}
               >
                 {syncMutation.isPending ? (
                   <RefreshCw className="w-4 h-4 animate-spin mr-2" />
-                ) : null}
-                {t('dashboard.syncCalendar.button')}
+                ) : (
+                  dashboardStats?.calendarConnected ? <RefreshCw className="w-4 h-4 mr-2" /> : <ExternalLink className="w-4 h-4 mr-2" />
+                )}
+                {dashboardStats?.calendarConnected ? 'Sincronizar Agora' : t('dashboard.syncCalendar.button')}
               </Button>
             </div>
           </Card>

@@ -173,7 +173,7 @@ const getUseCase = {
         getRepo.user(),
         redisService
     ),
-    updateUserConfig: () => new UpdateUserConfigUseCase(getRepo.userConfig()),
+    updateUserConfig: () => new UpdateUserConfigUseCase(getRepo.userConfig(), evolutionAdapter),
     getDashboardStats: () => new GetDashboardStatsUseCase(getRepo.schedule(), getRepo.userConfig()),
     getAppointments: () => new GetAppointmentsUseCase(
         getRepo.schedule()

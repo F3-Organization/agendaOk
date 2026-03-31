@@ -21,28 +21,50 @@ export class HandleEvolutionWebhookUseCase {
     ) {}
 
     async execute(payload: EvolutionWebhookPayload): Promise<void> {
+        const instanceName = payload.instance;
+        if (!instanceName) return;
+
+        // 1. Handle Connection Updates (Auto-capture Number & LID)
+        if (payload.event === "connection.update") {
+            const state = payload.data.state;
+            if (state === "open") {
+                const jid = payload.data.worker || payload.data.jid;
+                const number = payload.data.number || (jid as string).split("@")[0] || "";
+                
+                if (jid && number) {
+                    console.log(`[HandleWebhook] Auto-capturing metadata for instance ${instanceName}: Number=${number}, LID=${jid}`);
+                    const config = await this.userConfigRepository.findByInstanceName(instanceName);
+                    if (config) {
+                        await this.userConfigRepository.update(config.userId, {
+                            whatsappNumber: this.normalizeNumber(number),
+                            whatsappLid: jid as string
+                        });
+                        console.log(`[HandleWebhook] Config updated successfully for user ${config.userId}`);
+                    }
+                }
+            }
+            return;
+        }
+
         if (payload.event !== "messages.upsert") return;
         
         const data = payload.data;
         if (!data.key || data.key.fromMe) return;
 
-        const instanceName = payload.instance;
-        if (!instanceName) return;
-
-        // Prioritize 'sender' field from Evolution API v2 (handles @lid virtual IDs)
         const fullJid = payload.sender || data.key?.remoteJid;
         if (!fullJid) return;
         
         const phoneNumber = (fullJid as string).split("@")[0] || "";
         if (!phoneNumber) return;
 
-        const messageText = data.message?.conversation || data.message?.extendedTextMessage?.text || "";
+        const messageText = data.message?.extendedTextMessage?.text || data.message?.conversation || "";
+        const stanzaId = data.message?.extendedTextMessage?.contextInfo?.stanzaId;
         
         console.log(`[HandleWebhook] Received message from ${phoneNumber}: "${messageText}" on instance ${instanceName}`);
 
         // 1. Handle System Bot (Direct message to/from user)
         if (instanceName === env.evolution.systemBotInstance) {
-            await this.handleSystemBotMessage(phoneNumber, messageText);
+            await this.handleSystemBotMessage(phoneNumber, messageText, stanzaId);
             return;
         }
 
@@ -80,13 +102,28 @@ export class HandleEvolutionWebhookUseCase {
         }
     }
 
-    private async handleSystemBotMessage(phoneNumber: string, text: string): Promise<void> {
+    private async handleSystemBotMessage(phoneNumber: string, text: string, stanzaId?: string): Promise<void> {
         if (!this.isConfirmation(text)) return;
         
-        const normalizedNumber = this.normalizeNumber(phoneNumber);
-        const config = await this.userConfigRepository.findByWhatsappNumber(normalizedNumber);
+        // 1. Try mapping via stanzaId (Contextual Mapping)
+        let config: any = null;
+        if (stanzaId) {
+            config = await this.userConfigRepository.findByLastMessageId(stanzaId);
+            if (config && !config.whatsappLid) {
+                console.log(`[HandleSystemBot] Mapping LID ${phoneNumber} to user ${config.userId} via stanzaId ${stanzaId}`);
+                await this.userConfigRepository.update(config.userId, { whatsappLid: phoneNumber });
+                // We don't return here, we proceed with the confirmation
+            }
+        }
+
+        // 2. Fallback to normal lookup if not mapped or for repeat users
         if (!config) {
-            console.log(`[HandleWebhook] User config not found for normalized number: ${normalizedNumber}`);
+            config = await this.userConfigRepository.findByWhatsappNumber(phoneNumber);
+        }
+
+        if (!config) {
+            const normalizedNumber = this.normalizeNumber(phoneNumber);
+            console.log(`[HandleWebhook] User config not found for identifier: ${phoneNumber} (normalized: ${normalizedNumber})`);
             return;
         }
 

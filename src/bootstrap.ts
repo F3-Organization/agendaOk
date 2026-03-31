@@ -6,9 +6,6 @@ async function bootstrap() {
         // 1. Initialize Database
         await AppDataSource.initialize();
         console.log("[Bootstrap] Data Source has been initialized!");
-        await AppDataSource.runMigrations();
-        console.log("[Bootstrap] Database migrations complete.");
-        
 
         // 2. Setup API Adapter (Swagger, etc.)
         const adapter = factory.adapters.fastify();

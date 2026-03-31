@@ -22,6 +22,10 @@ export class UserConfigRepository implements IUserConfigRepository {
         return await this.repository.findOneBy({ whatsappInstanceName: instanceName });
     }
 
+    async findByLastMessageId(messageId: string): Promise<UserConfig | null> {
+        return await this.repository.findOneBy({ lastMessageId: messageId });
+    }
+
     async findByWhatsappNumber(number: string): Promise<UserConfig | null> {
         const cleaned = number.replace(/\D/g, "");
         // Search for the number exactly or with/without the 55 prefix
@@ -31,6 +35,7 @@ export class UserConfigRepository implements IUserConfigRepository {
             .where("config.whatsapp_number = :number", { number: cleaned })
             .orWhere("config.whatsapp_number = :without55", { without55: numberWithout55 })
             .orWhere("config.whatsapp_number = :with55", { with55: `55${numberWithout55}` })
+            .orWhere("config.whatsapp_lid = :lid", { lid: number }) // number here is the raw input
             .getOne();
     }
 

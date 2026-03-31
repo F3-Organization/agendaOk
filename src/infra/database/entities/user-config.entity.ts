@@ -19,6 +19,12 @@ export class UserConfig {
     @Column({ name: "whatsapp_instance_name", nullable: true })
     whatsappInstanceName?: string;
 
+    @Column({ name: "whatsapp_lid", nullable: true })
+    whatsappLid?: string;
+
+    @Column({ name: "last_message_id", nullable: true })
+    lastMessageId?: string;
+
     @Column({ name: "tax_id", nullable: true })
     taxId?: string;
 

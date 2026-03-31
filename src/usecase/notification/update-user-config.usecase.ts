@@ -1,3 +1,5 @@
+import { env } from "../../infra/config/configs";
+import { IEvolutionService } from "../ports/ievolution-service";
 import { IUserConfigRepository } from "../repositories/iuser-config-repository";
 
 export interface UpdateUserConfigDTO {
@@ -8,20 +10,44 @@ export interface UpdateUserConfigDTO {
 }
 
 export class UpdateUserConfigUseCase {
-    constructor(private readonly userConfigRepo: IUserConfigRepository) {}
+    constructor(
+        private readonly userConfigRepo: IUserConfigRepository,
+        private readonly evolutionService: IEvolutionService
+    ) {}
 
     async execute(userId: string, data: UpdateUserConfigDTO): Promise<void> {
-        const config = await this.userConfigRepo.findByUserId(userId);
+        let config = await this.userConfigRepo.findByUserId(userId);
         
         if (!config) {
-            // If it doesn't exist, we create one (e.g. for Google users who haven't synced yet)
-            await this.userConfigRepo.save({
+            config = await this.userConfigRepo.save({
                 userId,
                 ...data
             } as any);
-            return;
+        } else {
+            await this.userConfigRepo.update(userId, data as any);
         }
 
-        await this.userConfigRepo.update(userId, data as any);
+        // If the number was updated/added, send a test message to capture LID
+        if (data.whatsappNumber) {
+            try {
+                const message = `🔔 *ConfirmaZap: Ativação de Notificações*\n\n` +
+                    `Olá! Recebi seu número para envio de lembretes.\n` +
+                    `Por favor, *responda esta mensagem com um OK* para que eu possa reconhecer seu WhatsApp e ativar o sistema.\n\n` +
+                    `Obrigado!`;
+
+                const messageId = await this.evolutionService.sendText(
+                    env.evolution.systemBotInstance, 
+                    data.whatsappNumber, 
+                    message
+                );
+
+                if (messageId) {
+                    await this.userConfigRepo.update(userId, { lastMessageId: messageId });
+                    console.log(`[UpdateConfig] Greeting sent to ${data.whatsappNumber}. Mapping ID: ${messageId}`);
+                }
+            } catch (error) {
+                console.error(`[UpdateConfig] Failed to send greeting to ${data.whatsappNumber}:`, error);
+            }
+        }
     }
 }

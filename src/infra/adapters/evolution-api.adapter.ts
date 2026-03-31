@@ -98,12 +98,13 @@ export class EvolutionApiAdapter implements IEvolutionService {
         throw new Error("Não foi possível obter o QR Code da instância após várias tentativas.");
     }
 
-    async sendText(instanceName: string, number: string, text: string): Promise<void> {
+    async sendText(instanceName: string, number: string, text: string): Promise<string> {
         const sanitizedNumber = this.sanitizeNumber(number);
-        await this.request(`/message/sendText/${instanceName}`, "POST", {
+        const response = await this.request<any>(`/message/sendText/${instanceName}`, "POST", {
             number: sanitizedNumber,
             text
         });
+        return response?.key?.id || "";
     }
 
     private sanitizeNumber(number: string): string {

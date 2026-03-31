@@ -11,7 +11,6 @@
 - **Uso Direto (Sem Mappers):** Os Use Cases podem importar, instanciar e manipular as Entidades do TypeORM (`@Entity`) diretamente.
 - **Localização:** As Entidades devem ficar ESTRITAMENTE dentro de `src/infra/database/entities`.
 - **Nomenclatura no Banco:** Usar `snake_case` para tabelas e colunas nativas do Postgres para evitar problemas de aspas duplas em queries manuais. Configure os decorators explicitamente: `@Column({ name: 'user_id' })`.
-- **Migrations:** NUNCA usar `synchronize: true` em produção. Gerar migrations para toda alteração estrutural no banco.
 
 ## 3. Padrões TypeScript e Arquivos
 - **Nomenclatura de Arquivos:** Usar `kebab-case` com sufixo do tipo do arquivo. Exemplos: `user.entity.ts`, `create-appointment.usecase.ts`, `auth.controller.ts`, `appointment.repository.ts`.

@@ -97,6 +97,7 @@ const getUseCase = {
         googleCalendarAdapter, 
         getRepo.schedule(), 
         getRepo.userConfig(),
+        getRepo.user(),
         evolutionAdapter,
         getUseCase.checkUsageLimit()
     ),

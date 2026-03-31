@@ -31,7 +31,7 @@ export class UserConfig {
     @Column({ name: "google_token_expiry", type: "timestamp", nullable: true })
     googleTokenExpiry?: Date;
 
-    @Column({ name: "silent_window_start", default: "21:00" })
+    @Column({ name: "silent_window_start", default: "23:59" })
     silentWindowStart!: string;
 
     @Column({ name: "silent_window_end", default: "08:00" })

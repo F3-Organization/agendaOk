@@ -1,6 +1,7 @@
 import { IGoogleCalendarService } from "../ports/igoogle-calendar-service";
 import { IScheduleRepository } from "../repositories/ischedule-repository";
 import { IUserConfigRepository } from "../repositories/iuser-config-repository";
+import { IUserRepository } from "../repositories/iuser-repository";
 import { IEvolutionService } from "../ports/ievolution-service";
 import { CheckUsageLimitUseCase } from "../subscription/check-usage-limit.usecase";
 import { Schedule, ScheduleStatus } from "../../infra/database/entities/schedule.entity";
@@ -11,13 +12,17 @@ export class SyncCalendarUseCase {
         private readonly googleService: IGoogleCalendarService,
         private readonly scheduleRepository: IScheduleRepository,
         private readonly userConfigRepository: IUserConfigRepository,
+        private readonly userRepository: IUserRepository,
         private readonly evolutionService: IEvolutionService,
         private readonly checkUsageLimit: CheckUsageLimitUseCase
     ) {}
 
     async execute(userId: string): Promise<void> {
         const config = await this.userConfigRepository.findByUserId(userId);
-        if (!config || !config.googleRefreshToken || !config.syncEnabled) {
+        const user = await this.userRepository.findById(userId);
+        
+        if (!config || !config.googleRefreshToken || !config.syncEnabled || !user) {
+            console.log(`[SyncCalendar] Sync aborted for user ${userId}: Missing config, tokens, or user not found.`);
             return;
         }
 
@@ -57,7 +62,9 @@ export class SyncCalendarUseCase {
 
             const startAt = new Date(event.start?.dateTime || event.start?.date);
             const endAt = new Date(event.end?.dateTime || event.end?.date);
-            const isOwner = event.organizer ? event.organizer.self !== false : true;
+            
+            // Strictly check if the user is the organizer or creator
+            const isOwner = event.organizer?.self === true || (event.organizer === undefined && event.creator?.self === true);
 
             let schedule: Schedule;
 
@@ -88,21 +95,52 @@ export class SyncCalendarUseCase {
             // Diagnostic logging for external invites
             if (!schedule.isOwner) {
                 const attendees = schedule.attendees || [];
-                const selfAttendee = attendees.find((a: any) => a.self);
+                // Find user by 'self' flag or email
+                const selfAttendee = attendees.find((a: any) => a.self || a.email === user.email);
                 
-                console.log(`[SyncCalendar] External invite detected: "${schedule.title}"`, {
+                console.log(`[SyncCalendar] External invite check: "${schedule.title}"`, {
                     id: schedule.id,
                     isNotified: schedule.isNotified,
                     selfFound: !!selfAttendee,
                     responseStatus: selfAttendee?.responseStatus,
                     whatsappNumber: !!config.whatsappNumber
                 });
+                
+                if (schedule.isNotified) continue;
+                if (!config.whatsappNumber) continue;
 
-                // Notify user if it's an external invite they haven't responded to yet
-                if (!schedule.isNotified && selfAttendee && selfAttendee.responseStatus === 'needsAction' && config.whatsappNumber) {
+                if (selfAttendee && selfAttendee.responseStatus === 'needsAction') {
+                    // Check silent window (Temporarily bypassed for testing)
+                    /*
+                    if (this.isWithinSilentWindow(config.silentWindowStart, config.silentWindowEnd)) {
+                        console.log(`[SyncCalendar] Message suppressed: Current time within silent window (${config.silentWindowStart}-${config.silentWindowEnd})`);
+                        continue;
+                    }
+                    */
+
                     await this.notifyExternalInvite(config.whatsappNumber, schedule, userId);
                 }
             }
+        }
+    }
+
+    private isWithinSilentWindow(start: string, end: string): boolean {
+        const now = new Date();
+        const currentTime = now.getHours() * 60 + now.getMinutes();
+
+        const [startHour, startMin] = start.split(':').map(Number);
+        const [endHour, endMin] = end.split(':').map(Number);
+        
+        if (startHour === undefined || startMin === undefined || endHour === undefined || endMin === undefined) return false;
+
+        const startTime = startHour * 60 + startMin;
+        const endTime = endHour * 60 + endMin;
+
+        if (startTime < endTime) {
+            return currentTime >= startTime && currentTime <= endTime;
+        } else {
+            // Overnights (e.g., 21:00 to 08:00)
+            return currentTime >= startTime || currentTime <= endTime;
         }
     }
 

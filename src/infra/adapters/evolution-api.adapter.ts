@@ -99,10 +99,22 @@ export class EvolutionApiAdapter implements IEvolutionService {
     }
 
     async sendText(instanceName: string, number: string, text: string): Promise<void> {
+        const sanitizedNumber = this.sanitizeNumber(number);
         await this.request(`/message/sendText/${instanceName}`, "POST", {
-            number,
+            number: sanitizedNumber,
             text
         });
+    }
+
+    private sanitizeNumber(number: string): string {
+        let cleaned = number.replace(/\D/g, "");
+        
+        // If it's a Brazilian number missing the country code (DDD + Number)
+        if (cleaned.length >= 10 && cleaned.length <= 11 && !cleaned.startsWith("55")) {
+            cleaned = `55${cleaned}`;
+        }
+        
+        return cleaned;
     }
 
     async setWebhook(instanceName: string, url: string): Promise<void> {

@@ -6,13 +6,13 @@
   "scripts": {
     "dev": "ts-node src/bootstrap.ts",
     "build": "tsc",
-    "start": "npm run migration:run && node dist/bootstrap.js",
-    "start:no-migrate": "node dist/bootstrap.js",
+    "start": "npm run migration:run && node dist/src/bootstrap.js",
+    "start:no-migrate": "node dist/src/bootstrap.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "schema:sync": "typeorm schema:sync -d dist/infra/config/data-source.js",
-    "schema:diff": "typeorm schema:log -d dist/infra/config/data-source.js"
+    "schema:sync": "typeorm schema:sync -d dist/src/infra/config/data-source.js",
+    "schema:diff": "typeorm schema:log -d dist/src/infra/config/data-source.js"
   },
   "keywords": [],
   "author": "",

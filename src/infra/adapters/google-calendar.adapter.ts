@@ -33,17 +33,23 @@ export class GoogleCalendarAdapter implements IGoogleCalendarService {
 
     async getTokens(code: string): Promise<any> {
         console.log(`[GoogleCalendarAdapter] Exchanging code: ${code.substring(0, 10)}... with redirect_uri: ${this.redirectUri}`);
-        const response = await fetch("https://oauth2.googleapis.com/token", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({
-                code,
-                client_id: this.clientId,
-                client_secret: this.clientSecret,
-                redirect_uri: this.redirectUri,
-                grant_type: "authorization_code"
-            }).toString()
-        });
+        let response;
+        try {
+            response = await fetch("https://oauth2.googleapis.com/token", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams({
+                    code,
+                    client_id: this.clientId,
+                    client_secret: this.clientSecret,
+                    redirect_uri: this.redirectUri,
+                    grant_type: "authorization_code"
+                }).toString()
+            });
+        } catch (error: any) {
+            console.error(`[GoogleCalendarAdapter] Fetch failed: ${error.message}`, error);
+            throw error;
+        }
 
         if (!response.ok) {
             throw new Error(`Google Token Error: ${await response.text()}`);

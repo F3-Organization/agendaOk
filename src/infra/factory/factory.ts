@@ -12,6 +12,7 @@ import { GetUserConfigUseCase } from "../../usecase/user/get-user-config.usecase
 import { UpdateUserConfigUseCase } from "../../usecase/user/update-user-config.usecase";
 import { ChangePasswordUseCase } from "../../usecase/user/change-password.usecase";
 import { Toggle2FAUseCase } from "../../usecase/user/toggle-2fa.usecase";
+import { Verify2FAUseCase } from "../../usecase/user/verify-2fa.usecase";
 import { UserController } from "../controller/user.controller";
 import { UserRepository } from "../database/repositories/user.repository";
 import { ClientRepository } from "../database/repositories/client.repository";
@@ -181,6 +182,7 @@ const getUseCase = {
     updateUserConfig: () => new UpdateUserConfigUseCase(getRepo.user(), getRepo.userConfig(), evolutionAdapter),
     changePassword: () => new ChangePasswordUseCase(getRepo.user()),
     toggle2FA: () => new Toggle2FAUseCase(getRepo.user()),
+    verify2FA: () => new Verify2FAUseCase(getRepo.user()),
     getDashboardStats: () => new GetDashboardStatsUseCase(getRepo.schedule(), getRepo.userConfig()),
     getAppointments: () => new GetAppointmentsUseCase(
         getRepo.schedule()
@@ -290,7 +292,8 @@ export const factory = {
             getUseCase.getUserConfig(),
             getUseCase.updateUserConfig(),
             getUseCase.changePassword(),
-            getUseCase.toggle2FA()
+            getUseCase.toggle2FA(),
+            getUseCase.verify2FA()
         )
     },
     queues: {

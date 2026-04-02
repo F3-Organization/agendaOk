@@ -3,10 +3,12 @@ import { GetUserConfigUseCase } from "../../usecase/user/get-user-config.usecase
 import { UpdateUserConfigUseCase } from "../../usecase/user/update-user-config.usecase";
 import { ChangePasswordUseCase } from "../../usecase/user/change-password.usecase";
 import { Toggle2FAUseCase } from "../../usecase/user/toggle-2fa.usecase";
+import { Verify2FAUseCase } from "../../usecase/user/verify-2fa.usecase";
 import { 
     updateUserConfigSchema, 
     changePasswordSchema, 
-    toggle2FASchema 
+    toggle2FASchema,
+    verify2FASchema
 } from "../../../shared/schemas/user.schema";
 import { FastifyAdapter } from "../adapters/fastfy.adapter";
 
@@ -16,7 +18,8 @@ export class UserController {
         private readonly getUserConfigUseCase: GetUserConfigUseCase,
         private readonly updateUserConfigUseCase: UpdateUserConfigUseCase,
         private readonly changePasswordUseCase: ChangePasswordUseCase,
-        private readonly toggle2FAUseCase: Toggle2FAUseCase
+        private readonly toggle2FAUseCase: Toggle2FAUseCase,
+        private readonly verify2FAUseCase: Verify2FAUseCase
     ) {
         this.registerRoutes();
     }
@@ -44,6 +47,12 @@ export class UserController {
             "POST",
             "/user/toggle-2fa",
             this.toggle2FA.bind(this)
+        );
+
+        this.fastifyAdapter.addProtectedRoute(
+            "POST",
+            "/user/verify-2fa",
+            this.verify2FA.bind(this)
         );
     }
 
@@ -74,15 +83,17 @@ export class UserController {
         }
     }
 
-    async toggle2FA(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-        const userId = (request.user as any).id;
-        const { enabled } = toggle2FASchema.parse(request.body);
+    async toggle2FA(req: FastifyRequest, reply: FastifyReply) {
+        const userId = (req.user as { id: string }).id;
+        const { enabled } = toggle2FASchema.parse(req.body);
+        const result = await this.toggle2FAUseCase.execute(userId, enabled);
+        return reply.send(result);
+    }
 
-        try {
-            await this.toggle2FAUseCase.execute(userId, enabled);
-            reply.status(200).send({ message: enabled ? "2FA habilitado" : "2FA desabilitado" });
-        } catch (error: any) {
-            reply.status(400).send({ error: error.message });
-        }
+    async verify2FA(req: FastifyRequest, reply: FastifyReply) {
+        const userId = (req.user as { id: string }).id;
+        const { token } = verify2FASchema.parse(req.body);
+        await this.verify2FAUseCase.execute(userId, token);
+        return reply.status(204).send();
     }
 }

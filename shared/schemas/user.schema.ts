@@ -26,7 +26,12 @@ export const toggle2FASchema = z.object({
     enabled: z.boolean(),
 });
 
+export const verify2FASchema = z.object({
+    token: z.string().length(6, "Token deve ter 6 dígitos"),
+});
+
 export type UserConfigDTO = z.infer<typeof userConfigSchema>;
 export type UpdateUserConfigDTO = z.infer<typeof updateUserConfigSchema>;
 export type ChangePasswordDTO = z.infer<typeof changePasswordSchema>;
 export type Toggle2FADTO = z.infer<typeof toggle2FASchema>;
+export type Verify2FADTO = z.infer<typeof verify2FASchema>;

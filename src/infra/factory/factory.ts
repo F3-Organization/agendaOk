@@ -2,6 +2,7 @@ import { FastifyAdapter } from "../adapters/fastfy.adapter";
 import { EvolutionApiAdapter } from "../adapters/evolution-api.adapter";
 import { GoogleCalendarAdapter } from "../adapters/google-calendar.adapter";
 import { AbacatePayAdapter } from "../adapters/abacatepay.adapter";
+import { FocusNFeAdapter } from "../adapters/focus-nfe.adapter";
 import { adminMiddleware } from "../middleware/auth.middleware";
 import { AppController } from "../controller/app.controller";
 import { AuthController } from "../controller/auth.controller";
@@ -69,6 +70,7 @@ const adapterInstance = new FastifyAdapter();
 const evolutionAdapter = new EvolutionApiAdapter();
 const googleCalendarAdapter = new GoogleCalendarAdapter();
 const abacatePayAdapter = new AbacatePayAdapter();
+const focusNFeAdapter = new FocusNFeAdapter();
 const mailAdapter = new NodemailerAdapter();
 const redisService = new RedisService();
 
@@ -153,7 +155,9 @@ const getUseCase = {
         getRepo.subscription(),
         getRepo.subscriptionPayment(),
         getRepo.user(),
-        new SubscriptionNotificationService(mailAdapter)
+        getRepo.userConfig(),
+        new SubscriptionNotificationService(mailAdapter),
+        focusNFeAdapter
     ),
     getSubscriptionPaymentHistory: () => new GetSubscriptionPaymentHistoryUseCase(
         getRepo.subscription(),

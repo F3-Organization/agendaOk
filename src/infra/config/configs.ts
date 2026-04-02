@@ -38,10 +38,14 @@ export const env = {
     },
     abacatePay: {
         token: process.env.ABACATE_PAY_TOKEN || '',
-        baseUrl: process.env.ABACATE_PAY_URL || 'https://api.abacatepay.com/v1',
+        baseUrl: process.env.ABACATE_PAY_URL || 'https://api.abacatepay.com/v2',
         planName: process.env.PLAN_NAME || 'ConfirmaZap Pro',
         planPrice: parseInt(process.env.PLAN_PRICE_CENTS || '4990'),
         webhookSecret: process.env.ABACATE_WEBHOOK_SECRET || '',
+    },
+    focusNfe: {
+        token: process.env.FOCUS_NFE_TOKEN || '',
+        baseUrl: process.env.FOCUS_NFE_URL || 'https://sandbox.focusnfe.com.br/v2',
     },
     smtp: {
         host: process.env.SMTP_HOST || 'localhost',

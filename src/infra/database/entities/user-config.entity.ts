@@ -28,6 +28,9 @@ export class UserConfig {
     @Column({ type: "varchar", name: "tax_id", nullable: true })
     taxId?: string | undefined;
 
+    @Column({ type: "varchar", name: "billing_customer_id", nullable: true })
+    billingCustomerId?: string | undefined;
+
     @Column({ name: "google_access_token", type: "text", nullable: true })
     googleAccessToken?: string | undefined;
 

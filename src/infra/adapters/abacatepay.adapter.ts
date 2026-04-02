@@ -35,14 +35,46 @@ export class AbacatePayAdapter implements IPaymentGateway {
     }
 
     async createCustomer(request: CreateCustomerRequest): Promise<{ id: string }> {
-        const result: any = await this.request("/customer/create", "POST", request);
+        const result: any = await this.request("/customers/create", "POST", request);
         return { id: result.data.id };
     }
 
-    async createBilling(request: CreateBillingRequest): Promise<{ id: string, url: string }> {
+    async findProductByName(name: string): Promise<any | null> {
+        const result: any = await this.request("/products/list", "GET");
+        return result.data.find((p: any) => p.name === name) || null;
+    }
+
+    async createProduct(name: string, price: number, cycle: string): Promise<{ id: string }> {
         const payload = {
-            frequency: "MULTIPLE_PAYMENTS",
-            methods: ["PIX", "CARD"],
+            name,
+            description: `Assinatura ${name}`,
+            price,
+            cycle, // WEEKLY, MONTHLY, SEMIANNUALLY, ANNUALLY
+            externalId: `plan_${name.toLowerCase().replace(/\s/g, '_')}`
+        };
+        const result: any = await this.request("/products/create", "POST", payload);
+        return { id: result.data.id };
+    }
+
+    async createSubscription(customerId: string, productId: string, returnUrl: string): Promise<{ id: string, url: string }> {
+        const payload = {
+            customerId,
+            productId,
+            methods: ["PIX", "CREDIT_CARD", "DEBIT_CARD"],
+            returnUrl
+        };
+        const result: any = await this.request("/subscriptions/create", "POST", payload);
+        return { 
+            id: result.data.id, 
+            url: result.data.url 
+        };
+    }
+
+    async createBilling(request: CreateBillingRequest): Promise<{ id: string, url: string }> {
+        // Fallback for one-off billing using v2
+        const payload = {
+            frequency: request.cycle ? "SUBSCRIPTION" : "ONE_TIME",
+            methods: ["PIX", "CREDIT_CARD", "DEBIT_CARD"],
             products: [
                 {
                     externalId: request.externalId,

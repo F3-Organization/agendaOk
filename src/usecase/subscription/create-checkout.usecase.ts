@@ -33,14 +33,13 @@ export class CreateSubscriptionCheckoutUseCase {
             }
         }
 
-        let customerId = subscription?.abacateCustomerId;
+        const userConfig = await this.userConfigRepository.findByUserId(userId);
+        if (!userConfig?.whatsappNumber || !userConfig?.taxId) {
+            throw new Error("User must configure WhatsApp Number and Tax ID (CPF/CNPJ) before checkout.");
+        }
+
+        let customerId = userConfig.billingCustomerId;
         if (!customerId) {
-            const userConfig = await this.userConfigRepository.findByUserId(userId);
-
-            if (!userConfig?.whatsappNumber || !userConfig?.taxId) {
-                throw new Error("User must configure WhatsApp Number and Tax ID (CPF/CNPJ) before checkout.");
-            }
-
             const customer = await this.paymentGateway.createCustomer({
                 name: user.name,
                 email: user.email,
@@ -48,38 +47,52 @@ export class CreateSubscriptionCheckoutUseCase {
                 taxId: userConfig.taxId
             });
             customerId = customer.id;
+            
+            // Salvar ID do cliente para futuras cobranças
+            await this.userConfigRepository.update(userConfig.id, { billingCustomerId: customerId });
         }
 
-        // Criar cobrança
-        const billing = await this.paymentGateway.createBilling({
+        // 2. Garantir que o Produto existe no AbacatePay
+        let product = await this.paymentGateway.findProductByName(env.abacatePay.planName);
+        let productId = product?.id;
+
+        if (!productId) {
+            const newProduct = await this.paymentGateway.createProduct(
+                env.abacatePay.planName,
+                env.abacatePay.planPrice,
+                "MONTHLY"
+            );
+            productId = newProduct.id;
+        }
+
+        // 3. Criar Assinatura (Recorrência)
+        const subscriptionCheckout = await this.paymentGateway.createSubscription(
             customerId,
-            externalId: `sub_${userId}_${Date.now()}`,
-            name: "AgendaOk PRO",
-            description: "Plano de assinatura mensal AgendaOk",
-            price: env.abacatePay.planPrice,
-            returnUrl: `${baseUrl}/subscription`,
-            completionUrl: `${baseUrl}/subscription`
-        });
+            productId,
+            `${baseUrl}/subscription`
+        );
 
         // Criar NOVO registro de assinatura PRO como PENDING
-        const newSubscription = await this.subscriptionRepository.save({
+        const newSubscriptionData: any = {
             userId,
-            abacateBillingId: billing.id,
+            abacateBillingId: subscriptionCheckout.id,
             abacateCustomerId: customerId,
-            checkoutUrl: billing.url,
+            checkoutUrl: subscriptionCheckout.url,
             plan: "PRO",
             status: SubscriptionStatus.PENDING
-        });
+        };
+
+        const newSubscription = await this.subscriptionRepository.save(newSubscriptionData);
 
         // Criar registro de pagamento histórico (PENDENTE)
         await this.paymentRepository.create({
             subscriptionId: newSubscription.id,
-            billingId: billing.id,
+            billingId: subscriptionCheckout.id,
             amount: env.abacatePay.planPrice,
             status: SubscriptionPaymentStatus.PENDING,
-            checkoutUrl: billing.url
+            checkoutUrl: subscriptionCheckout.url
         });
 
-        return { url: billing.url };
+        return { url: subscriptionCheckout.url };
     }
 }

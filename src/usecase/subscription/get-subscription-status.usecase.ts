@@ -27,7 +27,7 @@ export class GetSubscriptionStatusUseCase {
 
         if (!subscription) {
             return {
-                status: SubscriptionStatus.INACTIVE,
+                status: SubscriptionStatus.ACTIVE,
                 plan: "FREE",
                 messageCount
             };

@@ -14,7 +14,7 @@ export class CreateSubscriptionCheckoutUseCase {
         private readonly userConfigRepository: UserConfigRepository,
         private readonly paymentGateway: IPaymentGateway,
         private readonly paymentRepository: ISubscriptionPaymentRepository
-    ) {}
+    ) { }
     async execute(userId: string) {
         const user = await this.userRepository.findById(userId);
         if (!user) throw new Error("User not found");
@@ -24,6 +24,13 @@ export class CreateSubscriptionCheckoutUseCase {
 
         if (subscription?.status === SubscriptionStatus.ACTIVE) {
             return { url: subscription.checkoutUrl || `${baseUrl}/dashboard` };
+        }
+
+        if (subscription) {
+            const pendingPayment = await this.paymentRepository.findPendingByUser(subscription.id);
+            if (pendingPayment && pendingPayment.checkoutUrl) {
+                return { url: pendingPayment.checkoutUrl };
+            }
         }
 
         let customerId = subscription?.abacateCustomerId;
@@ -47,8 +54,8 @@ export class CreateSubscriptionCheckoutUseCase {
         const billing = await this.paymentGateway.createBilling({
             customerId,
             externalId: `sub_${userId}_${Date.now()}`,
-            name: env.abacatePay.planName,
-            description: "Plano de assinatura mensal ConfirmaZap",
+            name: "AgendaOk PRO",
+            description: "Plano de assinatura mensal AgendaOk",
             price: env.abacatePay.planPrice,
             returnUrl: `${baseUrl}/dashboard`,
             completionUrl: `${baseUrl}/dashboard`

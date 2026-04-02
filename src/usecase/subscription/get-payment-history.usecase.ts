@@ -17,7 +17,7 @@ export class GetSubscriptionPaymentHistoryUseCase {
         return payments.map(payment => ({
             id: payment.id,
             status: payment.status,
-            amount: payment.amount / 100, // Convert to major unit (e.g. BRL)
+            amount: payment.amount,
             paidAt: payment.paidAt,
             createdAt: payment.createdAt,
             checkoutUrl: payment.checkoutUrl

@@ -158,7 +158,8 @@ const getUseCase = {
     ),
     generateInvoicePdf: () => new GenerateInvoicePdfUseCase(
         getRepo.subscriptionPayment(),
-        getRepo.user()
+        getRepo.user(),
+        getRepo.userConfig()
     ),
     connectWhatsapp: () => new ConnectWhatsappUseCase(
         getRepo.userConfig(),

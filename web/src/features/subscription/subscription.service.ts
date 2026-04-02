@@ -35,5 +35,23 @@ export const subscriptionService = {
   getInvoicePdfUrl: (paymentId: string): string => {
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
     return `${API_URL}/subscription/payments/${paymentId}/pdf`;
-  }
+  },
+
+  downloadInvoicePdf: async (paymentId: string): Promise<void> => {
+    const response = await apiClient.get(`/subscription/payments/${paymentId}/pdf`, {
+      responseType: 'blob',
+    });
+
+    // Create a blob URL and trigger download
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `fatura-${paymentId.split('-')[0]}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    
+    // Cleanup
+    link.parentNode?.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  },
 };

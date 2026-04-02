@@ -49,5 +49,10 @@ export const env = {
         user: process.env.SMTP_USER || '',
         pass: process.env.SMTP_PASS || '',
         from: process.env.SMTP_FROM || 'no-reply@agendaok.com.br',
+    },
+    company: {
+        name: process.env.COMPANY_NAME || 'ConfirmaZap',
+        cnpj: process.env.COMPANY_CNPJ || '00.000.000/0001-00',
+        address: process.env.COMPANY_ADDRESS || 'Rua Exemplo, 123 - São Paulo/SP',
     }
 }

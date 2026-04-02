@@ -60,9 +60,13 @@ export const SubscriptionPage = () => {
     }).format(amount / 100);
   };
 
-  const handleDownloadPdf = (paymentId: string) => {
-    const url = subscriptionService.getInvoicePdfUrl(paymentId);
-    window.open(url, '_blank');
+  const handleDownloadPdf = async (paymentId: string) => {
+    try {
+      await subscriptionService.downloadInvoicePdf(paymentId);
+    } catch (error) {
+      console.error('Error downloading invoice:', error);
+      // You could add a toast here
+    }
   };
 
   const plans = [

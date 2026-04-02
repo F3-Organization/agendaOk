@@ -5,7 +5,8 @@ export enum SubscriptionPaymentStatus {
     PENDING = "PENDING",
     PAID = "PAID",
     CANCELLED = "CANCELLED",
-    REFUNDED = "REFUNDED"
+    REFUNDED = "REFUNDED",
+    EXPIRED = "EXPIRED"
 }
 
 @Entity("subscription_payments")

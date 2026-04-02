@@ -43,6 +43,46 @@ export class HandleAbacatePayWebhookUseCase {
 
                 console.log(`[Subscription] User ${subscription.userId} activated via Abacate Pay.`);
             }
+        } else if (event === "billing.expired" || event === "billing.abandoned") {
+            const billingId = data.id;
+            const subscription = await this.subscriptionRepository.findByBillingId(billingId);
+
+            if (subscription) {
+                const payment = await this.paymentRepository.findByBillingId(billingId);
+                if (payment) {
+                    await this.paymentRepository.update(payment.id, {
+                        status: event === "billing.expired" ? SubscriptionPaymentStatus.EXPIRED : SubscriptionPaymentStatus.CANCELLED
+                    });
+                }
+
+                // Se a assinatura ainda estiver PENDING, marcamos como INACTIVE
+                if (subscription.status === SubscriptionStatus.PENDING) {
+                    await this.subscriptionRepository.updateStatus(
+                        subscription.id,
+                        subscription.userId,
+                        SubscriptionStatus.INACTIVE
+                    );
+                }
+            }
+        } else if (event === "billing.refunded") {
+            const billingId = data.id;
+            const subscription = await this.subscriptionRepository.findByBillingId(billingId);
+
+            if (subscription) {
+                const payment = await this.paymentRepository.findByBillingId(billingId);
+                if (payment) {
+                    await this.paymentRepository.update(payment.id, {
+                        status: SubscriptionPaymentStatus.REFUNDED
+                    });
+                }
+
+                // Plano reembolsado perde o acesso PRO
+                await this.subscriptionRepository.updateStatus(
+                    subscription.id,
+                    subscription.userId,
+                    SubscriptionStatus.CANCELLED
+                );
+            }
         }
         
         // Outros eventos (expiration, refund) podem ser adicionados aqui

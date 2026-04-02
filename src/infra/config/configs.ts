@@ -54,5 +54,6 @@ export const env = {
         name: process.env.COMPANY_NAME || 'ConfirmaZap',
         cnpj: process.env.COMPANY_CNPJ || '00.000.000/0001-00',
         address: process.env.COMPANY_ADDRESS || 'Rua Exemplo, 123 - São Paulo/SP',
+        supportWhatsapp: process.env.SUPPORT_WHATSAPP || '5595981035934',
     }
 }

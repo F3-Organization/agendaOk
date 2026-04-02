@@ -193,7 +193,7 @@ export const DashboardPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
         {statsList.map((stat, i) => (
 
-          <Card key={i} variant="glass" className="p-8 group hover:scale-[1.02] transition-all cursor-default">
+          <Card key={i} variant="glass" className="p-8 group hover:scale-[1.02] transition-all cursor-default min-w-0">
             <div className="flex justify-between items-start mb-6">
               <div className="w-12 h-12 rounded-xl bg-surface-low border border-outline-variant/50 flex items-center justify-center group-hover:border-primary/30 transition-colors">
                 <stat.icon className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -213,7 +213,7 @@ export const DashboardPage = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main List */}
-        <Card variant="base" className="lg:col-span-2 overflow-hidden bg-surface-dim/30">
+        <Card variant="base" className="lg:col-span-2 min-w-0 overflow-hidden bg-surface-dim/30">
           <div className="p-8 border-b border-outline-variant/30 flex justify-between items-center">
             <div className="flex items-center gap-3">
               <CalendarDays className="w-5 h-5 text-primary" />
@@ -226,7 +226,7 @@ export const DashboardPage = () => {
           </div>
 
           {/* Filter Bar */}
-          <div className="px-8 py-4 bg-surface-high/20 border-b border-outline-variant/10 flex flex-col sm:flex-row gap-4 items-center">
+          <div className="px-6 sm:px-8 py-4 bg-surface-high/20 border-b border-outline-variant/10 flex flex-col sm:flex-row gap-4 items-center">
             <div className="relative w-full sm:w-auto sm:flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input 
@@ -271,7 +271,7 @@ export const DashboardPage = () => {
                 </Button>
               </div>
             ) : (
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left border-collapse min-w-[600px]">
                 <thead className="bg-surface-high/50 border-b border-outline-variant/20">
                   <tr>
                     <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('dashboard.table.patient')}</th>
@@ -374,10 +374,8 @@ export const DashboardPage = () => {
         </Card>
 
         {/* Quick Actions / Integration */}
-        <div className="space-y-6">
+        <div className="space-y-6 min-w-0">
           <Card variant="accent" className="p-8 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl -z-0 translate-x-1/2 -translate-y-1/2" />
-            
             <div className="relative z-10">
               <div className="w-12 h-12 rounded-xl bg-primary-dim flex items-center justify-center mb-6 shadow-xl shadow-primary-dim/40">
                 <CalendarDays className="w-6 h-6 text-primary-foreground" />

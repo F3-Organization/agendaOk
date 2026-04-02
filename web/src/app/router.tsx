@@ -8,6 +8,7 @@ import { SettingsPage } from '../pages/SettingsPage';
 import { GoogleCallbackPage } from '../pages/GoogleCallbackPage';
 import { EmailVerificationPage } from '../pages/EmailVerificationPage';
 import { LandingPage } from '../pages/LandingPage';
+import { TwoFactorLoginPage } from '../pages/TwoFactorLoginPage';
 
 export const AppRouter = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -17,6 +18,7 @@ export const AppRouter = () => {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/auth/verify" element={<EmailVerificationPage />} />
+      <Route path="/auth/2fa" element={<TwoFactorLoginPage />} />
       <Route path="/auth/google/callback" element={<GoogleCallbackPage />} />
 
       

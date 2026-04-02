@@ -326,6 +326,13 @@ export const pt = {
       protectedData: 'Seus dados estão protegidos e criptografados',
       savePreferences: 'Salvar Preferências',
       saving: 'Salvando...',
+    },
+    twoFactorLogin: {
+      title: 'Verificação em Duas Etapas',
+      subtitle: 'Digite o código de 6 dígitos gerado pelo seu aplicativo autenticador para confirmar sua identidade.',
+      verifyButton: 'Verificar e Entrar',
+      invalidCode: 'Código inválido ou expirado. Tente novamente.',
+      placeholder: '000000',
     }
   }
 };

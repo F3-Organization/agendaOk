@@ -15,8 +15,10 @@ export const AuthUserSchema = z.object({
 
 export const LoginResponseSchema = z.object({
     message: z.string(),
-    token: z.string(),
-    user: AuthUserSchema
+    token: z.string().optional(),
+    user: AuthUserSchema.optional(),
+    status: z.string().optional(),
+    tempToken: z.string().optional()
 });
 
 export const AuthMeResponseSchema = AuthUserSchema;

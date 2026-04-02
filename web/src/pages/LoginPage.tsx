@@ -9,7 +9,7 @@ import { Input } from '../shared/ui/Input';
 import { Card } from '../shared/ui/Card';
 import { authService } from '../features/auth/auth.service';
 import { useAuthStore } from '../features/auth/auth.store';
-import { LoginInputSchema, RegisterInputSchema, type LoginInput, type RegisterInput } from '@shared/schemas/auth.schema';
+import { LoginInputSchema, RegisterInputSchema, type LoginInput, type RegisterInput, type AuthUser } from '@shared/schemas/auth.schema';
 
 export const LoginPage = () => {
   const { t } = useTranslation();
@@ -40,7 +40,14 @@ export const LoginPage = () => {
     setError(null);
     try {
       const response = await authService.login(data);
-      setAuth(response.user, response.token);
+      
+      if (response.status === '2FA_REQUIRED') {
+        console.log('[LoginPage] 2FA required, redirecting...', response.tempToken);
+        navigate('/auth/2fa', { state: { tempToken: response.tempToken } });
+        return;
+      }
+
+      setAuth(response.user as AuthUser, response.token as string);
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.error || t('common.loginFailed'));
@@ -60,7 +67,7 @@ export const LoginPage = () => {
         return;
       }
 
-      setAuth(response.user, response.token);
+      setAuth(response.user as AuthUser, response.token as string);
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.error || t('common.registrationFailed'));
@@ -73,8 +80,15 @@ export const LoginPage = () => {
     const handleMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return;
       if (event.data?.type === 'GOOGLE_AUTH_SUCCESS') {
-        const { user, token } = event.data.payload;
-        setAuth(user, token);
+        const { user, token, status, tempToken } = event.data.payload;
+        
+        if (status === '2FA_REQUIRED') {
+          console.log('[LoginPage] Google 2FA required, redirecting...');
+          navigate('/auth/2fa', { state: { tempToken } });
+          return;
+        }
+
+        setAuth(user as AuthUser, token as string);
         navigate('/dashboard');
       }
     };

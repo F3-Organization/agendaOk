@@ -13,6 +13,7 @@ import { UpdateUserConfigUseCase } from "../../usecase/user/update-user-config.u
 import { ChangePasswordUseCase } from "../../usecase/user/change-password.usecase";
 import { Toggle2FAUseCase } from "../../usecase/user/toggle-2fa.usecase";
 import { Verify2FAUseCase } from "../../usecase/user/verify-2fa.usecase";
+import { Validate2FAUseCase } from "../../usecase/user/validate-2fa.usecase";
 import { UserController } from "../controller/user.controller";
 import { UserRepository } from "../database/repositories/user.repository";
 import { ClientRepository } from "../database/repositories/client.repository";
@@ -45,6 +46,7 @@ import { AcceptInviteUseCase } from "../../usecase/calendar/accept-invite.usecas
 import { RegisterUserUseCase } from "../../usecase/auth/register-user.usecase";
 import { LoginUseCase } from "../../usecase/auth/login.usecase";
 import { AuthenticateGoogleUseCase } from "../../usecase/auth/authenticate-google.usecase";
+import { LoginVerify2FAUseCase } from "../../usecase/auth/login-verify-2fa.usecase";
 import { GetSubscriptionStatusUseCase } from "../../usecase/subscription/get-subscription-status.usecase";
 import { CheckUsageLimitUseCase } from "../../usecase/subscription/check-usage-limit.usecase";
 
@@ -183,6 +185,7 @@ const getUseCase = {
     changePassword: () => new ChangePasswordUseCase(getRepo.user()),
     toggle2FA: () => new Toggle2FAUseCase(getRepo.user()),
     verify2FA: () => new Verify2FAUseCase(getRepo.user()),
+    validate2FA: () => new Validate2FAUseCase(getRepo.user()),
     getDashboardStats: () => new GetDashboardStatsUseCase(getRepo.schedule(), getRepo.userConfig()),
     getAppointments: () => new GetAppointmentsUseCase(
         getRepo.schedule()
@@ -219,6 +222,11 @@ const getUseCase = {
         getRepo.user(),
         getUseCase.exchangeGoogleCode()
     ),
+    loginVerify2FA: () => new LoginVerify2FAUseCase(
+        getRepo.user(),
+        adapterInstance,
+        getUseCase.validate2FA()
+    ),
     getSubscriptionStatus: () => new GetSubscriptionStatusUseCase(
         getRepo.subscription(),
         getRepo.schedule()
@@ -249,9 +257,12 @@ export const factory = {
             getUseCase.authenticateGoogle(),
             getUseCase.registerUser(),
             getUseCase.login(),
+            getUseCase.validate2FA(),
+            getUseCase.loginVerify2FA(),
             getUseCase.sendEmailVerification(),
             getUseCase.verifyEmailSetPassword(),
             getUseCase.updateUserConfig(),
+            getRepo.user(),
             getRepo.userConfig()
         ),
         calendar: () => new CalendarController(

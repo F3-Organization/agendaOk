@@ -6,8 +6,9 @@ import { fastifyCors } from '@fastify/cors'
 import { fastifyHelmet } from '@fastify/helmet'
 import { fastifyRateLimit } from '@fastify/rate-limit'
 import { env } from '../config/configs'
+import { ITokenService } from '../../usecase/ports/itoken-service'
 
-export class FastifyAdapter {
+export class FastifyAdapter implements ITokenService {
     private app: FastifyInstance;
 
     public constructor() {
@@ -159,8 +160,12 @@ export class FastifyAdapter {
         });
     }
 
-    public sign(payload: any): string {
-        return (this.app as any).jwt.sign(payload);
+    public sign(payload: any, options?: any): string {
+        return (this.app as any).jwt.sign(payload, options);
+    }
+
+    public verify(token: string): any {
+        return (this.app as any).jwt.verify(token);
     }
 
     public decorate(name: string, fn: any) {

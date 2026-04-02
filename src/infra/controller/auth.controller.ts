@@ -1,5 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { IUserConfigRepository } from "../../usecase/repositories/iuser-config-repository";
+import { IUserRepository } from "../../usecase/repositories/iuser-repository";
 import { FastifyAdapter } from "../adapters/fastfy.adapter";
 import { GenerateGoogleAuthUrlUseCase } from "../../usecase/auth/generate-google-auth-url.usecase";
 import { AuthenticateGoogleUseCase } from "../../usecase/auth/authenticate-google.usecase";
@@ -8,6 +9,8 @@ import { LoginUseCase } from "../../usecase/auth/login.usecase";
 import { SendEmailVerificationUseCase } from "../../usecase/auth/send-email-verification.usecase";
 import { VerifyEmailSetPasswordUseCase } from "../../usecase/auth/verify-email-set-password.usecase";
 import { UpdateUserConfigUseCase } from "../../usecase/user/update-user-config.usecase";
+import { Validate2FAUseCase } from "../../usecase/user/validate-2fa.usecase";
+import { LoginVerify2FAUseCase } from "../../usecase/auth/login-verify-2fa.usecase";
 import { AuthUserPayload } from "../types/auth.types";
 import { z } from "zod";
 import { 
@@ -23,9 +26,12 @@ export class AuthController {
         private readonly authenticateGoogle: AuthenticateGoogleUseCase,
         private readonly registerUser: RegisterUserUseCase,
         private readonly login: LoginUseCase,
+        private readonly validate2FA: Validate2FAUseCase,
+        private readonly loginVerify2FA: LoginVerify2FAUseCase,
         private readonly sendEmailVerification: SendEmailVerificationUseCase,
         private readonly verifyEmailSetPassword: VerifyEmailSetPasswordUseCase,
         private readonly updateUserConfig: UpdateUserConfigUseCase,
+        private readonly userRepo: IUserRepository,
         private readonly userConfigRepo: IUserConfigRepository
     ) {
         this.fastify.logInfo("[AuthController] Initializing...");
@@ -66,6 +72,19 @@ export class AuthController {
 
             try {
                 const { user } = await this.authenticateGoogle.execute(code);
+
+                if (user.twoFactorEnabled) {
+                    const tempToken = this.fastify.sign({
+                        id: user.id,
+                        is2FAPending: true
+                    }, { expiresIn: "5m" });
+
+                    return reply.send({
+                        status: "2FA_REQUIRED",
+                        message: "Two-Factor Authentication required",
+                        tempToken
+                    });
+                }
 
                 const token = this.fastify.sign({
                     id: user.id,
@@ -314,6 +333,19 @@ export class AuthController {
             try {
                 const user = await this.login.execute(email, password);
 
+                if (user.twoFactorEnabled) {
+                    const tempToken = this.fastify.sign({
+                        id: user.id,
+                        is2FAPending: true
+                    }, { expiresIn: "5m" });
+
+                    return reply.send({
+                        status: "2FA_REQUIRED",
+                        message: "Two-Factor Authentication required",
+                        tempToken
+                    });
+                }
+
                 const token = this.fastify.sign({
                     id: user.id,
                     email: user.email,
@@ -406,6 +438,57 @@ export class AuthController {
                     properties: {
                         message: { type: "string" }
                     }
+                }
+            }
+        });
+
+        this.fastify.addRoute("POST", "/auth/2fa/login/verify", async (request: FastifyRequest, reply: FastifyReply) => {
+            const schema = z.object({
+                tempToken: z.string(),
+                code: z.string().length(6)
+            });
+
+            const parseResult = schema.safeParse(request.body);
+            if (!parseResult.success) {
+                return reply.code(400).send({ error: "Validation failed", details: parseResult.error.format() });
+            }
+
+            const { tempToken, code } = parseResult.data;
+
+            try {
+                const user = await this.loginVerify2FA.execute(tempToken, code);
+
+                const token = this.fastify.sign({
+                    id: user.id,
+                    email: user.email,
+                    name: user.name,
+                    role: user.role
+                });
+
+                reply.send({
+                    message: "2FA verification successful",
+                    token,
+                    user: {
+                        id: user.id,
+                        name: user.name,
+                        email: user.email,
+                        role: user.role
+                    }
+                });
+            } catch (error: any) {
+                this.fastify.logInfo("[AuthController] 2FA verification failed:", { error: error.message });
+                reply.code(401).send({ error: error.message });
+            }
+        }, {
+            tags: ["Auth"],
+            summary: "Verifies 2FA code during login",
+            description: "Takes a temporary token and a 2FA code to complete the authentication process.",
+            body: {
+                type: "object",
+                required: ["tempToken", "code"],
+                properties: {
+                    tempToken: { type: "string" },
+                    code: { type: "string", minLength: 6, maxLength: 6 }
                 }
             }
         });

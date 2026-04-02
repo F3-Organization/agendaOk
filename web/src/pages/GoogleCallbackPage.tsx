@@ -19,15 +19,27 @@ export const GoogleCallbackPage = () => {
       
       authService.exchangeCode(code)
         .then((data) => {
-          console.log('[GoogleCallbackPage] Exchange successful');
+          console.log('[GoogleCallbackPage] Exchange successful', data.status);
           if (window.opener) {
             window.opener.postMessage(
-              { type: 'GOOGLE_AUTH_SUCCESS', payload: { user: data.user, token: data.token } },
+              { 
+                type: 'GOOGLE_AUTH_SUCCESS', 
+                payload: { 
+                  user: data.user, 
+                  token: data.token,
+                  status: data.status,
+                  tempToken: data.tempToken
+                } 
+              },
               window.location.origin
             );
             window.close();
           } else {
-            setAuth(data.user, data.token);
+            if (data.status === '2FA_REQUIRED') {
+              navigate('/auth/2fa', { state: { tempToken: data.tempToken } });
+              return;
+            }
+            setAuth(data.user!, data.token!);
             navigate('/dashboard');
           }
         })

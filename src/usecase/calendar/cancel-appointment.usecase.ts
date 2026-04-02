@@ -1,12 +1,14 @@
 import { IGoogleCalendarService } from "../ports/igoogle-calendar-service";
 import { IScheduleRepository } from "../repositories/ischedule-repository";
 import { IUserConfigRepository } from "../repositories/iuser-config-repository";
+import { IIntegrationRepository } from "../repositories/iintegration-repository";
 import { ScheduleStatus } from "../../infra/database/entities/schedule.entity";
 
 export class CancelAppointmentUseCase {
     constructor(
         private readonly scheduleRepository: IScheduleRepository,
         private readonly userConfigRepository: IUserConfigRepository,
+        private readonly integrationRepository: IIntegrationRepository,
         private readonly googleService: IGoogleCalendarService
     ) {}
 
@@ -33,12 +35,12 @@ export class CancelAppointmentUseCase {
     }
 
     private async updateGoogleEvent(userId: string, eventId: string, currentTitle: string) {
-        const config = await this.userConfigRepository.findByUserId(userId);
-        if (!config || !config.googleAccessToken) return;
+        const integration = await this.integrationRepository.findByUserAndProvider(userId, "GOOGLE");
+        if (!integration || !integration.accessToken) return;
 
         try {
             const newTitle = `❌ ${currentTitle.replace("❌ ", "").replace("✅ ", "")}`;
-            await this.googleService.updateEvent(config.googleAccessToken, eventId, {
+            await this.googleService.updateEvent(integration.accessToken, eventId, {
                 summary: newTitle,
                 colorId: "11" // Red (Tomato)
             });

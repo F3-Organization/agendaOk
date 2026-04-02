@@ -24,6 +24,12 @@ Este checklist deve ser seguido obrigatoriamente após a conclusão de qualquer 
 - [ ] **Imports e Dead Code:** Imports não utilizados e variáveis órfãs foram removidos?
 - [ ] **Logs de Debug:** `console.log` usados durante o desenvolvimento foram limpos?
 
+### 5. Integração de APIs (SaaS/Pagamento)
+- [ ] **Documentação:** A implementação SEGUE RIGOROSAMENTE a documentação oficial da versão utilizada (v1, v2, etc.).
+- [ ] **Revision First:** Antes de finalizar, revise todos os endpoints e payloads afetados.
+- [ ] **Valores Monetários:** Valores estão em centavos conforme padrão de gateways?
+- [ ] **Webhooks:** O payload do webhook coincide com os DTOs do Use Case?
+
 ### 5. Banco de Dados e Migrations
 - [ ] **Tipagem:** A entidade está devidamente registrada no `AppDataSource` em `src/infra/config/data-source.ts`?
 

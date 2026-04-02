@@ -25,24 +25,70 @@ export class AbacatePayAdapter implements IPaymentGateway {
             options.body = JSON.stringify(body);
         }
 
-        const response = await fetch(url, options);
-        if (!response.ok) {
-            const error = await response.text();
-            throw new Error(`AbacatePay API Error [${response.status}]: ${error}`);
-        }
+        try {
+            const logId = Math.random().toString(36).substring(7);
+            console.log(`[AbacatePay][${logId}] Request: ${method} ${url}`);
+            if (body) {
+                console.log(`[AbacatePay][${logId}] Payload: ${JSON.stringify(body, null, 2)}`);
+            }
+            
+            const response = await fetch(url, options);
+            const responseText = await response.text();
+            
+            if (!response.ok) {
+                console.error(`[AbacatePay][${logId}] API Error [${response.status}]: ${responseText}`);
+                throw new Error(`AbacatePay API Error [${response.status}]: ${responseText}`);
+            }
 
-        return await response.json();
+            console.log(`[AbacatePay][${logId}] Success Response: ${responseText}`);
+            return JSON.parse(responseText);
+        } catch (error: any) {
+            console.error(`[AbacatePay] Error: ${error.message}`);
+            throw error;
+        }
     }
 
     async createCustomer(request: CreateCustomerRequest): Promise<{ id: string }> {
-        const result: any = await this.request("/customer/create", "POST", request);
-        return { id: result.data.id };
+        try {
+            const result: any = await this.request("/customer/create", "POST", request);
+            return { id: result.data.id };
+        } catch (error: any) {
+            console.warn(`[AbacatePay] Customer creation failed or already exists. Attempting to proceed...`);
+            throw error; 
+        }
+    }
+
+    async getCustomer(id: string): Promise<any | null> {
+        try {
+            // v1 doesn't have a direct get endpoint, search in list
+            const result: any = await this.request("/customer/list", "GET");
+            if (!result.data || !Array.isArray(result.data)) return null;
+            return result.data.find((c: any) => c.id === id) || null;
+        } catch (error: any) {
+            console.error(`[AbacatePay] Failed to verify customer ${id}:`, error.message);
+            return null;
+        }
+    }
+
+
+    async createSubscription(customerId: string, name: string, price: number, returnUrl: string, metadata?: Record<string, any>): Promise<{ id: string, url: string }> {
+        return this.createBilling({
+            customerId,
+            name,
+            price,
+            description: `Assinatura ${name}`,
+            externalId: `sub_${Date.now()}`,
+            returnUrl,
+            completionUrl: returnUrl,
+            frequency: 'MULTIPLE_PAYMENTS',
+            metadata
+        });
     }
 
     async createBilling(request: CreateBillingRequest): Promise<{ id: string, url: string }> {
         const payload = {
-            frequency: "MULTIPLE_PAYMENTS",
-            methods: ["PIX", "CARD"],
+            frequency: request.frequency || "ONE_TIME",
+            methods: request.methods || ["PIX", "CARD"],
             products: [
                 {
                     externalId: request.externalId,
@@ -54,7 +100,8 @@ export class AbacatePayAdapter implements IPaymentGateway {
             ],
             returnUrl: request.returnUrl,
             completionUrl: request.completionUrl,
-            customerId: request.customerId
+            customerId: request.customerId,
+            metadata: request.metadata
         };
 
         const result: any = await this.request("/billing/create", "POST", payload);
@@ -65,7 +112,8 @@ export class AbacatePayAdapter implements IPaymentGateway {
     }
 
     async getBilling(id: string): Promise<any> {
-        const result: any = await this.request(`/billing/get?id=${id}`, "GET");
-        return result.data;
+        const result: any = await this.request("/billing/list", "GET");
+        if (!result.data || !Array.isArray(result.data)) return null;
+        return result.data.find((b: any) => b.id === id) || null;
     }
 }

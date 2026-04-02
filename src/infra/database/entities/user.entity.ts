@@ -1,32 +1,31 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
+import { Entity, Column, Index } from "typeorm";
+import { BaseEntity } from "./base.entity";
 
 @Entity("users")
-export class User {
-    @PrimaryGeneratedColumn("uuid")
-    id!: string;
-
-    @Column({ unique: true })
+export class User extends BaseEntity {
+    @Column({ unique: true, name: "email" })
     email!: string;
 
-    @Column()
+    @Column({ name: "name" })
     name!: string;
 
-    @Column({ nullable: true })
+    @Column({ type: "varchar", nullable: true, name: "password" })
     password?: string;
 
-    @Column({ name: "google_id", nullable: true, unique: true })
+    @Column({ name: "google_id", type: "varchar", nullable: true, unique: true })
     googleId?: string;
 
     @Column({
         type: "enum",
         enum: ["ADMIN", "USER"],
-        default: "USER"
+        default: "USER",
+        name: "role"
     })
     role!: "ADMIN" | "USER";
 
-    @CreateDateColumn()
-    createdAt!: Date;
+    @Column({ name: "two_factor_enabled", default: false })
+    twoFactorEnabled!: boolean;
 
-    @UpdateDateColumn()
-    updatedAt!: Date;
+    @Column({ name: "two_factor_secret", type: "varchar", nullable: true })
+    twoFactorSecret?: string | null;
 }

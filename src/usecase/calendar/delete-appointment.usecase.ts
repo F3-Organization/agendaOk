@@ -1,12 +1,14 @@
 import { IGoogleCalendarService } from "../ports/igoogle-calendar-service";
 import { IScheduleRepository } from "../repositories/ischedule-repository";
 import { IUserConfigRepository } from "../repositories/iuser-config-repository";
+import { IIntegrationRepository } from "../repositories/iintegration-repository";
 
 export class DeleteAppointmentUseCase {
     constructor(
         private readonly googleService: IGoogleCalendarService,
         private readonly scheduleRepository: IScheduleRepository,
-        private readonly userConfigRepository: IUserConfigRepository
+        private readonly userConfigRepository: IUserConfigRepository,
+        private readonly integrationRepository: IIntegrationRepository
     ) {}
 
     async execute(id: string, userId: string): Promise<void> {
@@ -16,15 +18,16 @@ export class DeleteAppointmentUseCase {
         }
 
         const config = await this.userConfigRepository.findByUserId(userId);
+        const integration = await this.integrationRepository.findByUserAndProvider(userId, "GOOGLE");
         
-        if (!config || !config.googleRefreshToken) {
+        if (!config || !integration || !integration.refreshToken) {
             throw new Error("Usuário não possui conexão ativa com o Google Calendar.");
         }
 
-        let accessToken = config.googleAccessToken;
+        let accessToken = integration.accessToken;
 
-        if (this.isTokenExpired(config.googleTokenExpiry)) {
-            const tokens = await this.googleService.refreshAccessToken(config.googleRefreshToken);
+        if (this.isTokenExpired(integration.expiresAt)) {
+            const tokens = await this.googleService.refreshAccessToken(integration.refreshToken);
             
             const newAccessToken = tokens.access_token as string;
             if (!newAccessToken) {
@@ -38,9 +41,10 @@ export class DeleteAppointmentUseCase {
                 expiryDate.setSeconds(expiryDate.getSeconds() + tokens.expires_in);
             }
 
-            await this.userConfigRepository.update(userId, {
-                googleAccessToken: newAccessToken,
-                googleTokenExpiry: expiryDate
+            await this.integrationRepository.save({
+                id: integration.id,
+                accessToken: newAccessToken,
+                expiresAt: expiryDate
             });
         }
 
@@ -57,7 +61,7 @@ export class DeleteAppointmentUseCase {
         await this.scheduleRepository.delete(id, userId);
     }
 
-    private isTokenExpired(expiry?: Date): boolean {
+    private isTokenExpired(expiry?: Date | null): boolean {
         if (!expiry) return true;
         const now = new Date();
         return now.getTime() >= (expiry.getTime() - 300000); // 5 minutes margin

@@ -28,7 +28,7 @@ export class GetAppointmentsUseCase {
                     responseStatus: a.responseStatus,
                     displayName: a.displayName,
                 })) || [],
-                isOwner: (schedule as any).isOwner !== false,
+                isOwner: !!schedule.isOwner,
             };
         });
     }

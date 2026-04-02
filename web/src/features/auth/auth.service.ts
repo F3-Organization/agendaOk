@@ -25,13 +25,24 @@ export const authService = {
     const { data } = await apiClient.post('/auth/register/verify', verificationData);
     return data;
   },
+  
+  verify2FA: async (tempToken: string, code: string): Promise<LoginResponse> => {
+    const { data } = await apiClient.post('/auth/2fa/login/verify', { tempToken, code });
+    return data;
+  },
 
   getMe: async (): Promise<AuthUser> => {
     const { data } = await apiClient.get('/auth/me');
     return data;
   },
 
-  updateConfig: async (configData: { whatsappNumber?: string; syncEnabled?: boolean }): Promise<void> => {
+  updateConfig: async (configData: { 
+    whatsappNumber?: string; 
+    taxId?: string;
+    syncEnabled?: boolean;
+    silentWindowStart?: string;
+    silentWindowEnd?: string;
+  }): Promise<void> => {
     await apiClient.patch('/auth/config', configData);
   },
 };

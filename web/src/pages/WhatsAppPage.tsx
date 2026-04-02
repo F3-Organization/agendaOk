@@ -10,13 +10,19 @@ import {
   XCircle,
   CheckCircle2,
   PartyPopper,
-  ArrowRight
+  ArrowRight,
+  BellRing,
+  Moon,
+  Save
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageLayout } from '../shared/ui/PageLayout';
 import { Card } from '../shared/ui/Card';
 import { Button } from '../shared/ui/Button';
 import { whatsappService, type WhatsAppQR } from '../features/whatsapp/whatsapp.service';
+import { authService } from '../features/auth/auth.service';
+import { useAuthStore } from '../features/auth/auth.store';
+import { Input } from '../shared/ui/Input';
 
 export const WhatsAppPage = () => {
   const { t } = useTranslation();
@@ -24,7 +30,6 @@ export const WhatsAppPage = () => {
   const queryClient = useQueryClient();
   const [qrData, setQrData] = useState<WhatsAppQR | null>(null);
 
-  // Poll status only when we have a QR and aren't confirmed connected yet
   const { data: statusData } = useQuery({
     queryKey: ['whatsapp-status'],
     queryFn: whatsappService.getStatus,
@@ -51,11 +56,42 @@ export const WhatsAppPage = () => {
     },
   });
 
+  const user = useAuthStore((state) => state.user);
+  const setUser = useAuthStore((state) => state.setAuth);
+  const token = useAuthStore((state) => state.token);
+
+  const [silentWindowStart, setSilentWindowStart] = useState(user?.config?.silentWindowStart || '22:00');
+  const [silentWindowEnd, setSilentWindowEnd] = useState(user?.config?.silentWindowEnd || '08:00');
+
+  const updateConfigMutation = useMutation({
+    mutationFn: authService.updateConfig,
+    onSuccess: () => {
+      if (user && token) {
+        setUser({
+          ...user,
+          config: {
+            ...user.config!,
+            silentWindowStart,
+            silentWindowEnd
+          }
+        }, token);
+      }
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-status'] });
+    },
+  });
+
   useEffect(() => {
     if (!isConnected) {
       connectMutation.mutate();
     }
   }, []);
+
+  useEffect(() => {
+    if (user?.config) {
+      setSilentWindowStart(user.config.silentWindowStart);
+      setSilentWindowEnd(user.config.silentWindowEnd);
+    }
+  }, [user?.config]);
 
   return (
     <PageLayout 
@@ -224,6 +260,69 @@ export const WhatsAppPage = () => {
             </Card>
           )}
         </div>
+      </div>
+
+      {/* Notification Settings Section */}
+      <div className="mt-20">
+        <div className="flex items-center gap-4 mb-8">
+            <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <BellRing className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+                <h2 className="text-2xl font-bold tracking-tight">{t('whatsapp.config.title')}</h2>
+                <p className="text-muted-foreground">{t('whatsapp.config.silentWindowDescription')}</p>
+            </div>
+        </div>
+
+        <Card variant="glass" className="p-8 border border-outline-variant relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10 group-hover:bg-primary/10 transition-colors" />
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-end">
+                <div className="space-y-4">
+                    <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-primary mb-2">
+                        <Moon className="w-4 h-4" />
+                        {t('whatsapp.config.silentWindow')}
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <Input 
+                            type="time" 
+                            label={t('whatsapp.config.start')}
+                            value={silentWindowStart}
+                            onChange={(e) => setSilentWindowStart(e.target.value)}
+                        />
+                        <Input 
+                            type="time" 
+                            label={t('whatsapp.config.end')}
+                            value={silentWindowEnd}
+                            onChange={(e) => setSilentWindowEnd(e.target.value)}
+                        />
+                    </div>
+                </div>
+
+                <div className="md:col-span-2 flex justify-end">
+                    <Button 
+                        variant="primary" 
+                        className="h-12 px-8 gap-2 font-bold tracking-widest uppercase shadow-lg shadow-primary/20"
+                        onClick={() => updateConfigMutation.mutate({ silentWindowStart, silentWindowEnd })}
+                        disabled={updateConfigMutation.isPending}
+                    >
+                        {updateConfigMutation.isPending ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                            <Save className="w-4 h-4" />
+                        )}
+                        {t('whatsapp.config.save')}
+                    </Button>
+                </div>
+            </div>
+
+            {updateConfigMutation.isSuccess && (
+                <div className="mt-6 p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-sm font-medium flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2">
+                    <CheckCircle2 className="w-4 h-4" />
+                    {t('whatsapp.config.success')}
+                </div>
+            )}
+        </Card>
       </div>
     </PageLayout>
   );

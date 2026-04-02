@@ -86,3 +86,15 @@ O projeto utiliza **Migrations** para qualquer alteração no esquema do banco d
 
 - **Shared Core**: Localizado em `/shared`, contém os schemas **Zod** utilizados tanto pelo Backend (validação de request) quanto pelo Frontend (formulários e tipos).
 - **Consumo de API**: Realizado via `api-client.ts`, centralizando o tratamento de tokens e baseURL.
+
+---
+
+## 6. Arquitetura Frontend
+
+O frontend segue um padrão de separação de responsabilidades para manter os componentes React focados em UI:
+
+1. **UI Components (`web/src/pages/`)**: Componentes "burros" que apenas renderizam dados e reagem a eventos do usuário.
+2. **Hooks / Interactors (`web/src/features/*/hooks/`)**: Concentram a lógica de negócio do frontend. Orquestram estados complexos, consultas (React Query), polling e efeitos colaterais (toasts, navegação).
+3. **Services (`web/src/features/*/services/`)**: Adaptadores para a API, responsáveis apenas por chamadas HTTP e transformações de dados brutas.
+4. **Shared Utils (`web/src/shared/utils/`)**: Utilitários globais de formatação (ex: `formatters.ts`) e ajudantes transversais.
+

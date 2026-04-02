@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X, Calendar as CalendarIcon, Phone, User, Users, CheckCircle, XCircle, HelpCircle, Clock } from 'lucide-react';
 import { calendarService, type Appointment } from '../calendar.service';
 import { Button } from '../../../shared/ui/Button';
+import { useAuthStore } from '../../auth/auth.store';
 
 interface AppointmentDetailsModalProps {
   isOpen: boolean;
@@ -21,6 +22,16 @@ export const AppointmentDetailsModal = ({ isOpen, onClose, appointment }: Appoin
       onClose();
     }
   });
+
+  const declineMutation = useMutation({
+    mutationFn: (id: string) => calendarService.declineInvite(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      onClose();
+    }
+  });
+
+  const currentUserEmail = useAuthStore(state => state.user?.email);
 
   if (!isOpen || !appointment) return null;
 
@@ -161,19 +172,48 @@ export const AppointmentDetailsModal = ({ isOpen, onClose, appointment }: Appoin
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-outline-variant/30 bg-surface-high flex items-center justify-end gap-3">
-          <Button variant="ghost" onClick={onClose} disabled={acceptMutation.isPending}>
+        <div className="p-4 border-t border-outline-variant/30 bg-surface-high flex items-center justify-end gap-3 font-outfit">
+          <Button variant="ghost" onClick={onClose} disabled={acceptMutation.isPending || declineMutation.isPending}>
             {t('dashboard.appointmentDetails.close')}
           </Button>
-          {appointment.isOwner === false && appointment.status !== 'CONFIRMED' && (
-            <Button
-              onClick={() => acceptMutation.mutate(appointment.id)}
-              disabled={acceptMutation.isPending}
-              className="bg-primary text-primary-foreground font-bold"
-            >
-              {acceptMutation.isPending ? '⏳ Processando...' : '✅ Confirmar Presença'}
-            </Button>
-          )}
+          
+          {(() => {
+            const selfAttendee = appointment.attendees?.find(
+              a => a.email.toLowerCase() === currentUserEmail?.toLowerCase()
+            );
+            const isInvitee = !appointment.isOwner && !!selfAttendee;
+
+            if (!isInvitee) return null;
+
+            return (
+              <div className="flex items-center gap-2">
+                {/* Se o status do usuário logado não for 'accepted', mostra Aceitar */}
+                {selfAttendee?.responseStatus !== 'accepted' && (
+                  <Button
+                    onClick={() => acceptMutation.mutate(appointment.id)}
+                    disabled={acceptMutation.isPending || declineMutation.isPending}
+                    className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold flex items-center gap-2"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    {acceptMutation.isPending ? 'Processando...' : 'Aceitar'}
+                  </Button>
+                )}
+
+                {/* Sempre mostra a opção de recusar se não for o dono e se não estiver recusado */}
+                {selfAttendee?.responseStatus !== 'declined' && (
+                  <Button
+                    onClick={() => declineMutation.mutate(appointment.id)}
+                    disabled={acceptMutation.isPending || declineMutation.isPending}
+                    variant="secondary"
+                    className="border border-red-500/50 hover:bg-red-500/10 text-red-500 font-bold flex items-center gap-2"
+                  >
+                    <XCircle className="w-4 h-4" />
+                    {declineMutation.isPending ? 'Processando...' : 'Recusar'}
+                  </Button>
+                )}
+              </div>
+            );
+          })()}
         </div>
       </div>
     </div>

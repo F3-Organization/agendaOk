@@ -6,7 +6,7 @@ export const env = {
     debug: () => env.environment === 'development',
     logLevel: (process.env.LOG_LEVEL || 'info') as 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace',
     port: parseInt(process.env.PORT || '3000'),
-    domain: process.env.DOMAIN || 'localhost',
+    domain: process.env.DOMAIN || 'http://localhost:5173',
     appInternalUrl: process.env.APP_INTERNAL_URL || 'http://api:3000',
     jwt: {
         secret: process.env.JWT_SECRET!,
@@ -17,7 +17,7 @@ export const env = {
         port: parseInt(process.env.DB_PORT || '5432'),
         user: process.env.DB_USER || 'postgres',
         password: process.env.DB_PASSWORD!,
-        database: process.env.DB_NAME || 'agendaok',
+        database: process.env.DB_NAME || 'confirmazap',
     },
     redis: {
         host: process.env.REDIS_HOST || 'redis',
@@ -28,7 +28,7 @@ export const env = {
         apiUrl: process.env.EVOLUTION_API_URL || 'http://evolution-api:8080',
         apiKey: process.env.EVO_API_KEY!,
         serverUrl: process.env.EVO_SERVER_URL || 'http://localhost:8080',
-        systemBotInstance: process.env.SYSTEM_BOT_INSTANCE || 'AgendaOk-Admin',
+        systemBotInstance: process.env.SYSTEM_BOT_INSTANCE || 'ConfirmaZap-Admin',
         webhookUrl: `${process.env.APP_INTERNAL_URL || 'http://api:3000'}/api/webhook/evolution`,
     },
     google: {
@@ -43,11 +43,24 @@ export const env = {
         planPrice: parseInt(process.env.PLAN_PRICE_CENTS || '4990'),
         webhookSecret: process.env.ABACATE_WEBHOOK_SECRET || '',
     },
+    focusNfe: {
+        token: process.env.FOCUS_NFE_TOKEN || '',
+        baseUrl: process.env.FOCUS_NFE_URL || 'https://sandbox.focusnfe.com.br/v2',
+    },
     smtp: {
         host: process.env.SMTP_HOST || 'localhost',
         port: parseInt(process.env.SMTP_PORT || '587'),
         user: process.env.SMTP_USER || '',
         pass: process.env.SMTP_PASS || '',
-        from: process.env.SMTP_FROM || 'no-reply@agendaok.com.br',
+        from: process.env.SMTP_FROM || 'no-reply@confirmazap.com.br',
+    },
+    company: {
+        name: process.env.COMPANY_NAME || 'ConfirmaZap',
+        cnpj: process.env.COMPANY_CNPJ || '00.000.000/0001-00',
+        address: process.env.COMPANY_ADDRESS || 'Rua Exemplo, 123 - São Paulo/SP',
+        supportWhatsapp: process.env.SUPPORT_WHATSAPP || '5595981035934',
+    },
+    security: {
+        encryptionKey: process.env.ENCRYPTION_KEY
     }
 }

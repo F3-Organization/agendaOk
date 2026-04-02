@@ -1,13 +1,15 @@
 import { IGoogleCalendarService } from "../ports/igoogle-calendar-service";
 import { IScheduleRepository } from "../repositories/ischedule-repository";
 import { IUserConfigRepository } from "../repositories/iuser-config-repository";
+import { IIntegrationRepository } from "../repositories/iintegration-repository";
 import { ScheduleStatus } from "../../infra/database/entities/schedule.entity";
 
 export class AcceptInviteUseCase {
     constructor(
         private readonly googleService: IGoogleCalendarService,
         private readonly scheduleRepository: IScheduleRepository,
-        private readonly userConfigRepository: IUserConfigRepository
+        private readonly userConfigRepository: IUserConfigRepository,
+        private readonly integrationRepository: IIntegrationRepository
     ) {}
 
     async execute(userId: string, appointmentId: string): Promise<void> {
@@ -20,15 +22,17 @@ export class AcceptInviteUseCase {
         }
 
         const config = await this.userConfigRepository.findByUserId(userId);
-        if (!config || !config.googleAccessToken) {
+        const integration = await this.integrationRepository.findByUserAndProvider(userId, "GOOGLE");
+        
+        if (!config || !integration || !integration.accessToken) {
             throw new Error("Google Calendar integration not configured");
         }
 
-        let accessToken = config.googleAccessToken;
+        let accessToken = integration.accessToken;
 
-        // Auto-refresh logic (simplificado)
-        if (config.googleTokenExpiry && new Date().getTime() >= (config.googleTokenExpiry.getTime() - 300000)) {
-            const tokens = await this.googleService.refreshAccessToken(config.googleRefreshToken!);
+        // Auto-refresh logic
+        if (this.isTokenExpired(integration.expiresAt)) {
+            const tokens = await this.googleService.refreshAccessToken(integration.refreshToken!);
             accessToken = tokens.access_token;
             
             const expiryDate = new Date();
@@ -36,9 +40,10 @@ export class AcceptInviteUseCase {
                 expiryDate.setSeconds(expiryDate.getSeconds() + tokens.expires_in);
             }
 
-            await this.userConfigRepository.update(userId, {
-                googleAccessToken: accessToken,
-                googleTokenExpiry: expiryDate
+            await this.integrationRepository.save({
+                id: integration.id,
+                accessToken: accessToken,
+                expiresAt: expiryDate
             });
         }
 
@@ -71,5 +76,11 @@ export class AcceptInviteUseCase {
         schedule.attendees = mappedAttendees;
         schedule.status = ScheduleStatus.CONFIRMED;
         await this.scheduleRepository.save(schedule);
+    }
+
+    private isTokenExpired(expiry?: Date | null): boolean {
+        if (!expiry) return true;
+        const now = new Date();
+        return now.getTime() >= (expiry.getTime() - 300000); // 5 minutes margin
     }
 }

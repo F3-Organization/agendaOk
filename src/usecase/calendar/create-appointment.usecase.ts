@@ -1,6 +1,7 @@
 import { IGoogleCalendarService } from "../ports/igoogle-calendar-service";
 import { IScheduleRepository } from "../repositories/ischedule-repository";
 import { IUserConfigRepository } from "../repositories/iuser-config-repository";
+import { IIntegrationRepository } from "../repositories/iintegration-repository";
 import { Schedule, ScheduleStatus } from "../../infra/database/entities/schedule.entity";
 
 interface CreateAppointmentInput {
@@ -16,20 +17,22 @@ export class CreateAppointmentUseCase {
     constructor(
         private readonly googleService: IGoogleCalendarService,
         private readonly scheduleRepository: IScheduleRepository,
-        private readonly userConfigRepository: IUserConfigRepository
+        private readonly userConfigRepository: IUserConfigRepository,
+        private readonly integrationRepository: IIntegrationRepository
     ) {}
 
     async execute(input: CreateAppointmentInput): Promise<Schedule> {
         const config = await this.userConfigRepository.findByUserId(input.userId);
+        const integration = await this.integrationRepository.findByUserAndProvider(input.userId, "GOOGLE");
         
-        if (!config || !config.googleRefreshToken) {
+        if (!config || !integration || !integration.refreshToken) {
             throw new Error("Usuário não possui conexão ativa com o Google Calendar.");
         }
 
-        let accessToken = config.googleAccessToken;
+        let accessToken = integration.accessToken;
 
-        if (this.isTokenExpired(config.googleTokenExpiry)) {
-            const tokens = await this.googleService.refreshAccessToken(config.googleRefreshToken);
+        if (this.isTokenExpired(integration.expiresAt)) {
+            const tokens = await this.googleService.refreshAccessToken(integration.refreshToken);
             
             const newAccessToken = tokens.access_token as string;
             if (!newAccessToken) {
@@ -43,9 +46,10 @@ export class CreateAppointmentUseCase {
                 expiryDate.setSeconds(expiryDate.getSeconds() + tokens.expires_in);
             }
 
-            await this.userConfigRepository.update(input.userId, {
-                googleAccessToken: newAccessToken,
-                googleTokenExpiry: expiryDate
+            await this.integrationRepository.save({
+                id: integration.id,
+                accessToken: newAccessToken,
+                expiresAt: expiryDate
             });
         }
 
@@ -53,7 +57,7 @@ export class CreateAppointmentUseCase {
             throw new Error("Token de acesso do Google indisponível.");
         }
 
-        const description = `Gerado via AgendaOk\nCliente: ${input.clientName}\nTelefone: ${input.clientPhone}`;
+        const description = `Gerado via ConfirmaZap\nCliente: ${input.clientName}\nTelefone: ${input.clientPhone}`;
 
         const eventDetails = {
             summary: input.title,
@@ -80,7 +84,7 @@ export class CreateAppointmentUseCase {
         return await this.scheduleRepository.save(schedule);
     }                       
 
-    private isTokenExpired(expiry?: Date): boolean {
+    private isTokenExpired(expiry?: Date | null): boolean {
         if (!expiry) return true;
         const now = new Date();
         return now.getTime() >= (expiry.getTime() - 300000); // 5 minutes margin

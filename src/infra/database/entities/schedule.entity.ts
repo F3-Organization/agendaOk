@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from "typeorm";
+import { Entity, Column, ManyToOne, JoinColumn, Index } from "typeorm";
 import { User } from "./user.entity";
 import { Client } from "./client.entity";
+import { BaseEntity } from "./base.entity";
 
 export enum ScheduleStatus {
     PENDING = "PENDING",
@@ -9,17 +10,15 @@ export enum ScheduleStatus {
 }
 
 @Entity("schedules")
-export class Schedule {
-    @PrimaryGeneratedColumn("uuid")
-    id!: string;
-
+@Index(["userId", "startAt"])
+export class Schedule extends BaseEntity {
     @Column({ name: "google_event_id", unique: true })
     googleEventId!: string;
 
-    @Column()
+    @Column({ name: "title" })
     title!: string;
 
-    @Column({ type: "text", nullable: true })
+    @Column({ type: "text", nullable: true, name: "description" })
     description?: string;
 
     @Column({ name: "attendees", type: "jsonb", nullable: true })
@@ -31,13 +30,14 @@ export class Schedule {
     @Column({ name: "start_at", type: "timestamp" })
     startAt!: Date;
 
-    @Column({ name: "end_at" })
+    @Column({ name: "end_at", type: "timestamp" })
     endAt!: Date;
 
     @Column({
         type: "enum",
         enum: ScheduleStatus,
         default: ScheduleStatus.PENDING,
+        name: "status"
     })
     status!: ScheduleStatus;
 
@@ -60,10 +60,4 @@ export class Schedule {
     @ManyToOne(() => Client, (client) => client.schedules, { nullable: true })
     @JoinColumn({ name: "client_id" })
     client?: Client;
-
-    @CreateDateColumn({ name: "created_at" })
-    createdAt!: Date;
-
-    @UpdateDateColumn({ name: "updated_at" })
-    updatedAt!: Date;
 }

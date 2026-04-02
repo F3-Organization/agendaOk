@@ -2,6 +2,7 @@ import { IGoogleCalendarService } from "../ports/igoogle-calendar-service";
 import { IScheduleRepository } from "../repositories/ischedule-repository";
 import { IUserConfigRepository } from "../repositories/iuser-config-repository";
 import { IUserRepository } from "../repositories/iuser-repository";
+import { IIntegrationRepository } from "../repositories/iintegration-repository";
 import { IEvolutionService } from "../ports/ievolution-service";
 import { CheckUsageLimitUseCase } from "../subscription/check-usage-limit.usecase";
 import { Schedule, ScheduleStatus } from "../../infra/database/entities/schedule.entity";
@@ -14,23 +15,25 @@ export class SyncCalendarUseCase {
         private readonly scheduleRepository: IScheduleRepository,
         private readonly userConfigRepository: IUserConfigRepository,
         private readonly userRepository: IUserRepository,
+        private readonly integrationRepository: IIntegrationRepository,
         private readonly evolutionService: IEvolutionService,
         private readonly checkUsageLimit: CheckUsageLimitUseCase
     ) {}
 
     async execute(userId: string): Promise<void> {
         const config = await this.userConfigRepository.findByUserId(userId);
+        const integration = await this.integrationRepository.findByUserAndProvider(userId, "GOOGLE");
         const user = await this.userRepository.findById(userId);
         
-        if (!config || !config.googleRefreshToken || !config.syncEnabled || !user) {
-            console.log(`[SyncCalendar] Sync aborted for user ${userId}: Missing config, tokens, or user not found.`);
+        if (!config || !integration || !integration.refreshToken || !config.syncEnabled || !user) {
+            console.log(`[SyncCalendar] Sync aborted for user ${userId}: Missing config, integration, refreshed token, or user not found.`);
             return;
         }
 
-        let accessToken = config.googleAccessToken;
+        let accessToken = integration.accessToken;
 
-        if (this.isTokenExpired(config.googleTokenExpiry)) {
-            const tokens = await this.googleService.refreshAccessToken(config.googleRefreshToken);
+        if (this.isTokenExpired(integration.expiresAt)) {
+            const tokens = await this.googleService.refreshAccessToken(integration.refreshToken);
             
             const newAccessToken = tokens.access_token as string;
             if (!newAccessToken) {
@@ -44,9 +47,10 @@ export class SyncCalendarUseCase {
                 expiryDate.setSeconds(expiryDate.getSeconds() + tokens.expires_in);
             }
 
-            await this.userConfigRepository.update(userId, {
-                googleAccessToken: newAccessToken,
-                googleTokenExpiry: expiryDate
+            await this.integrationRepository.save({
+                id: integration.id,
+                accessToken: newAccessToken,
+                expiresAt: expiryDate
             });
         }
 
@@ -111,8 +115,7 @@ export class SyncCalendarUseCase {
                 if (!config.whatsappNumber) continue;
 
                 if (selfAttendee && selfAttendee.responseStatus === 'needsAction') {
-                    // Temporariamente removido para testes
-                    if (isWithinSilentWindow(config.silentWindowStart, config.silentWindowEnd)) {
+                    if (isWithinSilentWindow(config.silentWindowStart ?? "23:59", config.silentWindowEnd ?? "08:00")) {
                         console.log(`[SyncCalendar] Message suppressed: Current time within silent window (${config.silentWindowStart}-${config.silentWindowEnd})`);
                         continue;
                     }
@@ -148,7 +151,7 @@ export class SyncCalendarUseCase {
         }
     }
 
-    private isTokenExpired(expiry?: Date): boolean {
+    private isTokenExpired(expiry?: Date | null): boolean {
         if (!expiry) return true;
         const now = new Date();
         return now.getTime() >= (expiry.getTime() - 300000);

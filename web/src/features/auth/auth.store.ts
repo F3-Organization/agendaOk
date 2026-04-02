@@ -6,6 +6,12 @@ interface User {
   name: string;
   email: string;
   role: string;
+  config: {
+    whatsappNumber: string | null;
+    syncEnabled: boolean;
+    silentWindowStart: string;
+    silentWindowEnd: string;
+  } | null;
 }
 
 interface AuthState {
@@ -23,6 +29,10 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       isAuthenticated: false,
       setAuth: (user, token) => {
+        if (!token) {
+          console.warn('[AuthStore] Attempted to setAuth without a token.');
+          return;
+        }
         localStorage.setItem('auth_token', token);
         set({ user, token, isAuthenticated: true });
       },

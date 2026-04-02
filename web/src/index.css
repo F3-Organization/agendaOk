@@ -24,13 +24,35 @@
     @apply border-outline-variant;
   }
 
-  body {
+  html, body {
     @apply bg-background text-foreground font-sans antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
+    overflow-x: hidden;
+    width: 100%;
+    position: relative;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-display tracking-tight;
+  }
+
+  /* Custom Scrollbar Styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-white/10 rounded-full transition-colors hover:bg-white/20;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
   }
 }
 
@@ -41,7 +63,13 @@
   }
   
   .glass-card {
-    @apply bg-surface-container/60 backdrop-blur-lg border border-outline-variant rounded-lg;
+    @apply bg-surface-container/40 backdrop-blur-2xl border border-white/10 rounded-[2rem] shadow-2xl;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+  }
+
+  .glass-island {
+    @apply bg-black/40 backdrop-blur-3xl border border-white/10 rounded-full;
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.05);
   }
 
   .pulse-glow {

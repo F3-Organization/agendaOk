@@ -2,18 +2,28 @@ import { FastifyAdapter } from "../adapters/fastfy.adapter";
 import { EvolutionApiAdapter } from "../adapters/evolution-api.adapter";
 import { GoogleCalendarAdapter } from "../adapters/google-calendar.adapter";
 import { AbacatePayAdapter } from "../adapters/abacatepay.adapter";
+import { FocusNFeAdapter } from "../adapters/focus-nfe.adapter";
 import { adminMiddleware } from "../middleware/auth.middleware";
 import { AppController } from "../controller/app.controller";
 import { AuthController } from "../controller/auth.controller";
 import { CalendarController } from "../controller/calendar.controller";
 import { EvolutionWebhookController } from "../controller/evolution-webhook.controller";
 import { SubscriptionController } from "../controller/subscription.controller";
+import { GetUserConfigUseCase } from "../../usecase/user/get-user-config.usecase";
+import { UpdateUserConfigUseCase } from "../../usecase/user/update-user-config.usecase";
+import { ChangePasswordUseCase } from "../../usecase/user/change-password.usecase";
+import { SetPasswordUseCase } from "../../usecase/user/set-password.usecase";
+import { Toggle2FAUseCase } from "../../usecase/user/toggle-2fa.usecase";
+import { Verify2FAUseCase } from "../../usecase/user/verify-2fa.usecase";
+import { Validate2FAUseCase } from "../../usecase/user/validate-2fa.usecase";
+import { UserController } from "../controller/user.controller";
 import { UserRepository } from "../database/repositories/user.repository";
 import { ClientRepository } from "../database/repositories/client.repository";
 import { ScheduleRepository } from "../database/repositories/schedule.repository";
 import { UserConfigRepository } from "../database/repositories/user-config.repository";
 import { SubscriptionRepository } from "../database/repositories/subscription.repository";
 import { SubscriptionPaymentRepository } from "../database/repositories/subscription-payment.repository";
+import { IntegrationRepository } from "../database/repositories/integration.repository";
 import { GenerateGoogleAuthUrlUseCase } from "../../usecase/auth/generate-google-auth-url.usecase";
 import { ExchangeGoogleCodeUseCase } from "../../usecase/auth/exchange-google-code.usecase";
 import { SyncCalendarUseCase } from "../../usecase/calendar/sync-calendar.usecase";
@@ -28,7 +38,6 @@ import { GenerateInvoicePdfUseCase } from "../../usecase/subscription/generate-i
 import { ConnectWhatsappUseCase } from "../../usecase/notification/connect-whatsapp.usecase";
 import { DisconnectWhatsappUseCase } from "../../usecase/notification/disconnect-whatsapp.usecase";
 import { GetWhatsappStatusUseCase } from "../../usecase/notification/get-whatsapp-status.usecase";
-import { UpdateUserConfigUseCase } from "../../usecase/notification/update-user-config.usecase";
 import { WhatsappController } from "../controller/whatsapp.controller";
 import { DashboardController } from "../controller/dashboard.controller";
 import { GetDashboardStatsUseCase } from "../../usecase/dashboard/get-dashboard-stats.usecase";
@@ -37,9 +46,11 @@ import { CreateAppointmentUseCase } from "../../usecase/calendar/create-appointm
 import { UpdateAppointmentUseCase } from "../../usecase/calendar/update-appointment.usecase";
 import { DeleteAppointmentUseCase } from "../../usecase/calendar/delete-appointment.usecase";
 import { AcceptInviteUseCase } from "../../usecase/calendar/accept-invite.usecase";
+import { DeclineInviteUseCase } from "../../usecase/calendar/decline-invite.usecase";
 import { RegisterUserUseCase } from "../../usecase/auth/register-user.usecase";
 import { LoginUseCase } from "../../usecase/auth/login.usecase";
 import { AuthenticateGoogleUseCase } from "../../usecase/auth/authenticate-google.usecase";
+import { LoginVerify2FAUseCase } from "../../usecase/auth/login-verify-2fa.usecase";
 import { GetSubscriptionStatusUseCase } from "../../usecase/subscription/get-subscription-status.usecase";
 import { CheckUsageLimitUseCase } from "../../usecase/subscription/check-usage-limit.usecase";
 
@@ -54,6 +65,7 @@ import { RedisService } from "../database/redis.service";
 import { SendEmailVerificationUseCase } from "../../usecase/auth/send-email-verification.usecase";
 import { VerifyEmailSetPasswordUseCase } from "../../usecase/auth/verify-email-set-password.usecase";
 import { GetHealthStatusUseCase } from "../../usecase/system/get-health-status.usecase";
+import { SubscriptionNotificationService } from "../../usecase/subscription/subscription-notification.service";
 import { AppDataSource } from "../config/data-source";
 
 // Singletons (non-TypeORM dependent)
@@ -61,6 +73,7 @@ const adapterInstance = new FastifyAdapter();
 const evolutionAdapter = new EvolutionApiAdapter();
 const googleCalendarAdapter = new GoogleCalendarAdapter();
 const abacatePayAdapter = new AbacatePayAdapter();
+const focusNFeAdapter = new FocusNFeAdapter();
 const mailAdapter = new NodemailerAdapter();
 const redisService = new RedisService();
 
@@ -71,6 +84,7 @@ let scheduleRepository: ScheduleRepository;
 let userConfigRepository: UserConfigRepository;
 let subscriptionRepository: SubscriptionRepository;
 let subscriptionPaymentRepository: SubscriptionPaymentRepository;
+let integrationRepository: IntegrationRepository;
 
 let syncCalendarQueue: SyncCalendarQueue;
 let notifyQueue: NotifyQueue;
@@ -81,7 +95,8 @@ const getRepo = {
     schedule: () => scheduleRepository || (scheduleRepository = new ScheduleRepository()),
     userConfig: () => userConfigRepository || (userConfigRepository = new UserConfigRepository()),
     subscription: () => subscriptionRepository || (subscriptionRepository = new SubscriptionRepository()),
-    subscriptionPayment: () => subscriptionPaymentRepository || (subscriptionPaymentRepository = new SubscriptionPaymentRepository())
+    subscriptionPayment: () => subscriptionPaymentRepository || (subscriptionPaymentRepository = new SubscriptionPaymentRepository()),
+    integration: () => integrationRepository || (integrationRepository = new IntegrationRepository())
 };
 
 const getUseCase = {
@@ -92,12 +107,13 @@ const getUseCase = {
     ),
     generateGoogleAuthUrl: () => new GenerateGoogleAuthUrlUseCase(googleCalendarAdapter),
 
-    exchangeGoogleCode: () => new ExchangeGoogleCodeUseCase(googleCalendarAdapter, getRepo.userConfig()),
+    exchangeGoogleCode: () => new ExchangeGoogleCodeUseCase(googleCalendarAdapter, getRepo.userConfig(), getRepo.integration()),
     syncCalendar: () => new SyncCalendarUseCase(
         googleCalendarAdapter, 
         getRepo.schedule(), 
         getRepo.userConfig(),
         getRepo.user(),
+        getRepo.integration(),
         evolutionAdapter,
         getUseCase.checkUsageLimit()
     ),
@@ -118,11 +134,13 @@ const getUseCase = {
     confirmAppointment: () => new ConfirmAppointmentUseCase(
         getRepo.schedule(),
         getRepo.userConfig(),
+        getRepo.integration(),
         googleCalendarAdapter
     ),
     cancelAppointment: () => new CancelAppointmentUseCase(
         getRepo.schedule(),
         getRepo.userConfig(),
+        getRepo.integration(),
         googleCalendarAdapter
     ),
     handleEvolutionWebhook: () => new HandleEvolutionWebhookUseCase(
@@ -143,7 +161,11 @@ const getUseCase = {
     ),
     handleAbacatePayWebhook: () => new HandleAbacatePayWebhookUseCase(
         getRepo.subscription(),
-        getRepo.subscriptionPayment()
+        getRepo.subscriptionPayment(),
+        getRepo.user(),
+        getRepo.userConfig(),
+        new SubscriptionNotificationService(mailAdapter),
+        focusNFeAdapter
     ),
     getSubscriptionPaymentHistory: () => new GetSubscriptionPaymentHistoryUseCase(
         getRepo.subscription(),
@@ -151,7 +173,8 @@ const getUseCase = {
     ),
     generateInvoicePdf: () => new GenerateInvoicePdfUseCase(
         getRepo.subscriptionPayment(),
-        getRepo.user()
+        getRepo.user(),
+        getRepo.userConfig()
     ),
     connectWhatsapp: () => new ConnectWhatsappUseCase(
         getRepo.userConfig(),
@@ -173,30 +196,46 @@ const getUseCase = {
         getRepo.user(),
         redisService
     ),
-    updateUserConfig: () => new UpdateUserConfigUseCase(getRepo.userConfig(), evolutionAdapter),
-    getDashboardStats: () => new GetDashboardStatsUseCase(getRepo.schedule(), getRepo.userConfig()),
+    getUserConfig: () => new GetUserConfigUseCase(getRepo.user(), getRepo.userConfig()),
+    updateUserConfig: () => new UpdateUserConfigUseCase(getRepo.user(), getRepo.userConfig(), evolutionAdapter),
+    changePassword: () => new ChangePasswordUseCase(getRepo.user()),
+    setPassword: () => new SetPasswordUseCase(getRepo.user()),
+    toggle2FA: () => new Toggle2FAUseCase(getRepo.user()),
+    verify2FA: () => new Verify2FAUseCase(getRepo.user()),
+    validate2FA: () => new Validate2FAUseCase(getRepo.user()),
+    getDashboardStats: () => new GetDashboardStatsUseCase(getRepo.schedule(), getRepo.userConfig(), getRepo.integration()),
     getAppointments: () => new GetAppointmentsUseCase(
         getRepo.schedule()
     ),
     createAppointment: () => new CreateAppointmentUseCase(
         googleCalendarAdapter,
         getRepo.schedule(),
-        getRepo.userConfig()
+        getRepo.userConfig(),
+        getRepo.integration()
     ),
     updateAppointment: () => new UpdateAppointmentUseCase(
         googleCalendarAdapter,
         getRepo.schedule(),
-        getRepo.userConfig()
+        getRepo.userConfig(),
+        getRepo.integration()
     ),
     deleteAppointment: () => new DeleteAppointmentUseCase(
         googleCalendarAdapter,
         getRepo.schedule(),
-        getRepo.userConfig()
+        getRepo.userConfig(),
+        getRepo.integration()
     ),
     acceptInvite: () => new AcceptInviteUseCase(
         googleCalendarAdapter,
         getRepo.schedule(),
-        getRepo.userConfig()
+        getRepo.userConfig(),
+        getRepo.integration()
+    ),
+    declineInvite: () => new DeclineInviteUseCase(
+        googleCalendarAdapter,
+        getRepo.schedule(),
+        getRepo.userConfig(),
+        getRepo.integration()
     ),
     registerUser: () => new RegisterUserUseCase(
         getRepo.user(),
@@ -210,9 +249,15 @@ const getUseCase = {
         getRepo.user(),
         getUseCase.exchangeGoogleCode()
     ),
+    loginVerify2FA: () => new LoginVerify2FAUseCase(
+        getRepo.user(),
+        adapterInstance,
+        getUseCase.validate2FA()
+    ),
     getSubscriptionStatus: () => new GetSubscriptionStatusUseCase(
         getRepo.subscription(),
-        getRepo.schedule()
+        getRepo.schedule(),
+        getRepo.userConfig()
     )
 };
 
@@ -240,9 +285,13 @@ export const factory = {
             getUseCase.authenticateGoogle(),
             getUseCase.registerUser(),
             getUseCase.login(),
+            getUseCase.validate2FA(),
+            getUseCase.loginVerify2FA(),
             getUseCase.sendEmailVerification(),
             getUseCase.verifyEmailSetPassword(),
-            getUseCase.updateUserConfig()
+            getUseCase.updateUserConfig(),
+            getRepo.user(),
+            getRepo.userConfig()
         ),
         calendar: () => new CalendarController(
             adapterInstance,
@@ -253,6 +302,7 @@ export const factory = {
             getUseCase.updateAppointment(),
             getUseCase.deleteAppointment(),
             getUseCase.acceptInvite(),
+            getUseCase.declineInvite(),
             getMiddleware.subscription()
         ),
         webhook: () => new EvolutionWebhookController(
@@ -276,6 +326,15 @@ export const factory = {
         dashboard: () => new DashboardController(
             adapterInstance,
             getUseCase.getDashboardStats()
+        ),
+        user: () => new UserController(
+            adapterInstance,
+            getUseCase.getUserConfig(),
+            getUseCase.updateUserConfig(),
+            getUseCase.changePassword(),
+            getUseCase.setPassword(),
+            getUseCase.toggle2FA(),
+            getUseCase.verify2FA()
         )
     },
     queues: {

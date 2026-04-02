@@ -1,6 +1,6 @@
-# AgendaOk 🗓️✅
+# ConfirmaZap 🗓️✅
 
-**AgendaOk** é uma solução SaaS pragmática para profissionais que desejam automatizar a confirmação de seus agendamentos. O sistema sincroniza com o **Google Calendar** e utiliza a **Evolution API** para enviar notificações automáticas via WhatsApp, permitindo que os clientes confirmem ou cancelem horários de forma simples e direta.
+**ConfirmaZap** é uma solução SaaS pragmática para profissionais que desejam automatizar a confirmação de seus agendamentos. O sistema sincroniza com o **Google Calendar** e utiliza a **Evolution API** para enviar notificações automáticas via WhatsApp, permitindo que os clientes confirmem ou cancelem horários de forma simples e direta.
 
 ---
 
@@ -20,7 +20,7 @@
 
 ## 🎨 Interface (Design by Stitch)
 
-O design da interface do **AgendaOk** foi concebido utilizando o **Stitch**, focando em uma experiência de usuário premium, moderna e intuitiva.
+O design da interface do **ConfirmaZap** foi concebido utilizando o **Stitch**, focando em uma experiência de usuário premium, moderna e intuitiva.
 
 <p align="center">
   <img src="https://lh3.googleusercontent.com/aida/ADBb0uisnPMLIb4KW-l9Y1OYWIxaofMoUyhcEBl7mN5TwkS75gz3PTc4bbkkYO617m1VmZBTJwxS8fYymCzfqP4xYZY8laEgVfP8aEoGaEizkJc21QA1W0pDh7txHfEN983b1DcoTxgPTurnUKSvWkg0OW6IqjhKdDSPfuFYsI1vJBXvEaB1yv6m0G-apCEc57P7mvAxHzTLjr9OqyWYVBahKQ2bkAXmgwYqcflqL0DB0gJjbAjH8o-pJ3ySmA" alt="Dashboard do ConfirmaZap" width="100%">
@@ -109,7 +109,7 @@ Este projeto é de uso pessoal/privado do **F3-Organization**.
 
 ## 🔮 Roadmap & Integrações Futuras
 
-O AgendaOk foi projetado para ser extensível. Planejamos as seguintes expansões:
+O ConfirmaZap foi projetado para ser extensível. Planejamos as seguintes expansões:
 
 -   **Provedores de Calendário**:
     -   [ ] **Microsoft Outlook / Office 365**: Para atender clientes corporativos.

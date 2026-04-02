@@ -7,6 +7,7 @@ import { CreateAppointmentUseCase } from "../../usecase/calendar/create-appointm
 import { UpdateAppointmentUseCase } from "../../usecase/calendar/update-appointment.usecase";
 import { DeleteAppointmentUseCase } from "../../usecase/calendar/delete-appointment.usecase";
 import { AcceptInviteUseCase } from "../../usecase/calendar/accept-invite.usecase";
+import { DeclineInviteUseCase } from "../../usecase/calendar/decline-invite.usecase";
 import { AuthUserPayload } from "../types/auth.types";
 
 export class CalendarController {
@@ -19,6 +20,7 @@ export class CalendarController {
         private readonly updateAppointment: UpdateAppointmentUseCase,
         private readonly deleteAppointment: DeleteAppointmentUseCase,
         private readonly acceptInvite: AcceptInviteUseCase,
+        private readonly declineInvite: DeclineInviteUseCase,
         private readonly subMiddleware?: any
     ) {
         this.fastify.logInfo("[CalendarController] Initializing and registering routes...");
@@ -244,6 +246,22 @@ export class CalendarController {
         }, {
             tags: ["Calendar"],
             summary: "Aceita um convite de agendamento em que o usuário não é dono",
+        });
+
+        this.fastify.addProtectedRoute("PATCH", "/calendar/appointments/:id/decline", async (request: FastifyRequest, reply: FastifyReply) => {
+            const user = request.user as AuthUserPayload;
+            const { id } = request.params as { id: string };
+
+            try {
+                await this.declineInvite.execute(user.id, id);
+                reply.send({ message: "Invite declined successfully" });
+            } catch (error: any) {
+                console.error("[CalendarController] Decline Invite Error:", error);
+                reply.code(400).send({ error: "Erro ao recusar convite", message: error.message });
+            }
+        }, {
+            tags: ["Calendar"],
+            summary: "Recusa um convite de agendamento em que o usuário não é dono",
         });
     }
 }

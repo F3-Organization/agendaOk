@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Menu, Zap } from 'lucide-react';
 import { Sidebar } from './Sidebar';
 import { subscriptionService } from '../../features/subscription/subscription.service';
 import { UsageBanner } from './UsageBanner';
@@ -11,23 +12,37 @@ interface PageLayoutProps {
 }
 
 export const PageLayout = ({ children, title, subtitle }: PageLayoutProps) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { data: status } = useQuery({
     queryKey: ['subscription-status'],
     queryFn: subscriptionService.getStatus,
   });
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background text-foreground selection:bg-primary/20 selection:text-primary">
-      <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0">
+    <div className="flex h-screen overflow-hidden overflow-x-hidden bg-background text-foreground selection:bg-primary/20 selection:text-primary w-full">
+      <Sidebar isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
+      <div className="flex-1 flex flex-col min-w-0 h-full">
+        {/* Mobile Header */}
+        <header className="lg:hidden flex items-center justify-between p-4 border-b border-outline-variant bg-surface-dim/50 backdrop-blur-md z-30">
+          <div className="flex items-center gap-3">
+             <div className="w-8 h-8 rounded-lg bg-pulse-gradient flex items-center justify-center">
+                <Zap className="w-5 h-5 text-primary-foreground fill-current" />
+              </div>
+              <span className="font-bold tracking-tight text-transparent bg-clip-text bg-pulse-gradient">ConfirmaZap</span>
+          </div>
+          <button 
+            onClick={() => setIsMenuOpen(true)}
+            className="p-2 rounded-lg hover:bg-surface-high transition-colors"
+          >
+            <Menu className="w-6 h-6 text-muted-foreground" />
+          </button>
+        </header>
+
         {status && <UsageBanner plan={status.plan} count={status.messageCount} />}
-        <main className="flex-1 overflow-y-auto no-scrollbar relative">
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] -z-10 translate-x-1/2 -translate-y-1/2 pointer-events-none" />
-          <div className="absolute bottom-1/4 left-1/4 w-[300px] h-[300px] bg-secondary/5 rounded-full blur-[80px] -z-10 pointer-events-none" />
-          
-          <header className="p-10 pb-0">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar relative">
+          <header className="p-4 sm:p-10 pb-0">
             {title && (
-              <div className="max-w-7xl mx-auto">
+              <div className="w-full">
                 <h1 className="text-4xl font-extrabold tracking-tighter sm:text-5xl lg:text-6xl text-transparent bg-clip-text bg-gradient-to-r from-foreground to-foreground/70">
                   {title}
                 </h1>
@@ -40,7 +55,7 @@ export const PageLayout = ({ children, title, subtitle }: PageLayoutProps) => {
             )}
           </header>
 
-          <div className="p-10 max-w-7xl mx-auto">
+          <div className="p-4 sm:p-10 w-full">
             {children}
           </div>
         </main>

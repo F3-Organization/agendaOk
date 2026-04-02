@@ -11,7 +11,15 @@ export class SubscriptionRepository implements ISubscriptionRepository {
     }
 
     async findByUserId(userId: string): Promise<Subscription | null> {
-        return await this.repository.findOne({ where: { userId } });
+        // Busca a primeira assinatura ativa, ou a mais recente
+        return await this.repository.findOne({ 
+            where: { userId },
+            order: { status: "ASC", createdAt: "DESC" } // ACTIVE vem antes de INATIVO/PENDING alfabeticamente? Não, ACTIVE < PENDING.
+        });
+    }
+
+    async findActiveByUserId(userId: string): Promise<Subscription | null> {
+        return await this.repository.findOne({ where: { userId, status: SubscriptionStatus.ACTIVE } });
     }
 
     async save(subscription: Partial<Subscription>): Promise<Subscription> {
@@ -31,11 +39,22 @@ export class SubscriptionRepository implements ISubscriptionRepository {
         return await this.repository.findOne({ where: { abacateBillingId: billingId } });
     }
 
-    async updateStatus(id: string, userId: string, status: SubscriptionStatus, periodEnd?: Date): Promise<void> {
+    async updateStatus(id: string, userId: string, status: SubscriptionStatus, periodEnd?: Date, plan?: string): Promise<void> {
         const updateData: Partial<Subscription> = { status };
         if (periodEnd) {
             updateData.currentPeriodEnd = periodEnd;
         }
+        if (plan) {
+            updateData.plan = plan;
+        }
         await this.repository.update({ id, userId }, updateData as any);
+    }
+
+    async deactivateOthers(userId: string, activeId: string): Promise<void> {
+        await this.repository.createQueryBuilder()
+            .update(Subscription)
+            .set({ status: SubscriptionStatus.INACTIVE })
+            .where("user_id = :userId AND id != :activeId", { userId, activeId })
+            .execute();
     }
 }

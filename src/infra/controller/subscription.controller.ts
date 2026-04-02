@@ -40,7 +40,14 @@ export class SubscriptionController {
             tags: ["Subscription"],
             summary: "Creates a payment link for PRO subscription",
             response: {
-                200: { type: "object", properties: { url: { type: "string" } } },
+                200: { 
+                    type: "object", 
+                    properties: { 
+                        url: { type: "string" },
+                        planName: { type: "string" },
+                        amount: { type: "number" }
+                    } 
+                },
                 500: { type: "object", properties: { error: { type: "string" }, message: { type: "string" } } }
             }
         });
@@ -67,7 +74,9 @@ export class SubscriptionController {
                         status: { type: "string", enum: ["active", "inactive", "pending"] },
                         plan: { type: "string" },
                         currentPeriodEnd: { type: "string", format: "date-time" },
-                        checkoutUrl: { type: "string" }
+                        checkoutUrl: { type: "string" },
+                        amount: { type: "number" },
+                        planName: { type: "string" }
                     }
                 },
                 500: { type: "object", properties: { error: { type: "string" } } }

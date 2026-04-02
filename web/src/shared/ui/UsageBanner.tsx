@@ -37,7 +37,7 @@ export const UsageBanner = ({ plan, count }: UsageBannerProps) => {
                 ? t('subscription.usage.limitReachedTitle') 
                 : t('subscription.usage.limitWarningTitle', { count: 50 - safeCount })}
             </p>
-            <p className="text-[10px] opacity-70 font-medium tracking-tight whitespace-nowrap">
+            <p className="text-[10px] opacity-70 font-medium tracking-tight truncate max-w-[200px] sm:max-w-none">
               {isLimitReached 
                 ? t('subscription.usage.limitReachedDesc') 
                 : t('subscription.usage.limitWarningDesc')}

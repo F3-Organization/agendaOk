@@ -5,5 +5,7 @@ export interface ISubscriptionRepository {
     save(subscription: Partial<Subscription>): Promise<Subscription>;
     createOrUpdate(userId: string, data: Partial<Subscription>): Promise<Subscription>;
     findByBillingId(billingId: string): Promise<Subscription | null>;
-    updateStatus(id: string, userId: string, status: SubscriptionStatus, periodEnd?: Date): Promise<void>;
+    findActiveByUserId(userId: string): Promise<Subscription | null>;
+    updateStatus(id: string, userId: string, status: SubscriptionStatus, periodEnd?: Date, plan?: string): Promise<void>;
+    deactivateOthers(userId: string, activeId: string): Promise<void>;
 }

@@ -43,6 +43,10 @@ export const calendarService = {
     const response = await apiClient.patch(`/calendar/appointments/${id}/accept`);
     return response.data;
   },
+  declineInvite: async (id: string): Promise<{ message: string }> => {
+    const response = await apiClient.patch(`/calendar/appointments/${id}/decline`);
+    return response.data;
+  },
 
   sync: async (): Promise<{ message: string }> => {
     const response = await apiClient.post('/calendar/sync');

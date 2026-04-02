@@ -1,4 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
+import { IUserConfigRepository } from "../../usecase/repositories/iuser-config-repository";
+import { IUserRepository } from "../../usecase/repositories/iuser-repository";
 import { FastifyAdapter } from "../adapters/fastfy.adapter";
 import { GenerateGoogleAuthUrlUseCase } from "../../usecase/auth/generate-google-auth-url.usecase";
 import { AuthenticateGoogleUseCase } from "../../usecase/auth/authenticate-google.usecase";
@@ -6,8 +8,11 @@ import { RegisterUserUseCase } from "../../usecase/auth/register-user.usecase";
 import { LoginUseCase } from "../../usecase/auth/login.usecase";
 import { SendEmailVerificationUseCase } from "../../usecase/auth/send-email-verification.usecase";
 import { VerifyEmailSetPasswordUseCase } from "../../usecase/auth/verify-email-set-password.usecase";
-import { UpdateUserConfigUseCase } from "../../usecase/notification/update-user-config.usecase";
+import { UpdateUserConfigUseCase } from "../../usecase/user/update-user-config.usecase";
+import { Validate2FAUseCase } from "../../usecase/user/validate-2fa.usecase";
+import { LoginVerify2FAUseCase } from "../../usecase/auth/login-verify-2fa.usecase";
 import { AuthUserPayload } from "../types/auth.types";
+import { User } from "../database/entities/user.entity";
 import { z } from "zod";
 import { 
     LoginInputSchema, 
@@ -22,9 +27,13 @@ export class AuthController {
         private readonly authenticateGoogle: AuthenticateGoogleUseCase,
         private readonly registerUser: RegisterUserUseCase,
         private readonly login: LoginUseCase,
+        private readonly validate2FA: Validate2FAUseCase,
+        private readonly loginVerify2FA: LoginVerify2FAUseCase,
         private readonly sendEmailVerification: SendEmailVerificationUseCase,
         private readonly verifyEmailSetPassword: VerifyEmailSetPasswordUseCase,
-        private readonly updateUserConfig: UpdateUserConfigUseCase
+        private readonly updateUserConfig: UpdateUserConfigUseCase,
+        private readonly userRepo: IUserRepository,
+        private readonly userConfigRepo: IUserConfigRepository
     ) {
         this.fastify.logInfo("[AuthController] Initializing...");
         this.registerRoutes();
@@ -64,24 +73,7 @@ export class AuthController {
 
             try {
                 const { user } = await this.authenticateGoogle.execute(code);
-
-                const token = this.fastify.sign({
-                    id: user.id,
-                    email: user.email,
-                    name: user.name,
-                    role: user.role
-                });
-
-                reply.send({
-                    message: "Authentication successful!",
-                    token,
-                    user: {
-                        id: user.id,
-                        name: user.name,
-                        email: user.email,
-                        role: user.role
-                    }
-                });
+                return this.sendAuthResponse(reply, user, "Authentication successful!");
             } catch (error: any) {
                 this.fastify.logInfo("[AuthController] Authentication failed:", { error: error.message });
                 reply.code(500).send({
@@ -99,17 +91,46 @@ export class AuthController {
                 properties: {
                     code: { type: "string" }
                 }
+            },
+            response: {
+                200: {
+                    type: "object",
+                    properties: {
+                        message: { type: "string" },
+                        token: { type: "string" },
+                        user: {
+                            type: "object",
+                            properties: {
+                                id: { type: "string" },
+                                name: { type: "string" },
+                                email: { type: "string" },
+                                role: { type: "string" }
+                            }
+                        },
+                        status: { type: "string" },
+                        tempToken: { type: "string" }
+                    }
+                }
             }
         });
 
         this.fastify.addProtectedRoute("GET", "/auth/me", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
+            const fullUser = await this.userRepo.findById(user.id);
+            const config = await this.userConfigRepo.findByUserId(user.id);
             
             reply.send({
                 id: user.id,
                 name: user.name,
                 email: user.email,
-                role: user.role
+                role: user.role,
+                config: config ? {
+                    whatsappNumber: config.whatsappNumber,
+                    syncEnabled: config.syncEnabled,
+                    silentWindowStart: config.silentWindowStart,
+                    silentWindowEnd: config.silentWindowEnd
+                } : null,
+                hasPassword: !!fullUser?.password
             });
         }, {
             tags: ["Auth"],
@@ -122,7 +143,18 @@ export class AuthController {
                         id: { type: "string", format: "uuid" },
                         name: { type: "string" },
                         email: { type: "string" },
-                        role: { type: "string" }
+                        role: { type: "string" },
+                        hasPassword: { type: "boolean" },
+                        config: {
+                            type: "object",
+                            nullable: true,
+                            properties: {
+                                whatsappNumber: { type: "string", nullable: true },
+                                syncEnabled: { type: "boolean" },
+                                silentWindowStart: { type: "string" },
+                                silentWindowEnd: { type: "string" }
+                            }
+                        }
                     }
                 },
                 401: {
@@ -146,19 +178,7 @@ export class AuthController {
 
             try {
                 const user = await this.registerUser.execute({ name, email, password, whatsappNumber });
-
-                const token = this.fastify.sign({
-                    id: user.id,
-                    email: user.email,
-                    name: user.name,
-                    role: user.role
-                });
-
-                reply.send({
-                    message: "Registration successful",
-                    token,
-                    user: { id: user.id, name: user.name, email: user.email, role: user.role }
-                });
+                return this.sendAuthResponse(reply, user, "Registration successful");
             } catch (error: any) {
                 if (error.message === "User already exists") {
                     // Try to send verification email for users without password (Google-only users)
@@ -203,7 +223,8 @@ export class AuthController {
                                 role: { type: "string" }
                             }
                         },
-                        status: { type: "string" }
+                        status: { type: "string" },
+                        tempToken: { type: "string" }
                     }
                 },
                 400: {
@@ -227,19 +248,7 @@ export class AuthController {
 
             try {
                 const user = await this.verifyEmailSetPassword.execute(email, code, password);
-
-                const token = this.fastify.sign({
-                    id: user.id,
-                    email: user.email,
-                    name: user.name,
-                    role: user.role
-                });
-
-                reply.send({
-                    message: "Email verified and password set successfully",
-                    token,
-                    user: { id: user.id, name: user.name, email: user.email, role: user.role }
-                });
+                return this.sendAuthResponse(reply, user, "Email verified and password set successfully");
             } catch (error: any) {
                 return reply.code(400).send({ error: "Verification failed", message: error.message });
             }
@@ -270,7 +279,9 @@ export class AuthController {
                                 email: { type: "string" },
                                 role: { type: "string" }
                             }
-                        }
+                        },
+                        status: { type: "string" },
+                        tempToken: { type: "string" }
                     }
                 },
                 400: {
@@ -294,19 +305,7 @@ export class AuthController {
 
             try {
                 const user = await this.login.execute(email, password);
-
-                const token = this.fastify.sign({
-                    id: user.id,
-                    email: user.email,
-                    name: user.name,
-                    role: user.role
-                });
-
-                reply.send({
-                    message: "Login successful",
-                    token,
-                    user: { id: user.id, name: user.name, email: user.email, role: user.role }
-                });
+                return this.sendAuthResponse(reply, user, "Login successful");
             } catch (error: any) {
                 return reply.code(401).send({ error: "Invalid credentials" });
             }
@@ -336,7 +335,9 @@ export class AuthController {
                                 email: { type: "string" },
                                 role: { type: "string" }
                             }
-                        }
+                        },
+                        status: { type: "string" },
+                        tempToken: { type: "string" }
                     }
                 },
                 401: {
@@ -352,6 +353,7 @@ export class AuthController {
             const user = request.user as AuthUserPayload;
             const schema = z.object({
                 whatsappNumber: z.string().optional(),
+                taxId: z.string().optional(),
                 syncEnabled: z.boolean().optional(),
                 silentWindowStart: z.string().optional(),
                 silentWindowEnd: z.string().optional()
@@ -391,5 +393,90 @@ export class AuthController {
             }
         });
 
+        this.fastify.addRoute("POST", "/auth/2fa/login/verify", async (request: FastifyRequest, reply: FastifyReply) => {
+            const schema = z.object({
+                tempToken: z.string(),
+                code: z.string().length(6)
+            });
+
+            const parseResult = schema.safeParse(request.body);
+            if (!parseResult.success) {
+                return reply.code(400).send({ error: "Validation failed", details: parseResult.error.format() });
+            }
+
+            const { tempToken, code } = parseResult.data;
+
+            try {
+                const user = await this.loginVerify2FA.execute(tempToken, code);
+
+                const token = this.fastify.sign({
+                    id: user.id,
+                    email: user.email,
+                    name: user.name,
+                    role: user.role
+                });
+
+                reply.send({
+                    message: "2FA verification successful",
+                    token,
+                    user: {
+                        id: user.id,
+                        name: user.name,
+                        email: user.email,
+                        role: user.role,
+                        hasPassword: !!user.password
+                    }
+                });
+            } catch (error: any) {
+                this.fastify.logInfo("[AuthController] 2FA verification failed:", { error: error.message });
+                reply.code(401).send({ error: error.message });
+            }
+        }, {
+            tags: ["Auth"],
+            summary: "Verifies 2FA code during login",
+            description: "Takes a temporary token and a 2FA code to complete the authentication process.",
+            body: {
+                type: "object",
+                required: ["tempToken", "code"],
+                properties: {
+                    tempToken: { type: "string" },
+                    code: { type: "string", minLength: 6, maxLength: 6 }
+                }
+            }
+        });
+    }
+
+    private sendAuthResponse(reply: FastifyReply, user: User, message: string) {
+        if (user.twoFactorEnabled) {
+            const tempToken = this.fastify.sign({
+                id: user.id,
+                is2FAPending: true
+            }, { expiresIn: "5m" });
+
+            return reply.send({
+                status: "2FA_REQUIRED",
+                message: "Two-Factor Authentication required",
+                tempToken
+            });
+        }
+
+        const token = this.fastify.sign({
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role
+        });
+
+        return reply.send({
+            message,
+            token,
+            user: { 
+                id: user.id, 
+                name: user.name, 
+                email: user.email, 
+                role: user.role,
+                hasPassword: !!user.password
+            }
+        });
     }
 }

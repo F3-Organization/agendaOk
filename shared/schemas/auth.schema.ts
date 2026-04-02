@@ -4,13 +4,22 @@ export const AuthUserSchema = z.object({
     id: z.uuid(),
     name: z.string(),
     email: z.email(),
-    role: z.enum(["ADMIN", "USER"])
+    role: z.enum(["ADMIN", "USER"]),
+    config: z.object({
+        whatsappNumber: z.string().nullable(),
+        syncEnabled: z.boolean(),
+        silentWindowStart: z.string(),
+        silentWindowEnd: z.string()
+    }).nullable(),
+    hasPassword: z.boolean()
 });
 
 export const LoginResponseSchema = z.object({
     message: z.string(),
-    token: z.string(),
-    user: AuthUserSchema
+    token: z.string().optional(),
+    user: AuthUserSchema.optional(),
+    status: z.string().optional(),
+    tempToken: z.string().optional()
 });
 
 export const AuthMeResponseSchema = AuthUserSchema;

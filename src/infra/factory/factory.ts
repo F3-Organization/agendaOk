@@ -61,6 +61,7 @@ import { RedisService } from "../database/redis.service";
 import { SendEmailVerificationUseCase } from "../../usecase/auth/send-email-verification.usecase";
 import { VerifyEmailSetPasswordUseCase } from "../../usecase/auth/verify-email-set-password.usecase";
 import { GetHealthStatusUseCase } from "../../usecase/system/get-health-status.usecase";
+import { SubscriptionNotificationService } from "../../usecase/subscription/subscription-notification.service";
 import { AppDataSource } from "../config/data-source";
 
 // Singletons (non-TypeORM dependent)
@@ -150,7 +151,9 @@ const getUseCase = {
     ),
     handleAbacatePayWebhook: () => new HandleAbacatePayWebhookUseCase(
         getRepo.subscription(),
-        getRepo.subscriptionPayment()
+        getRepo.subscriptionPayment(),
+        getRepo.user(),
+        new SubscriptionNotificationService(mailAdapter)
     ),
     getSubscriptionPaymentHistory: () => new GetSubscriptionPaymentHistoryUseCase(
         getRepo.subscription(),

@@ -2,11 +2,15 @@ import { SubscriptionRepository } from "../../infra/database/repositories/subscr
 import { SubscriptionStatus } from "../../infra/database/entities/subscription.entity";
 import { ISubscriptionPaymentRepository } from "../repositories/isubscription-payment-repository";
 import { SubscriptionPaymentStatus } from "../../infra/database/entities/subscription-payment.entity";
+import { UserRepository } from "../../infra/database/repositories/user.repository";
+import { SubscriptionNotificationService } from "./subscription-notification.service";
 
 export class HandleAbacatePayWebhookUseCase {
     constructor(
         private readonly subscriptionRepository: SubscriptionRepository,
-        private readonly paymentRepository: ISubscriptionPaymentRepository
+        private readonly paymentRepository: ISubscriptionPaymentRepository,
+        private readonly userRepository: UserRepository,
+        private readonly notificationService: SubscriptionNotificationService
     ) {}
 
     async execute(payload: any) {
@@ -38,8 +42,13 @@ export class HandleAbacatePayWebhookUseCase {
                     "PRO"
                 );
 
-                // Desativar outras assinaturas ativas do usuário
                 await this.subscriptionRepository.deactivateOthers(subscription.userId, subscription.id);
+
+                // 4. Enviar notificação por e-mail
+                const user = await this.userRepository.findById(subscription.userId);
+                if (user) {
+                    await this.notificationService.notifyPaymentSuccess(user.email, user.name, "PRO");
+                }
 
                 console.log(`[Subscription] User ${subscription.userId} activated via Abacate Pay.`);
             }
@@ -62,6 +71,12 @@ export class HandleAbacatePayWebhookUseCase {
                         subscription.userId,
                         SubscriptionStatus.INACTIVE
                     );
+
+                    // Notificar expiração/cancelamento
+                    const user = await this.userRepository.findById(subscription.userId);
+                    if (user) {
+                        await this.notificationService.notifySubscriptionExpired(user.email, user.name);
+                    }
                 }
             }
         } else if (event === "billing.refunded") {
@@ -82,6 +97,12 @@ export class HandleAbacatePayWebhookUseCase {
                     subscription.userId,
                     SubscriptionStatus.CANCELLED
                 );
+
+                // Notificar reembolso
+                const user = await this.userRepository.findById(subscription.userId);
+                if (user) {
+                    await this.notificationService.notifySubscriptionRefunded(user.email, user.name);
+                }
             }
         }
         

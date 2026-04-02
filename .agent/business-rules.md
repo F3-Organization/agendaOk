@@ -45,3 +45,10 @@ Quando o cliente responde no WhatsApp:
 ## 6. Integração WhatsApp (Evolution API)
 - **Nomenclatura de Instâncias:** As instâncias no WhatsApp seguem o padrão `agent_<userId (clean)>`.
 - **Auto-Configuração:** No momento da conexão, o sistema configura automaticamente o Webhook da Evolution API para apontar para a URL do sistema, garantindo o recebimento de mensagens e status de sessão em tempo real.
++
++## 7. Comunicação e Notificações (E-mail)
++O sistema deve manter o Profissional informado sobre o status de sua conta através de notificações automáticas por e-mail nos seguintes cenários:
++- **Confirmação de Pagamento:** Notificar o usuário imediatamente após a ativação bem-sucedida do plano PRO.
++- **Expiração/Cancelamento:** Notificar quando uma cobrança expira ou um checkout é abandonado, resultando na perda ou não ativação do status PRO.
++- **Reembolso:** Confirmar o processamento de reembolsos e a consequente revogação do acesso premium.
++*Nota: Todos os e-mails de cobrança devem conter informações de suporte e links para contato via WhatsApp oficial do sistema.*

@@ -4,7 +4,13 @@ export const AuthUserSchema = z.object({
     id: z.uuid(),
     name: z.string(),
     email: z.email(),
-    role: z.enum(["ADMIN", "USER"])
+    role: z.enum(["ADMIN", "USER"]),
+    config: z.object({
+        whatsappNumber: z.string().nullable(),
+        syncEnabled: z.boolean(),
+        silentWindowStart: z.string(),
+        silentWindowEnd: z.string()
+    }).nullable()
 });
 
 export const LoginResponseSchema = z.object({

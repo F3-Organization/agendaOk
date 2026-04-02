@@ -1,4 +1,5 @@
 import { FastifyReply, FastifyRequest } from "fastify";
+import { IUserConfigRepository } from "../../usecase/repositories/iuser-config-repository";
 import { FastifyAdapter } from "../adapters/fastfy.adapter";
 import { GenerateGoogleAuthUrlUseCase } from "../../usecase/auth/generate-google-auth-url.usecase";
 import { AuthenticateGoogleUseCase } from "../../usecase/auth/authenticate-google.usecase";
@@ -6,7 +7,7 @@ import { RegisterUserUseCase } from "../../usecase/auth/register-user.usecase";
 import { LoginUseCase } from "../../usecase/auth/login.usecase";
 import { SendEmailVerificationUseCase } from "../../usecase/auth/send-email-verification.usecase";
 import { VerifyEmailSetPasswordUseCase } from "../../usecase/auth/verify-email-set-password.usecase";
-import { UpdateUserConfigUseCase } from "../../usecase/notification/update-user-config.usecase";
+import { UpdateUserConfigUseCase } from "../../usecase/user/update-user-config.usecase";
 import { AuthUserPayload } from "../types/auth.types";
 import { z } from "zod";
 import { 
@@ -24,7 +25,8 @@ export class AuthController {
         private readonly login: LoginUseCase,
         private readonly sendEmailVerification: SendEmailVerificationUseCase,
         private readonly verifyEmailSetPassword: VerifyEmailSetPasswordUseCase,
-        private readonly updateUserConfig: UpdateUserConfigUseCase
+        private readonly updateUserConfig: UpdateUserConfigUseCase,
+        private readonly userConfigRepo: IUserConfigRepository
     ) {
         this.fastify.logInfo("[AuthController] Initializing...");
         this.registerRoutes();
@@ -104,12 +106,19 @@ export class AuthController {
 
         this.fastify.addProtectedRoute("GET", "/auth/me", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
+            const config = await this.userConfigRepo.findByUserId(user.id);
             
             reply.send({
                 id: user.id,
                 name: user.name,
                 email: user.email,
-                role: user.role
+                role: user.role,
+                config: config ? {
+                    whatsappNumber: config.whatsappNumber,
+                    syncEnabled: config.syncEnabled,
+                    silentWindowStart: config.silentWindowStart,
+                    silentWindowEnd: config.silentWindowEnd
+                } : null
             });
         }, {
             tags: ["Auth"],
@@ -122,7 +131,17 @@ export class AuthController {
                         id: { type: "string", format: "uuid" },
                         name: { type: "string" },
                         email: { type: "string" },
-                        role: { type: "string" }
+                        role: { type: "string" },
+                        config: {
+                            type: "object",
+                            nullable: true,
+                            properties: {
+                                whatsappNumber: { type: "string", nullable: true },
+                                syncEnabled: { type: "boolean" },
+                                silentWindowStart: { type: "string" },
+                                silentWindowEnd: { type: "string" }
+                            }
+                        }
                     }
                 },
                 401: {

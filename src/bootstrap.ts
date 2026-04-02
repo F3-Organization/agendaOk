@@ -22,6 +22,7 @@ async function bootstrap() {
         factory.controller.subscription();
         factory.controller.whatsapp();
         factory.controller.dashboard();
+        factory.controller.user();
         console.log("[Bootstrap] Controllers and routes registered.");
 
 

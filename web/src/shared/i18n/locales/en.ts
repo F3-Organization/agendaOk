@@ -148,7 +148,17 @@ export const en = {
     connectButton: 'Connect WhatsApp',
     successTitle: 'WhatsApp Connected!',
     successDescription: 'Your account has been successfully paired. You can now automate your appointment confirmations.',
-    startAutomating: 'Go to Dashboard'
+    startAutomating: 'Go to Dashboard',
+    config: {
+      title: 'Notification Settings',
+      silentWindow: 'Silent Window',
+      silentWindowDescription: 'Define the period during which the system should NOT automatically send confirmation messages to avoid disturbing your customers at inappropriate times.',
+      enabled: 'Enabled',
+      start: 'Start Time',
+      end: 'End Time',
+      save: 'Save Settings',
+      success: 'Settings saved successfully!'
+    }
   },
   subscription: {
     title: 'Plan & Billing',

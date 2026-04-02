@@ -6,45 +6,45 @@ export class UserConfig {
     @PrimaryGeneratedColumn("uuid")
     id!: string;
 
-    @Column({ name: "user_id", unique: true })
+    @Column({ type: "uuid", name: "user_id", unique: true })
     userId!: string;
 
     @OneToOne(() => User)
     @JoinColumn({ name: "user_id" })
     user!: User;
 
-    @Column({ name: "whatsapp_number", nullable: true })
-    whatsappNumber?: string;
+    @Column({ type: "varchar", name: "whatsapp_number", nullable: true })
+    whatsappNumber?: string | undefined;
 
-    @Column({ name: "whatsapp_instance_name", nullable: true })
-    whatsappInstanceName?: string;
+    @Column({ type: "varchar", name: "whatsapp_instance_name", nullable: true })
+    whatsappInstanceName?: string | undefined;
 
-    @Column({ name: "whatsapp_lid", nullable: true })
-    whatsappLid?: string;
+    @Column({ type: "varchar", name: "whatsapp_lid", nullable: true })
+    whatsappLid?: string | undefined;
 
-    @Column({ name: "last_message_id", nullable: true })
-    lastMessageId?: string;
+    @Column({ type: "varchar", name: "last_message_id", nullable: true })
+    lastMessageId?: string | undefined;
 
-    @Column({ name: "tax_id", nullable: true })
-    taxId?: string;
+    @Column({ type: "varchar", name: "tax_id", nullable: true })
+    taxId?: string | undefined;
 
     @Column({ name: "google_access_token", type: "text", nullable: true })
-    googleAccessToken?: string;
+    googleAccessToken?: string | undefined;
 
-    @Column({ name: "google_refresh_token", type: "text", nullable: true })
-    googleRefreshToken?: string;
+    @Column({ type: "text", name: "google_refresh_token", nullable: true })
+    googleRefreshToken?: string | undefined;
 
-    @Column({ name: "google_token_expiry", type: "timestamp", nullable: true })
-    googleTokenExpiry?: Date;
+    @Column({ type: "timestamp", name: "google_token_expiry", nullable: true })
+    googleTokenExpiry?: Date | undefined;
 
-    @Column({ name: "silent_window_start", default: "23:59" })
-    silentWindowStart!: string;
+    @Column({ type: "varchar", name: "silent_window_start", default: "22:00" })
+    silentWindowStart?: string | undefined;
 
-    @Column({ name: "silent_window_end", default: "08:00" })
-    silentWindowEnd!: string;
+    @Column({ type: "varchar", name: "silent_window_end", default: "08:00" })
+    silentWindowEnd?: string | undefined;
 
-    @Column({ name: "sync_enabled", default: true })
-    syncEnabled!: boolean;
+    @Column({ type: "boolean", name: "sync_enabled", default: true })
+    syncEnabled?: boolean | undefined;
 
     @CreateDateColumn({ name: "created_at" })
     createdAt!: Date;

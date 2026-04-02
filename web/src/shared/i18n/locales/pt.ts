@@ -158,7 +158,17 @@ export const pt = {
     connectButton: 'Conectar WhatsApp',
     successTitle: 'WhatsApp Conectado!',
     successDescription: 'Sua conta foi pareada com sucesso. Agora você pode automatizar suas confirmações de agendamento.',
-    startAutomating: 'Ir para o Dashboard'
+    startAutomating: 'Ir para o Dashboard',
+    config: {
+      title: 'Configurações de Notificação',
+      silentWindow: 'Janela de Silêncio',
+      silentWindowDescription: 'Defina o período em que o sistema NÃO deve enviar mensagens de confirmação automaticamente para evitar incomodar seus clientes em horários inadequados.',
+      enabled: 'Ativado',
+      start: 'Horário de Início',
+      end: 'Horário de Fim',
+      save: 'Salvar Configurações',
+      success: 'Configurações salvas com sucesso!'
+    }
   },
   subscription: {
     title: 'Plano e Faturamento',

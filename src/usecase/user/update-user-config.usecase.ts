@@ -1,41 +1,55 @@
 import { env } from "../../infra/config/configs";
 import { IEvolutionService } from "../ports/ievolution-service";
 import { IUserConfigRepository } from "../repositories/iuser-config-repository";
+import { IUserRepository } from "../repositories/iuser-repository";
 import { AppError } from "../../shared/errors/app-error";
-
-export interface UpdateUserConfigInput {
-    whatsappNumber?: string;
-    syncEnabled?: boolean;
-    silentWindowStart?: string;
-    silentWindowEnd?: string;
-}
+import { UpdateUserConfigDTO } from "../../../shared/schemas/user.schema";
 
 export class UpdateUserConfigUseCase {
     constructor(
+        private readonly userRepo: IUserRepository,
         private readonly userConfigRepo: IUserConfigRepository,
         private readonly evolutionService: IEvolutionService
     ) {}
 
-    async execute(userId: string, data: UpdateUserConfigInput): Promise<void> {
+    async execute(userId: string, data: UpdateUserConfigDTO): Promise<void> {
         if (!userId) {
-            throw new AppError("User ID is required", 400);
+            throw new AppError("ID do usuário é obrigatório", 400);
         }
 
-        if (data.whatsappNumber) {
-            data.whatsappNumber = this.normalizeNumber(data.whatsappNumber);
+        // 1. Update User Profile (Name/Email) if provided
+        if (data.name || data.email) {
+            await this.userRepo.update(userId, {
+                ...(data.name && { name: data.name }),
+                ...(data.email && { email: data.email }),
+            });
         }
 
+        // 2. Prepare Config Data
+        const configData: any = {};
+        if (data.whatsappNumber !== undefined) {
+             configData.whatsappNumber = data.whatsappNumber ? this.normalizeNumber(data.whatsappNumber) : null;
+        }
+        if (data.taxId !== undefined) configData.taxId = data.taxId;
+        if (data.silentWindowStart !== undefined) configData.silentWindowStart = data.silentWindowStart;
+        if (data.silentWindowEnd !== undefined) configData.silentWindowEnd = data.silentWindowEnd;
+        if (data.syncEnabled !== undefined) configData.syncEnabled = data.syncEnabled;
+
+        // 3. Update or Create Config
         let config = await this.userConfigRepo.findByUserId(userId);
         
         if (!config) {
             config = await this.userConfigRepo.save({
                 userId,
-                ...data
-            } as any);
+                ...configData
+            });
         } else {
-            await this.userConfigRepo.update(userId, data);
+            if (Object.keys(configData).length > 0) {
+                await this.userConfigRepo.update(userId, configData);
+            }
         }
 
+        // 4. WhatsApp Activation (if number changed)
         if (data.whatsappNumber && config) {
             try {
                 const introMessage = `🔔 *Ativação ConfirmaZap*\n\n` +
@@ -43,7 +57,7 @@ export class UpdateUserConfigUseCase {
                     `👉 *Copie e envie a próxima mensagem abaixo neste chat:*`;
 
                 const codeMessage = `Ref: ${config.id}`;
-                const targetNumber = `55${data.whatsappNumber}`;
+                const targetNumber = `55${configData.whatsappNumber || config.whatsappNumber}`;
 
                 await this.evolutionService.sendText(
                     env.evolution.systemBotInstance, 
@@ -57,8 +71,7 @@ export class UpdateUserConfigUseCase {
                     codeMessage
                 );
             } catch (error: unknown) {
-                // We don't throw here to avoid failing the update if the message fails
-                // but we should ideally use a logger instead of console.error
+                // Silently fail or log
             }
         }
     }

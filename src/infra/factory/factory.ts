@@ -8,6 +8,9 @@ import { AuthController } from "../controller/auth.controller";
 import { CalendarController } from "../controller/calendar.controller";
 import { EvolutionWebhookController } from "../controller/evolution-webhook.controller";
 import { SubscriptionController } from "../controller/subscription.controller";
+import { GetUserConfigUseCase } from "../../usecase/user/get-user-config.usecase";
+import { UpdateUserConfigUseCase } from "../../usecase/user/update-user-config.usecase";
+import { UserController } from "../controller/user.controller";
 import { UserRepository } from "../database/repositories/user.repository";
 import { ClientRepository } from "../database/repositories/client.repository";
 import { ScheduleRepository } from "../database/repositories/schedule.repository";
@@ -28,7 +31,6 @@ import { GenerateInvoicePdfUseCase } from "../../usecase/subscription/generate-i
 import { ConnectWhatsappUseCase } from "../../usecase/notification/connect-whatsapp.usecase";
 import { DisconnectWhatsappUseCase } from "../../usecase/notification/disconnect-whatsapp.usecase";
 import { GetWhatsappStatusUseCase } from "../../usecase/notification/get-whatsapp-status.usecase";
-import { UpdateUserConfigUseCase } from "../../usecase/notification/update-user-config.usecase";
 import { WhatsappController } from "../controller/whatsapp.controller";
 import { DashboardController } from "../controller/dashboard.controller";
 import { GetDashboardStatsUseCase } from "../../usecase/dashboard/get-dashboard-stats.usecase";
@@ -173,7 +175,8 @@ const getUseCase = {
         getRepo.user(),
         redisService
     ),
-    updateUserConfig: () => new UpdateUserConfigUseCase(getRepo.userConfig(), evolutionAdapter),
+    getUserConfig: () => new GetUserConfigUseCase(getRepo.user(), getRepo.userConfig()),
+    updateUserConfig: () => new UpdateUserConfigUseCase(getRepo.user(), getRepo.userConfig(), evolutionAdapter),
     getDashboardStats: () => new GetDashboardStatsUseCase(getRepo.schedule(), getRepo.userConfig()),
     getAppointments: () => new GetAppointmentsUseCase(
         getRepo.schedule()
@@ -242,7 +245,8 @@ export const factory = {
             getUseCase.login(),
             getUseCase.sendEmailVerification(),
             getUseCase.verifyEmailSetPassword(),
-            getUseCase.updateUserConfig()
+            getUseCase.updateUserConfig(),
+            getRepo.userConfig()
         ),
         calendar: () => new CalendarController(
             adapterInstance,
@@ -276,6 +280,11 @@ export const factory = {
         dashboard: () => new DashboardController(
             adapterInstance,
             getUseCase.getDashboardStats()
+        ),
+        user: () => new UserController(
+            adapterInstance,
+            getUseCase.getUserConfig(),
+            getUseCase.updateUserConfig()
         )
     },
     queues: {

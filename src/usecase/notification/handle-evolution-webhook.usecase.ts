@@ -86,7 +86,7 @@ export class HandleEvolutionWebhookUseCase {
         }
 
         const isConfirmation = this.isConfirmation(text) || this.isCancellation(text);
-        if (!isConfirmation && isWithinSilentWindow(config.silentWindowStart, config.silentWindowEnd)) {
+        if (!isConfirmation && isWithinSilentWindow(config.silentWindowStart ?? "23:59", config.silentWindowEnd ?? "08:00")) {
             return;
         }
 

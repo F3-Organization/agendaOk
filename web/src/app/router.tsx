@@ -4,6 +4,7 @@ import { LoginPage } from '../pages/LoginPage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { WhatsAppPage } from '../pages/WhatsAppPage';
 import { SubscriptionPage } from '../pages/SubscriptionPage';
+import { SettingsPage } from '../pages/SettingsPage';
 import { GoogleCallbackPage } from '../pages/GoogleCallbackPage';
 import { EmailVerificationPage } from '../pages/EmailVerificationPage';
 import { LandingPage } from '../pages/LandingPage';
@@ -31,6 +32,10 @@ export const AppRouter = () => {
       <Route 
         path="/subscription" 
         element={isAuthenticated ? <SubscriptionPage /> : <Navigate to="/login" />} 
+      />
+      <Route 
+        path="/settings" 
+        element={isAuthenticated ? <SettingsPage /> : <Navigate to="/login" />} 
       />
       
       <Route path="*" element={<Navigate to="/" />} />

@@ -25,4 +25,8 @@ export class UserRepository implements IUserRepository {
     async findByGoogleId(googleId: string): Promise<User | null> {
         return await this.repository.findOneBy({ googleId });
     }
+
+    async update(id: string, data: Partial<User>): Promise<void> {
+        await this.repository.update(id, data);
+    }
 }

@@ -111,8 +111,7 @@ export class SyncCalendarUseCase {
                 if (!config.whatsappNumber) continue;
 
                 if (selfAttendee && selfAttendee.responseStatus === 'needsAction') {
-                    // Temporariamente removido para testes
-                    if (isWithinSilentWindow(config.silentWindowStart, config.silentWindowEnd)) {
+                    if (isWithinSilentWindow(config.silentWindowStart ?? "23:59", config.silentWindowEnd ?? "08:00")) {
                         console.log(`[SyncCalendar] Message suppressed: Current time within silent window (${config.silentWindowStart}-${config.silentWindowEnd})`);
                         continue;
                     }

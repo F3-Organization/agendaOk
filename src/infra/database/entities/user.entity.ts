@@ -11,10 +11,10 @@ export class User {
     @Column()
     name!: string;
 
-    @Column({ nullable: true })
+    @Column({ type: "varchar", nullable: true })
     password?: string;
 
-    @Column({ name: "google_id", nullable: true, unique: true })
+    @Column({ name: "google_id", type: "varchar", nullable: true, unique: true })
     googleId?: string;
 
     @Column({
@@ -27,8 +27,8 @@ export class User {
     @Column({ name: "two_factor_enabled", default: false })
     twoFactorEnabled!: boolean;
 
-    @Column({ name: "two_factor_secret", nullable: true })
-    twoFactorSecret?: string;
+    @Column({ name: "two_factor_secret", type: "varchar", nullable: true })
+    twoFactorSecret?: string | null;
 
     @CreateDateColumn()
     createdAt!: Date;

@@ -16,20 +16,23 @@ export class Toggle2FAUseCase {
             throw new Error("Usuário não encontrado");
         }
 
-        // If disabling, just turn it off
+        // If disabling, turn it off and CLEAR the secret for security
         if (!enabled) {
             user.twoFactorEnabled = false;
+            user.twoFactorSecret = null;
             await this.userRepo.save(user);
             return {};
         }
 
-        // If enabling, we keep it as 'false' until verified, but we generate the secret
-        // Actually, the user wants to "Turn on", so we can set it to false and wait for verification?
-        // Let's generate a new secret if it doesn't exist
-        if (!user.twoFactorSecret) {
-            user.twoFactorSecret = authenticator.generateSecret();
-            await this.userRepo.save(user);
+        // If already enabled, we don't allow "peeking" the current secret.
+        // The user must disable it first to regenerate a new one.
+        if (user.twoFactorEnabled) {
+            throw new Error("2FA já está ativo. Desative primeiro para reconfigurar.");
         }
+
+        // If enabling (setup mode), always generate a fresh secret
+        user.twoFactorSecret = authenticator.generateSecret();
+        await this.userRepo.save(user);
 
         const otpauthUrl = authenticator.keyuri(
             user.email,

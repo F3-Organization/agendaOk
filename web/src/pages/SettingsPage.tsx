@@ -39,6 +39,16 @@ export const SettingsPage = () => {
   const [setupData, setSetupData] = useState<{ otpauthUrl: string; secret: string } | null>(null);
   const [verificationCode, setVerificationCode] = useState('');
 
+  const showSuccess = (msg: string) => {
+    setSuccessMessage(msg);
+    setTimeout(() => setSuccessMessage(null), 3000);
+  };
+
+  const showError = (msg: string) => {
+    setErrorMessage(msg);
+    setTimeout(() => setErrorMessage(null), 5000);
+  };
+
   const { data: userConfig, isLoading } = useQuery({
     queryKey: ['user-config'],
     queryFn: async () => {
@@ -120,16 +130,6 @@ export const SettingsPage = () => {
       showError(error.response?.data?.error || "Erro ao definir senha");
     }
   });
-
-  const showSuccess = (msg: string) => {
-    setSuccessMessage(msg);
-    setTimeout(() => setSuccessMessage(null), 3000);
-  };
-
-  const showError = (msg: string) => {
-    setErrorMessage(msg);
-    setTimeout(() => setErrorMessage(null), 5000);
-  };
 
   if (isLoading) {
     return (

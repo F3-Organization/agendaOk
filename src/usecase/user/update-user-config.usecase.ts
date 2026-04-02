@@ -37,6 +37,8 @@ export class UpdateUserConfigUseCase {
 
         // 3. Update or Create Config
         let config = await this.userConfigRepo.findByUserId(userId);
+        const oldNumber = config?.whatsappNumber;
+        const oldLid = config?.whatsappLid;
         
         if (!config) {
             config = await this.userConfigRepo.save({
@@ -46,15 +48,19 @@ export class UpdateUserConfigUseCase {
         } else {
             if (Object.keys(configData).length > 0) {
                 await this.userConfigRepo.update(userId, configData);
+                // Refresh config after update
+                config = await this.userConfigRepo.findByUserId(userId);
             }
         }
 
+        if (!config) return;
+
         // 4. WhatsApp Activation (if number changed or not verified)
         const normalizedNewNumber = data.whatsappNumber ? this.normalizeNumber(data.whatsappNumber) : null;
-        const isNumberChanging = normalizedNewNumber !== undefined && normalizedNewNumber !== config.whatsappNumber;
-        const isNotVerified = !config.whatsappLid;
+        const isNumberChanging = !!normalizedNewNumber && normalizedNewNumber !== oldNumber;
+        const isNotVerified = !oldLid;
 
-        if (data.whatsappNumber && config && (isNumberChanging || isNotVerified)) {
+        if (data.whatsappNumber && (isNumberChanging || isNotVerified)) {
             try {
                 const introMessage = `🔔 *Ativação ConfirmaZap*\n\n` +
                     `Olá! Para concluir seu vínculo com o sistema e receber alertas de agendamentos e cancelamentos por aqui, precisamos validar sua conta.\n\n` +

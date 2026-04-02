@@ -125,6 +125,7 @@ export class AuthController {
 
         this.fastify.addProtectedRoute("GET", "/auth/me", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
+            const fullUser = await this.userRepo.findById(user.id);
             const config = await this.userConfigRepo.findByUserId(user.id);
             
             reply.send({
@@ -137,7 +138,8 @@ export class AuthController {
                     syncEnabled: config.syncEnabled,
                     silentWindowStart: config.silentWindowStart,
                     silentWindowEnd: config.silentWindowEnd
-                } : null
+                } : null,
+                hasPassword: !!fullUser?.password
             });
         }, {
             tags: ["Auth"],
@@ -151,6 +153,7 @@ export class AuthController {
                         name: { type: "string" },
                         email: { type: "string" },
                         role: { type: "string" },
+                        hasPassword: { type: "boolean" },
                         config: {
                             type: "object",
                             nullable: true,
@@ -195,7 +198,13 @@ export class AuthController {
                 reply.send({
                     message: "Registration successful",
                     token,
-                    user: { id: user.id, name: user.name, email: user.email, role: user.role }
+                    user: { 
+                        id: user.id, 
+                        name: user.name, 
+                        email: user.email, 
+                        role: user.role,
+                        hasPassword: !!user.password
+                    }
                 });
             } catch (error: any) {
                 if (error.message === "User already exists") {
@@ -276,7 +285,13 @@ export class AuthController {
                 reply.send({
                     message: "Email verified and password set successfully",
                     token,
-                    user: { id: user.id, name: user.name, email: user.email, role: user.role }
+                    user: { 
+                        id: user.id, 
+                        name: user.name, 
+                        email: user.email, 
+                        role: user.role,
+                        hasPassword: !!user.password
+                    }
                 });
             } catch (error: any) {
                 return reply.code(400).send({ error: "Verification failed", message: error.message });
@@ -356,7 +371,13 @@ export class AuthController {
                 reply.send({
                     message: "Login successful",
                     token,
-                    user: { id: user.id, name: user.name, email: user.email, role: user.role }
+                    user: { 
+                        id: user.id, 
+                        name: user.name, 
+                        email: user.email, 
+                        role: user.role,
+                        hasPassword: !!user.password
+                    }
                 });
             } catch (error: any) {
                 return reply.code(401).send({ error: "Invalid credentials" });
@@ -472,7 +493,8 @@ export class AuthController {
                         id: user.id,
                         name: user.name,
                         email: user.email,
-                        role: user.role
+                        role: user.role,
+                        hasPassword: !!user.password
                     }
                 });
             } catch (error: any) {

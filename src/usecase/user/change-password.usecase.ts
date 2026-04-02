@@ -12,14 +12,14 @@ export class ChangePasswordUseCase {
             throw new Error("Usuário não encontrado");
         }
 
-        if (!user.password) {
-            throw new Error("Este usuário não possui uma senha definida (Login via Google). Use a recuperação de senha.");
-        }
-
-        const isPasswordValid = await bcrypt.compare(data.currentPassword, user.password);
-        
-        if (!isPasswordValid) {
-            throw new Error("Senha atual incorreta");
+        if (user.password) {
+            if (!data.currentPassword) {
+                throw new Error("Senha atual é obrigatória para alterar a senha existente");
+            }
+            const isPasswordValid = await bcrypt.compare(data.currentPassword, user.password);
+            if (!isPasswordValid) {
+                throw new Error("Senha atual incorreta");
+            }
         }
 
         const hashedNewPassword = await bcrypt.hash(data.newPassword, 10);

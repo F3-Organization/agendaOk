@@ -1,9 +1,9 @@
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { 
-  Check, 
-  ArrowRight, 
-  CreditCard, 
+import {
+  Check,
+  ArrowRight,
+  CreditCard,
   Calendar,
   History,
   Download,
@@ -37,6 +37,14 @@ export const SubscriptionPage = () => {
       window.open(data.url, '_blank');
     },
   });
+
+  const handlePlanAction = (planId: string) => {
+    if (planId === 'PRO') {
+      checkoutMutation.mutate();
+    } else if (planId === 'ENTERPRISE') {
+      window.open('https://wa.me/5595981035934?text=Olá, gostaria de saber mais sobre o plano Enterprise do ConfirmaZap', '_blank');
+    }
+  };
 
   const formatDate = (dateString: string | undefined | null) => {
     if (!dateString) return '-';
@@ -114,22 +122,21 @@ export const SubscriptionPage = () => {
   }
 
   return (
-    <PageLayout 
-      title={t('subscription.title')} 
+    <PageLayout
+      title={t('subscription.title')}
       subtitle={t('subscription.subtitle')}
     >
       {/* Usage Progress Section for FREE Plan */}
       {subStatus?.plan === 'FREE' && (
         <Card variant="glass" className="mb-12 p-8 border border-primary/20 overflow-hidden relative group">
           <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent -z-10" />
-          
+
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="flex-1 w-full uppercase">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all ${
-                    subStatus.messageCount >= 50 ? 'bg-red-500/10 border-red-500/20' : 'bg-primary/10 border-primary/20'
-                  }`}>
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all ${subStatus.messageCount >= 50 ? 'bg-red-500/10 border-red-500/20' : 'bg-primary/10 border-primary/20'
+                    }`}>
                     <Zap className={`w-5 h-5 ${subStatus.messageCount >= 50 ? 'text-red-400' : 'text-primary'}`} />
                   </div>
                   <div>
@@ -148,34 +155,32 @@ export const SubscriptionPage = () => {
                   </span>
                 </div>
               </div>
-              
+
               <div className="h-4 w-full bg-black/40 rounded-full overflow-hidden border border-outline-variant/30 relative p-[3px]">
-                <div 
-                  className={`h-full rounded-full transition-all duration-1000 ease-out relative group-hover:brightness-110 ${
-                    subStatus.messageCount >= 50 
-                      ? 'bg-gradient-to-r from-red-600 to-red-400 shadow-[0_0_20px_rgba(239,68,68,0.4)]' 
+                <div
+                  className={`h-full rounded-full transition-all duration-1000 ease-out relative group-hover:brightness-110 ${subStatus.messageCount >= 50
+                      ? 'bg-gradient-to-r from-red-600 to-red-400 shadow-[0_0_20px_rgba(239,68,68,0.4)]'
                       : 'bg-gradient-to-r from-primary-dim to-primary'
-                  }`}
+                    }`}
                   style={{ width: `${Math.min((subStatus.messageCount / 50) * 100, 100)}%` }}
                 >
                   <div className="absolute inset-0 bg-white/20 animate-pulse-slow rounded-full" />
                 </div>
               </div>
             </div>
-            
+
             <div className="shrink-0 w-full md:w-auto">
-               <Button 
-                variant={subStatus.messageCount >= 50 ? 'primary' : 'secondary'} 
-                className={`w-full md:w-auto h-14 px-10 text-[10px] font-black tracking-[0.2em] uppercase shadow-2xl transition-all ${
-                  subStatus.messageCount >= 50 ? 'shadow-red-500/20 active:scale-95' : 'shadow-primary/10'
-                }`}
+              <Button
+                variant={subStatus.messageCount >= 50 ? 'primary' : 'secondary'}
+                className={`w-full md:w-auto h-14 px-10 text-[10px] font-black tracking-[0.2em] uppercase shadow-2xl transition-all ${subStatus.messageCount >= 50 ? 'shadow-red-500/20 active:scale-95' : 'shadow-primary/10'
+                  }`}
                 onClick={() => checkoutMutation.mutate()}
                 disabled={checkoutMutation.isPending}
-               >
-                 {checkoutMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Zap className="w-3 h-3 mr-3 fill-current" />}
-                 {t('subscription.usage.upgradeButton')}
-                 <ArrowRight className="w-3 h-3 ml-3 opacity-50 group-hover:translate-x-1 transition-transform" />
-               </Button>
+              >
+                {checkoutMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Zap className="w-3 h-3 mr-3 fill-current" />}
+                {t('subscription.usage.upgradeButton')}
+                <ArrowRight className="w-3 h-3 ml-3 opacity-50 group-hover:translate-x-1 transition-transform" />
+              </Button>
             </div>
           </div>
         </Card>
@@ -183,9 +188,9 @@ export const SubscriptionPage = () => {
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-16">
         {plans.map((plan, i) => (
-          <Card 
-            key={i} 
-            variant={plan.current ? 'accent' : 'glass'} 
+          <Card
+            key={i}
+            variant={plan.current ? 'accent' : 'glass'}
             className={`p-10 flex flex-col relative overflow-hidden group shadow-2xl transition-all border border-outline-variant ${plan.current ? 'ring-2 ring-primary scale-[1.02] z-10' : 'opacity-80 hover:opacity-100 hover:scale-[1.01]'}`}
           >
             {plan.current && (
@@ -194,7 +199,7 @@ export const SubscriptionPage = () => {
                 {t('common.activePlan')}
               </div>
             )}
-            
+
             <div className="mb-10">
               <h3 className="text-2xl font-bold tracking-tight mb-2 flex items-center gap-2">
                 {plan.name}
@@ -221,11 +226,11 @@ export const SubscriptionPage = () => {
               ))}
             </div>
 
-            <Button 
-              variant={plan.current ? 'primary' : 'secondary'} 
+            <Button
+              variant={plan.current ? 'primary' : 'secondary'}
               className={`w-full py-4 text-xs font-bold tracking-widest uppercase transition-all ${plan.current ? 'shadow-xl shadow-primary-dim/30' : ''}`}
               disabled={plan.current || checkoutMutation.isPending}
-              onClick={() => plan.id === 'PRO' && checkoutMutation.mutate()}
+              onClick={() => handlePlanAction(plan.id)}
             >
               {checkoutMutation.isPending && plan.id === 'PRO' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               {plan.cta}
@@ -240,13 +245,13 @@ export const SubscriptionPage = () => {
       <Card variant="base" className="overflow-hidden bg-surface-dim/30 border border-outline-variant">
         <div className="p-8 border-b border-outline-variant/20 flex justify-between items-center group">
           <div className="flex items-center gap-3">
-             <div className="w-10 h-10 rounded-xl bg-surface-low flex items-center justify-center border border-outline-variant/50 group-hover:bg-primary/5 group-hover:border-primary/20 transition-all">
-                <History className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
-             </div>
-             <div>
-                <h3 className="text-lg font-bold tracking-tight">{t('subscription.billing.recentInvoices')}</h3>
-                <p className="text-xs text-muted-foreground">{t('subscription.billing.subtitle')}</p>
-             </div>
+            <div className="w-10 h-10 rounded-xl bg-surface-low flex items-center justify-center border border-outline-variant/50 group-hover:bg-primary/5 group-hover:border-primary/20 transition-all">
+              <History className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold tracking-tight">{t('subscription.billing.recentInvoices')}</h3>
+              <p className="text-xs text-muted-foreground">{t('subscription.billing.subtitle')}</p>
+            </div>
           </div>
         </div>
 
@@ -258,89 +263,92 @@ export const SubscriptionPage = () => {
             </div>
           ) : paymentHistory && paymentHistory.length > 0 ? (
             <table className="w-full text-left border-collapse">
-               <thead className="bg-surface-high/50 border-b border-outline-variant/20">
-                 <tr>
-                   <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('subscription.billing.invoiceId')}</th>
-                   <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('subscription.billing.date')}</th>
-                   <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('subscription.billing.amount')}</th>
-                   <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('subscription.billing.status')}</th>
-                   <th className="px-8 py-4 text-right"></th>
-                 </tr>
-               </thead>
-               <tbody className="divide-y divide-outline-variant/10">
-                 {paymentHistory.map((payment, i) => (
-                   <tr key={i} className="group hover:bg-surface-high/50 transition-all">
-                     <td className="px-8 py-6">
-                       <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-surface-low border border-outline-variant/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all text-muted-foreground">
-                             <CreditCard className="w-4 h-4" />
-                          </div>
-                          <span className="font-bold text-sm tracking-tight group-hover:translate-x-[-12px] lg:group-hover:translate-x-0 transition-transform">
-                            {payment.id.split('-')[0].toUpperCase()}
-                          </span>
-                       </div>
-                     </td>
-                     <td className="px-8 py-6">
-                       <span className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
-                         <Calendar className="w-3 h-3" />
-                         {formatDate(payment.paidAt || payment.createdAt)}
-                       </span>
-                     </td>
-                     <td className="px-8 py-6 font-bold text-sm">{formatAmount(payment.amount)}</td>
-                     <td className="px-8 py-6">
-                       <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase border ${
-                         payment.status === 'PAID' 
-                           ? 'bg-green-500/10 border-green-500/20 text-green-400' 
-                           : payment.status === 'PENDING'
-                           ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400'
-                           : 'bg-red-500/10 border-red-500/20 text-red-400'
-                       }`}>
-                         {payment.status === 'PAID' ? t('subscription.billing.paid') : payment.status}
-                       </div>
-                     </td>
-                     <td className="px-8 py-6 text-right">
-                        {payment.status === 'PAID' && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => handleDownloadPdf(payment.id)}
-                          >
-                            <Download className="w-4 h-4 mr-2" />
-                            {t('subscription.billing.downloadPdf')}
-                          </Button>
-                        )}
-                     </td>
-                   </tr>
-                 ))}
-               </tbody>
+              <thead className="bg-surface-high/50 border-b border-outline-variant/20">
+                <tr>
+                  <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('subscription.billing.invoiceId')}</th>
+                  <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('subscription.billing.date')}</th>
+                  <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('subscription.billing.amount')}</th>
+                  <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('subscription.billing.status')}</th>
+                  <th className="px-8 py-4 text-right"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-outline-variant/10">
+                {paymentHistory.map((payment, i) => (
+                  <tr key={i} className="group hover:bg-surface-high/50 transition-all">
+                    <td className="px-8 py-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-surface-low border border-outline-variant/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all text-muted-foreground">
+                          <CreditCard className="w-4 h-4" />
+                        </div>
+                        <span className="font-bold text-sm tracking-tight group-hover:translate-x-[-12px] lg:group-hover:translate-x-0 transition-transform">
+                          {payment.id.split('-')[0].toUpperCase()}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-8 py-6">
+                      <span className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                        <Calendar className="w-3 h-3" />
+                        {formatDate(payment.paidAt || payment.createdAt)}
+                      </span>
+                    </td>
+                    <td className="px-8 py-6 font-bold text-sm">{formatAmount(payment.amount)}</td>
+                    <td className="px-8 py-6">
+                      <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase border ${payment.status === 'PAID'
+                          ? 'bg-green-500/10 border-green-500/20 text-green-400'
+                          : payment.status === 'PENDING'
+                            ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400'
+                            : 'bg-red-500/10 border-red-500/20 text-red-400'
+                        }`}>
+                        {payment.status === 'PAID' ? t('subscription.billing.paid') : payment.status}
+                      </div>
+                    </td>
+                    <td className="px-8 py-6 text-right">
+                      {payment.status === 'PAID' && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => handleDownloadPdf(payment.id)}
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          {t('subscription.billing.downloadPdf')}
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
             </table>
           ) : (
             <div className="py-20 flex flex-col items-center justify-center text-center px-4">
-               <div className="w-16 h-16 rounded-2xl bg-surface-low flex items-center justify-center mb-4 border border-outline-variant/30">
-                  <FileX className="w-8 h-8 text-muted-foreground/30" />
-               </div>
-               <h4 className="text-lg font-bold tracking-tight mb-1">{t('subscription.billing.noPayments')}</h4>
-               <p className="text-sm text-muted-foreground max-w-xs">{t('subscription.billing.noPaymentsDescription')}</p>
+              <div className="w-16 h-16 rounded-2xl bg-surface-low flex items-center justify-center mb-4 border border-outline-variant/30">
+                <FileX className="w-8 h-8 text-muted-foreground/30" />
+              </div>
+              <h4 className="text-lg font-bold tracking-tight mb-1">{t('subscription.billing.noPayments')}</h4>
+              <p className="text-sm text-muted-foreground max-w-xs">{t('subscription.billing.noPaymentsDescription')}</p>
             </div>
           )}
         </div>
       </Card>
-      
+
       <div className="mt-12 p-8 rounded-3xl bg-surface-container border border-primary/20 relative overflow-hidden group">
-         <div className="absolute inset-0 bg-pulse-gradient opacity-[0.03] -z-10 group-hover:opacity-[0.05] transition-opacity" />
-         <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
-            <div className="max-w-xl text-center md:text-left">
-               <h4 className="text-xl font-bold tracking-tight mb-2">{t('subscription.enterpriseCta.title')}</h4>
-               <p className="text-sm text-muted-foreground leading-relaxed">
-                 {t('subscription.enterpriseCta.description')}
-               </p>
-            </div>
-            <Button className="h-14 px-8 min-w-[200px]" variant="primary">
-               {t('subscription.enterpriseCta.button')}
-               <Zap className="w-4 h-4 ml-2 fill-current" />
-            </Button>
-         </div>
+        <div className="absolute inset-0 bg-pulse-gradient opacity-[0.03] -z-10 group-hover:opacity-[0.05] transition-opacity" />
+        <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
+          <div className="max-w-xl text-center md:text-left">
+            <h4 className="text-xl font-bold tracking-tight mb-2">{t('subscription.enterpriseCta.title')}</h4>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {t('subscription.enterpriseCta.description')}
+            </p>
+          </div>
+          <Button
+            className="h-14 px-8 min-w-[200px]"
+            variant="primary"
+            onClick={() => handlePlanAction('ENTERPRISE')}
+          >
+            {t('subscription.enterpriseCta.button')}
+            <Zap className="w-4 h-4 ml-2 fill-current" />
+          </Button>
+        </div>
       </div>
     </PageLayout>
   );

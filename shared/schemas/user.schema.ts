@@ -9,12 +9,13 @@ export const userConfigSchema = z.object({
     silentWindowEnd: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Formato inválido (HH:mm)").optional(),
     syncEnabled: z.boolean().optional(),
     twoFactorEnabled: z.boolean().optional(),
+    hasPassword: z.boolean().optional(),
 });
 
 export const updateUserConfigSchema = userConfigSchema.partial();
 
 export const changePasswordSchema = z.object({
-    currentPassword: z.string().min(1, "Senha atual é obrigatória"),
+    currentPassword: z.string().optional(),
     newPassword: z.string().min(6, "A nova senha deve ter no mínimo 6 caracteres"),
     confirmPassword: z.string().min(6, "Confirmação de senha é obrigatória"),
 }).refine((data) => data.newPassword === data.confirmPassword, {

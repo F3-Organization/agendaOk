@@ -10,7 +10,8 @@ export const AuthUserSchema = z.object({
         syncEnabled: z.boolean(),
         silentWindowStart: z.string(),
         silentWindowEnd: z.string()
-    }).nullable()
+    }).nullable(),
+    hasPassword: z.boolean()
 });
 
 export const LoginResponseSchema = z.object({

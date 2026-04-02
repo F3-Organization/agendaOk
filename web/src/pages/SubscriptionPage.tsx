@@ -24,17 +24,21 @@ export const SubscriptionPage = () => {
   const { data: subStatus, isLoading: isStatusLoading } = useQuery({
     queryKey: ['subscription-status'],
     queryFn: subscriptionService.getStatus,
+    refetchInterval: (query) => {
+      return query.state.data?.status === 'PENDING' ? 10000 : false;
+    }
   });
 
   const { data: paymentHistory, isLoading: isHistoryLoading } = useQuery({
     queryKey: ['subscription-payments'],
     queryFn: subscriptionService.getPaymentHistory,
+    refetchInterval: subStatus?.status === 'PENDING' ? 10000 : false,
   });
 
   const checkoutMutation = useMutation({
     mutationFn: subscriptionService.createCheckout,
     onSuccess: (data) => {
-      window.open(data.url, '_blank');
+      window.location.href = data.url;
     },
   });
 
@@ -96,8 +100,13 @@ export const SubscriptionPage = () => {
         t('subscription.features.apiAccess'),
         t('subscription.features.branding')
       ],
-      current: subStatus?.plan === 'PRO',
-      cta: subStatus?.plan === 'PRO' ? t('common.currentPlan') : t('common.connect')
+      current: subStatus?.plan === 'PRO' || subStatus?.status === 'PENDING',
+      disabled: subStatus?.status === 'PENDING',
+      cta: subStatus?.plan === 'PRO' 
+        ? t('common.currentPlan') 
+        : subStatus?.status === 'PENDING' 
+          ? t('common.pending') 
+          : t('common.connect')
     },
     {
       id: 'ENTERPRISE',
@@ -130,6 +139,21 @@ export const SubscriptionPage = () => {
       title={t('subscription.title')}
       subtitle={t('subscription.subtitle')}
     >
+      {subStatus?.status === 'PENDING' && (
+        <Card variant="glass" className="mb-8 p-6 border-yellow-500/30 bg-yellow-500/5 items-center flex gap-4">
+          <div className="w-12 h-12 rounded-full bg-yellow-500/20 flex items-center justify-center shrink-0">
+            <Loader2 className="w-6 h-6 text-yellow-500 animate-spin" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-yellow-500 leading-tight">
+              {t('subscription.billing.pendingTitle')}
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              {t('subscription.billing.pendingDescription')}
+            </p>
+          </div>
+        </Card>
+      )}
       {/* Usage Progress Section for FREE Plan */}
       {subStatus?.plan === 'FREE' && (
         <Card variant="glass" className="mb-12 p-8 border border-primary/20 overflow-hidden relative group">
@@ -233,7 +257,7 @@ export const SubscriptionPage = () => {
             <Button
               variant={plan.current ? 'primary' : 'secondary'}
               className={`w-full py-4 text-xs font-bold tracking-widest uppercase transition-all ${plan.current ? 'shadow-xl shadow-primary-dim/30' : ''}`}
-              disabled={plan.current || checkoutMutation.isPending}
+              disabled={plan.current || (plan as any).disabled || checkoutMutation.isPending}
               onClick={() => handlePlanAction(plan.id)}
             >
               {checkoutMutation.isPending && plan.id === 'PRO' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}

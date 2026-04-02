@@ -31,10 +31,13 @@ export class SubscriptionRepository implements ISubscriptionRepository {
         return await this.repository.findOne({ where: { abacateBillingId: billingId } });
     }
 
-    async updateStatus(id: string, userId: string, status: SubscriptionStatus, periodEnd?: Date): Promise<void> {
+    async updateStatus(id: string, userId: string, status: SubscriptionStatus, periodEnd?: Date, plan?: string): Promise<void> {
         const updateData: Partial<Subscription> = { status };
         if (periodEnd) {
             updateData.currentPeriodEnd = periodEnd;
+        }
+        if (plan) {
+            updateData.plan = plan;
         }
         await this.repository.update({ id, userId }, updateData as any);
     }

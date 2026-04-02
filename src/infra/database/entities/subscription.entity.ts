@@ -7,7 +7,8 @@ export enum SubscriptionStatus {
     CANCELLED = "CANCELLED",
     PAST_DUE = "PAST_DUE",
     TRIAL = "TRIAL",
-    INACTIVE = "INACTIVE"
+    INACTIVE = "INACTIVE",
+    PENDING = "PENDING"
 }
 
 @Entity("subscriptions")
@@ -28,13 +29,13 @@ export class Subscription {
     @Column({ name: "abacate_customer_id", nullable: true })
     abacateCustomerId?: string;
 
-    @Column({ default: "PRO" })
+    @Column({ default: "FREE" })
     plan!: string;
 
     @Column({
         type: "enum",
         enum: SubscriptionStatus,
-        default: SubscriptionStatus.INACTIVE
+        default: SubscriptionStatus.ACTIVE
     })
     status!: SubscriptionStatus;
 

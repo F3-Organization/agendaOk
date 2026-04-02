@@ -214,6 +214,8 @@ export const en = {
       loadingHistory: 'Fetching history...',
       noPayments: 'No payments found',
       noPaymentsDescription: 'You do not have any invoices or subscriptions registered in the system yet.',
+      pendingTitle: 'Payment Processing',
+      pendingDescription: 'Your PRO subscription will be activated as soon as we confirm receipt of payment. This may take a few minutes.',
     },
     pricing: {
       perMonth: '/mo',

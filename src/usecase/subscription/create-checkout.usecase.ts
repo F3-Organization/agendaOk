@@ -57,8 +57,8 @@ export class CreateSubscriptionCheckoutUseCase {
             name: "AgendaOk PRO",
             description: "Plano de assinatura mensal AgendaOk",
             price: env.abacatePay.planPrice,
-            returnUrl: `${baseUrl}/dashboard`,
-            completionUrl: `${baseUrl}/dashboard`
+            returnUrl: `${baseUrl}/subscription`,
+            completionUrl: `${baseUrl}/subscription`
         });
 
         // Salvar/Atualizar subscription
@@ -66,7 +66,7 @@ export class CreateSubscriptionCheckoutUseCase {
             abacateBillingId: billing.id,
             abacateCustomerId: customerId,
             checkoutUrl: billing.url,
-            status: SubscriptionStatus.INACTIVE
+            status: SubscriptionStatus.PENDING
         });
 
         // Criar registro de pagamento histórico (PENDENTE)

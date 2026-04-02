@@ -224,6 +224,8 @@ export const pt = {
       loadingHistory: 'Buscando histórico...',
       noPayments: 'Nenhum pagamento encontrado',
       noPaymentsDescription: 'Você ainda não possui faturas ou assinaturas registradas no sistema.',
+      pendingTitle: 'Pagamento em Processamento',
+      pendingDescription: 'Sua assinatura PRO será ativada assim que confirmarmos o recebimento do pagamento. Isso pode levar alguns minutos.',
     },
     pricing: {
       perMonth: '/mês',

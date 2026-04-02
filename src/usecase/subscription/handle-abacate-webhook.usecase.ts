@@ -34,7 +34,8 @@ export class HandleAbacatePayWebhookUseCase {
                     subscription.id, 
                     subscription.userId,
                     SubscriptionStatus.ACTIVE,
-                    periodEnd
+                    periodEnd,
+                    "PRO"
                 );
 
                 console.log(`[Subscription] User ${subscription.userId} activated via Abacate Pay.`);

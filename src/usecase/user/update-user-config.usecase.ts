@@ -49,15 +49,19 @@ export class UpdateUserConfigUseCase {
             }
         }
 
-        // 4. WhatsApp Activation (if number changed)
-        if (data.whatsappNumber && config) {
+        // 4. WhatsApp Activation (if number changed or not verified)
+        const normalizedNewNumber = data.whatsappNumber ? this.normalizeNumber(data.whatsappNumber) : null;
+        const isNumberChanging = normalizedNewNumber !== undefined && normalizedNewNumber !== config.whatsappNumber;
+        const isNotVerified = !config.whatsappLid;
+
+        if (data.whatsappNumber && config && (isNumberChanging || isNotVerified)) {
             try {
                 const introMessage = `🔔 *Ativação ConfirmaZap*\n\n` +
                     `Olá! Para concluir seu vínculo com o sistema e receber alertas de agendamentos e cancelamentos por aqui, precisamos validar sua conta.\n\n` +
                     `👉 *Copie e envie a próxima mensagem abaixo neste chat:*`;
 
                 const codeMessage = `Ref: ${config.id}`;
-                const targetNumber = `55${configData.whatsappNumber || config.whatsappNumber}`;
+                const targetNumber = `55${normalizedNewNumber || config.whatsappNumber}`;
 
                 await this.evolutionService.sendText(
                     env.evolution.systemBotInstance, 

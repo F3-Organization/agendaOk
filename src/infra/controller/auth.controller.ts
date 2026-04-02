@@ -353,6 +353,7 @@ export class AuthController {
             const user = request.user as AuthUserPayload;
             const schema = z.object({
                 whatsappNumber: z.string().optional(),
+                taxId: z.string().optional(),
                 syncEnabled: z.boolean().optional(),
                 silentWindowStart: z.string().optional(),
                 silentWindowEnd: z.string().optional()

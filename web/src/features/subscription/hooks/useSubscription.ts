@@ -4,11 +4,13 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { subscriptionService } from '../subscription.service';
+import { authService } from '../../auth/auth.service';
 
 export const useSubscription = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [showSuccessBanner, setShowSuccessBanner] = useState(false);
+  const [showBillingModal, setShowBillingModal] = useState(false);
   const prevStatusRef = useRef<string | undefined>(undefined);
 
   const SUPPORT_WHATSAPP = import.meta.env.VITE_SUPPORT_WHATSAPP;
@@ -21,6 +23,8 @@ export const useSubscription = () => {
       return query.state.data?.status === 'PENDING' ? 10000 : false;
     }
   });
+
+  const isMissingBillingInfo = !subStatus?.taxId || !subStatus?.whatsappNumber;
 
   const { data: paymentHistory, isLoading: isHistoryLoading } = useQuery({
     queryKey: ['subscription-payments'],
@@ -46,19 +50,45 @@ export const useSubscription = () => {
     mutationFn: subscriptionService.createCheckout,
     onSuccess: (data) => {
       // Navega para a página de resumo própria em vez de redirecionar direto
-      navigate('/checkout', { 
-        state: { 
+      navigate('/checkout', {
+        state: {
           checkoutUrl: data.url,
           planName: data.planName,
           amount: data.amount,
           billingCycle: 'MONTHLY'
-        } 
+        }
       });
     },
+    onError: (error: any) => {
+      const message = error.response?.data?.message || t('common.error');
+      toast.error(message);
+    }
   });
+
+  const updateBillingConfigMutation = useMutation({
+    mutationFn: authService.updateConfig,
+    onSuccess: () => {
+      toast.success(t('subscription.billing.infoSaved'));
+      setShowBillingModal(false);
+      // Após salvar, dispara o checkout se for o plano PRO
+      checkoutMutation.mutate();
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || t('common.error'));
+    }
+  });
+
+  const handleUpdateBillingInfo = async (data: { taxId: string; whatsappNumber: string }) => {
+    await updateBillingConfigMutation.mutateAsync(data);
+  };
 
   const handlePlanAction = (planId: string) => {
     if (planId === 'PRO') {
+      if (isMissingBillingInfo) {
+        setShowBillingModal(true);
+        return;
+      }
+
       if (subStatus?.status === 'PENDING' && subStatus.checkoutUrl) {
         navigate('/checkout', {
           state: {
@@ -146,6 +176,11 @@ export const useSubscription = () => {
     checkoutMutation,
     handlePlanAction,
     handleDownloadPdf,
-    setShowSuccessBanner
+    setShowSuccessBanner,
+    isMissingBillingInfo,
+    showBillingModal,
+    setShowBillingModal,
+    handleUpdateBillingInfo,
+    updateBillingConfigMutation
   };
 };

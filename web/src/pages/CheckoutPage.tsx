@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { 
-  CheckCircle2, 
-  ShieldCheck, 
-  Lock, 
-  CreditCard, 
-  Zap, 
-  Calendar, 
+import {
+  CheckCircle2,
+  ShieldCheck,
+  Lock,
+  CreditCard,
+  Zap,
+  Calendar,
   FileText,
   ArrowRight,
   ArrowLeft,
@@ -22,7 +22,7 @@ export const CheckoutPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  
+
   // Dados passados via state do roteador
   const { checkoutUrl, planName, amount, billingCycle } = location.state || {};
 
@@ -43,8 +43,8 @@ export const CheckoutPage: React.FC = () => {
   if (!checkoutUrl) return null;
 
   return (
-    <PageLayout 
-      title={t('checkout.title')} 
+    <PageLayout
+      title={t('checkout.title')}
       subtitle={t('checkout.subtitle')}
     >
       <div className="max-w-6xl mx-auto relative group/page">
@@ -53,9 +53,9 @@ export const CheckoutPage: React.FC = () => {
         <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-secondary/5 blur-[100px] rounded-full pointer-events-none" />
 
         <div className="mb-8">
-          <Button 
+          <Button
             variant="ghost"
-            onClick={() => navigate('/subscriptions')}
+            onClick={() => navigate('/subscription')}
             className="group flex items-center gap-2 hover:gap-3"
           >
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
@@ -68,7 +68,7 @@ export const CheckoutPage: React.FC = () => {
           <section className="space-y-6">
             <Card variant="glass" className="p-8 relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-3xl -mr-16 -mt-16 group-hover:bg-primary/20 transition-colors" />
-              
+
               <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-8">
                 <div>
                   <span className="text-primary text-[10px] font-bold tracking-widest uppercase mb-2 block">
@@ -109,7 +109,7 @@ export const CheckoutPage: React.FC = () => {
                 </div>
               </div>
 
-              <Button 
+              <Button
                 onClick={handleConfirmPayment}
                 disabled={loading}
                 size="lg"
@@ -158,7 +158,7 @@ export const CheckoutPage: React.FC = () => {
               <h4 className="text-xl font-bold tracking-tight mb-8">
                 {t('checkout.nextSteps.title')}
               </h4>
-              
+
               <div className="space-y-8">
                 <div className="flex gap-4">
                   <div className="shrink-0 w-12 h-12 rounded-2xl bg-surface-high border border-outline-variant/50 flex items-center justify-center text-primary">

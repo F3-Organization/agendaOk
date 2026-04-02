@@ -77,7 +77,8 @@ export class CreateSubscriptionCheckoutUseCase {
             customerId,
             env.abacatePay.planName,
             env.abacatePay.planPrice,
-            `${baseUrl}/subscription`
+            `${baseUrl}/subscription`,
+            { userId }
         );
 
         // Criar NOVO registro de assinatura PRO como PENDING

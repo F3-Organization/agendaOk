@@ -256,7 +256,8 @@ const getUseCase = {
     ),
     getSubscriptionStatus: () => new GetSubscriptionStatusUseCase(
         getRepo.subscription(),
-        getRepo.schedule()
+        getRepo.schedule(),
+        getRepo.userConfig()
     )
 };
 

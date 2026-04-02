@@ -16,6 +16,7 @@ import { PageLayout } from '../shared/ui/PageLayout';
 import { Card } from '../shared/ui/Card';
 import { Button } from '../shared/ui/Button';
 import { useSubscription } from '../features/subscription/hooks/useSubscription';
+import { BillingInfoModal } from '../features/subscription/components/BillingInfoModal';
 import { formatCurrency, formatDate } from '../shared/utils/formatters';
 
 export const SubscriptionPage = () => {
@@ -30,7 +31,11 @@ export const SubscriptionPage = () => {
     checkoutMutation,
     handlePlanAction,
     handleDownloadPdf,
-    setShowSuccessBanner
+    setShowSuccessBanner,
+    showBillingModal,
+    setShowBillingModal,
+    handleUpdateBillingInfo,
+    updateBillingConfigMutation
   } = useSubscription();
 
   if (isStatusLoading) {
@@ -308,6 +313,17 @@ export const SubscriptionPage = () => {
           </Button>
         </div>
       </div>
+
+      <BillingInfoModal
+        isOpen={showBillingModal}
+        onClose={() => setShowBillingModal(false)}
+        onSave={handleUpdateBillingInfo}
+        isLoading={updateBillingConfigMutation.isPending}
+        initialData={{
+          taxId: subStatus?.taxId,
+          whatsappNumber: subStatus?.whatsappNumber
+        }}
+      />
     </PageLayout>
   );
 };

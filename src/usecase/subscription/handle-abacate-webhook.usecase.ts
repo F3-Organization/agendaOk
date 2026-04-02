@@ -23,19 +23,40 @@ export class HandleAbacatePayWebhookUseCase {
 
         if (event === "billing.paid") {
             const billingId = data.id;
-            const subscription = await this.subscriptionRepository.findByBillingId(billingId);
+            const metadata = data.metadata || {};
+            const metadataUserId = metadata.userId;
+
+            let subscription = await this.subscriptionRepository.findByBillingId(billingId);
+
+            // Se não encontrou pelo billingId, tenta pelo userId vindo no metadata (cobranças recorrentes automáticas)
+            if (!subscription && metadataUserId) {
+                console.log(`[Subscription] Billing ${billingId} not found by ID. Searching by metadata.userId: ${metadataUserId}`);
+                subscription = await this.subscriptionRepository.findByUserId(metadataUserId);
+            }
 
             if (subscription) {
-                // 1. Atualizar histórico de pagamento
-                const payment = await this.paymentRepository.findByBillingId(billingId);
+                // 1. Atualizar ou criar registro de pagamento
+                let payment = await this.paymentRepository.findByBillingId(billingId);
+                
                 if (payment) {
                     await this.paymentRepository.update(payment.id, {
                         status: SubscriptionPaymentStatus.PAID,
                         paidAt: new Date()
                     });
+                } else {
+                    // É uma nova cobrança gerada automaticamente pelo AbacatePay
+                    console.log(`[Subscription] Creating new payment record for recurring billing ${billingId}`);
+                    await this.paymentRepository.create({
+                        subscriptionId: subscription.id,
+                        billingId: billingId,
+                        amount: data.amount || env.abacatePay.planPrice,
+                        status: SubscriptionPaymentStatus.PAID,
+                        paidAt: new Date(),
+                        checkoutUrl: data.url || subscription.checkoutUrl
+                    });
                 }
 
-                // 2. Ativar assinatura por 30 dias a partir de agora
+                // 2. Ativar/Renovar assinatura por 30 dias a partir de agora
                 const periodEnd = new Date();
                 periodEnd.setDate(periodEnd.getDate() + 30);
 

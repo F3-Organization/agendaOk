@@ -61,6 +61,6 @@ export const env = {
         supportWhatsapp: process.env.SUPPORT_WHATSAPP || '5595981035934',
     },
     security: {
-        encryptionKey: process.env.ENCRYPTION_KEY || 'f64b848c7c943896cf41a06781f9a65a'
+        encryptionKey: process.env.ENCRYPTION_KEY
     }
 }

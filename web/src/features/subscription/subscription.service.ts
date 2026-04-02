@@ -8,6 +8,8 @@ export interface SubscriptionStatus {
   checkoutUrl?: string;
   amount?: number;
   planName?: string;
+  taxId?: string;
+  whatsappNumber?: string;
 }
 
 export interface SubscriptionPayment {

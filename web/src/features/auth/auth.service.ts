@@ -38,6 +38,7 @@ export const authService = {
 
   updateConfig: async (configData: { 
     whatsappNumber?: string; 
+    taxId?: string;
     syncEnabled?: boolean;
     silentWindowStart?: string;
     silentWindowEnd?: string;

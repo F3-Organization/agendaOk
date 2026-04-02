@@ -71,7 +71,7 @@ export class AbacatePayAdapter implements IPaymentGateway {
     }
 
 
-    async createSubscription(customerId: string, name: string, price: number, returnUrl: string): Promise<{ id: string, url: string }> {
+    async createSubscription(customerId: string, name: string, price: number, returnUrl: string, metadata?: Record<string, any>): Promise<{ id: string, url: string }> {
         return this.createBilling({
             customerId,
             name,
@@ -80,7 +80,8 @@ export class AbacatePayAdapter implements IPaymentGateway {
             externalId: `sub_${Date.now()}`,
             returnUrl,
             completionUrl: returnUrl,
-            frequency: 'MULTIPLE_PAYMENTS'
+            frequency: 'MULTIPLE_PAYMENTS',
+            metadata
         });
     }
 

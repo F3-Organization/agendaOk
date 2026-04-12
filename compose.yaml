@@ -52,7 +52,7 @@ services:
       - DATABASE_ENABLED=true
       - DATABASE_PROVIDER=postgresql
       - DATABASE_CONNECTION_URI=postgresql://${DB_USER}:${DB_PASSWORD}@database:5432/${EVO_DATABASE_NAME}?schema=public
-      - DATABASE_CONNECTION_CLIENT_NAME=evolution-agendaok
+      - DATABASE_CONNECTION_CLIENT_NAME=evolution-confirmazap
       - CACHE_REDIS_ENABLED=true
       - CACHE_REDIS_URI=redis://redis:6379
       - CACHE_REDIS_PREFIX_KEY=evolution

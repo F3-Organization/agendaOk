@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   api:
-    image: agendaok:latest
+    image: confirmazap:latest
     build:
       context: .
       target: prod
@@ -16,7 +16,7 @@ services:
       - DB_PORT=${DB_PORT:-5432}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
-      - DB_NAME=${DB_NAME:-agendaok}
+      - DB_NAME=${DB_NAME:-confirmazap}
       # Redis (container)
       - REDIS_HOST=redis
       - REDIS_PORT=6379
@@ -42,14 +42,14 @@ services:
         max_attempts: 5
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.agendaok-api.rule=Host(`${DOMAIN}`)"
-        - "traefik.http.routers.agendaok-api.entrypoints=websecure"
-        - "traefik.http.routers.agendaok-api.tls.certresolver=letsencrypt"
-        - "traefik.http.services.agendaok-api.loadbalancer.server.port=${PORT:-3000}"
+        - "traefik.http.routers.confirmazap-api.rule=Host(`${DOMAIN}`)"
+        - "traefik.http.routers.confirmazap-api.entrypoints=websecure"
+        - "traefik.http.routers.confirmazap-api.tls.certresolver=letsencrypt"
+        - "traefik.http.services.confirmazap-api.loadbalancer.server.port=${PORT:-3000}"
         # Middleware de rate limit via Traefik (camada extra)
-        - "traefik.http.middlewares.agendaok-ratelimit.ratelimit.average=50"
-        - "traefik.http.middlewares.agendaok-ratelimit.ratelimit.burst=100"
-        - "traefik.http.routers.agendaok-api.middlewares=agendaok-ratelimit"
+        - "traefik.http.middlewares.confirmazap-ratelimit.ratelimit.average=50"
+        - "traefik.http.middlewares.confirmazap-ratelimit.ratelimit.burst=100"
+        - "traefik.http.routers.confirmazap-api.middlewares=confirmazap-ratelimit"
     depends_on:
       - redis
 
@@ -75,7 +75,7 @@ services:
       - DATABASE_ENABLED=true
       - DATABASE_PROVIDER=postgresql
       - DATABASE_CONNECTION_URI=postgresql://${DB_USER}:${DB_PASSWORD}@host.docker.internal:${DB_PORT:-5432}/${EVO_DATABASE_NAME:-evolution}?schema=public
-      - DATABASE_CONNECTION_CLIENT_NAME=evolution-agendaok
+      - DATABASE_CONNECTION_CLIENT_NAME=evolution-confirmazap
       # Redis
       - CACHE_REDIS_ENABLED=true
       - CACHE_REDIS_URI=redis://${REDIS_PASSWORD:+:${REDIS_PASSWORD}@}redis:6379

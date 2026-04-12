@@ -1,6 +1,6 @@
-# Backend API Specification (AgendaOk)
+# Backend API Specification (ConfirmaZap)
 
-This document provides a detailed technical specification for the AgendaOk API to guide frontend design and development.
+This document provides a detailed technical specification for the ConfirmaZap API to guide frontend design and development.
 
 ## 1. Authentication (Google OAuth 2.0)
 

@@ -1,6 +1,6 @@
-# Guia de Testes - AgendaOk
+# Guia de Testes - ConfirmaZap
 
-Este documento estabelece os padrões e estratégias de testes para o projeto AgendaOk, garantindo a confiabilidade dos fluxos de sincronização e notificações.
+Este documento estabelece os padrões e estratégias de testes para o projeto ConfirmaZap, garantindo a confiabilidade dos fluxos de sincronização e notificações.
 
 ## 🧪 Estratégia de Testes
 

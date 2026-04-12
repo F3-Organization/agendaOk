@@ -30,10 +30,12 @@ Este checklist deve ser seguido obrigatoriamente após a conclusão de qualquer 
 - [ ] **Valores Monetários:** Valores estão em centavos conforme padrão de gateways?
 - [ ] **Webhooks:** O payload do webhook coincide com os DTOs do Use Case?
 
-### 5. Banco de Dados e Migrations
-- [ ] **Tipagem:** A entidade está devidamente registrada no `AppDataSource` em `src/infra/config/data-source.ts`?
+### 6. Banco de Dados e Sincronização
+- [ ] A entidade está devidamente registrada no `AppDataSource` em `src/infra/config/data-source.ts`?
+- [ ] O comando `npm run schema:diff` foi executado para validar as alterações de SQL?
+- [ ] O comando `npm run schema:sync` foi executado com sucesso no ambiente local?
 
 ---
 
 > [!IMPORTANT]
-> **NUNCA** finalize uma tarefa que envolva persistência sem antes passar por este checklist. A integridade do banco de dados do AgendaOk e a capacidade de deploy via CI/CD dependem de migrations consistentes.
+> **NUNCA** finalize uma tarefa que envolva persistência sem antes passar por este checklist. A integridade do banco de dados do ConfirmaZap depende da revisão minuciosa das alterações de esquema via `schema:diff`.

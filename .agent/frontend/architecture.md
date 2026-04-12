@@ -1,35 +1,42 @@
-# Senior Architecture: Feature-Driven Monorepo
+# Arquitetura Frontend - ConfirmaZap
 
-ConfirmaZap uses a Feature-Driven architecture within a Monorepo structure to ensure high scalability and developer velocity.
+Este documento descreve a organização e os princípios arquiteturais seguidos no desenvolvimento do frontend da **ConfirmaZap**, utilizando React com Vite e seguindo o padrão **Feature-Driven**.
 
-## 1. Directory Structure (Monorepo)
+## 1. Estrutura de Diretórios
+
+O frontend está localizado no diretório `/web` e segue uma estrutura modular baseada em funcionalidades (features):
 
 ```plaintext
-/ (Project Root)
-├── shared/               # COMMON: Zod Schemas & Shared Types
-├── src/                  # BACKEND: Fastify API (FastifyAdapter)
-│   ├── usecase/          # Pure business logic
-│   └── infra/            # Controllers, Database, Adapters
-└── web/                  # FRONTEND: React (Vite)
-    ├── src/
-    │   ├── app/          # Providers & Router
-    │   ├── features/     # Isolated Domain Modules
-    │   └── shared/       # Shared UI/API instances
-    └── Dockerfile
+/web
+├── src/
+│   ├── app/              # Provedores (Providers), Rotas globais e Layout base.
+│   ├── features/         # Módulos isolados por domínio (ex: auth, calendar, dashboard).
+│   │   ├── components/   # Componentes específicos da feature.
+│   │   ├── hooks/        # Lógica de negócio, consultas (TanStack Query) e mutações.
+│   │   └── services/     # Chamadas de API específicas da feature.
+│   ├── shared/           # Componentes UI (shadcn), instâncias de API, utilitários globais.
+│   └── assets/           # Imagens, fontes e estilos globais.
+└── Dockerfile
 ```
 
-## 2. Docker Service Map
+## 2. Integração com Shared Recursos
+O frontend consome schemas e tipos localizados no diretório raiz `/shared` (alias `@shared`). 
+Para detalhes sobre como esses recursos são compartilhados, consulte o guia [shared.md](file:///home/felipe/Repositories/personal/confirmaZap/.agent/shared.md).
 
-The orchestration is handled via `compose.yaml` at the root, ensuring all services communicate seamlessly:
+## 3. Pilares do Desenvolvimento Frontend
 
-- **Service: `api`** (Fastify): Port 3000. Accesses `shared/` via `@shared`.
-- **Service: `web`** (Vite): Port 5173. Accesses `shared/` via `@shared`.
-- **Service: `evolution-api`**: Ports 8080. WhatsApp instance provider.
-- **Service: `database`**: Postgres 16.
-- **Service: `redis`**: Cache and BullMQ.
+### 🏗️ Feature Encapsulation
+Um módulo de funcionalidade (ex: `auth`) não deve importar diretamente de outro módulo (ex: `calendar`). Lógicas compartilhadas devem ser movidas para `web/src/shared` ou para o diretório raiz `shared/`.
 
-## 3. Core Rules
+### 🛡️ Type Safety (Zod + TypeScript)
+Todos os contratos de API são definidos como schemas **Zod** no diretório compartilhado. Isso garante que o frontend esteja sempre em sincronia com os dados validados pelo backend.
 
-- **Feature Encapsulation**: A feature (e.g., `auth`) must not import directly from another feature (e.g., `calendar`). Shared logic must reside in `web/src/shared` or root `shared/`.
-- **Type Safety**: All API contracts must be defined as Zod schemas in `shared/schemas` and used by both Backend and Frontend.
-- **Logic Isolation**: Components should remain "dumb" or focus on UI state. Data fetching and mutations are handled exclusively by TanStack Query hooks.
+### 💉 Isolamento de Lógica
+- **Páginas e Componentes**: Focam na renderização e estado de UI. Devem ser o mais "burros" possível.
+- **Hooks (TanStack Query)**: Concentram todo o gerenciamento de estado do servidor, cache e efeitos colaterais de rede.
+
+## 4. Tecnologias Principais
+- **React + Vite**: Para um desenvolvimento rápido e tipagem robusta.
+- **Tailwind CSS + shadcn/ui**: Para uma interface premium e acessível.
+- **Zustand**: Para estados globais simples e leves (ex: preferências de UI).
+- **Axios**: Cliente HTTP configurado com interceptadores para tratamento de tokens JWT.

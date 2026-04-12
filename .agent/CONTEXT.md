@@ -1,9 +1,9 @@
-# Context - AgendaOk
+# Context - ConfirmaZap
 
-Este arquivo serve como o "Norte" (North Star) para o desenvolvimento e operação da AgendaOk. Ele fornece a visão de alto nível do projeto e orienta como os demais documentos no diretório `.agent` devem ser interpretados.
+Este arquivo serve como o "Norte" (North Star) para o desenvolvimento e operação da ConfirmaZap. Ele fornece a visão de alto nível do projeto e orienta como os demais documentos no diretório `.agent` devem ser interpretados.
 
-## 1. O que é a AgendaOk?
-A **AgendaOk** é uma plataforma SaaS **Multi-Tenant** projetada para profissionais (médicos, estéticos, personal trainers, etc.) que precisam automatizar o gerenciamento de seus agendamentos. A plataforma integra-se ao **Google Calendar** e utiliza o **WhatsApp** (via Evolution API) para enviar lembretes e confirmações automáticas aos clientes finais.
+## 1. O que é a ConfirmaZap?
+A **ConfirmaZap** é uma plataforma SaaS **Multi-Tenant** projetada para profissionais (médicos, estéticos, personal trainers, etc.) que precisam automatizar o gerenciamento de seus agendamentos. A plataforma integra-se ao **Google Calendar** e utiliza o **WhatsApp** (via Evolution API) para enviar lembretes e confirmações automáticas aos clientes finais.
 
 ## 2. Objetivo do Sistema
 - **Sincronização:** Manter agendamentos sincronizados entre o sistema e o Google Calendar.
@@ -36,6 +36,9 @@ Este diretório contém a "verdade" técnica e de negócio do projeto, dividida 
 - **[api-mapping.md](/.agent/frontend/api-mapping.md):** Mapeamento de endpoints consumidos.
 - **[backend-api-spec.md](/.agent/frontend/backend-api-spec.md):** Especificação da API esperada pelo frontend.
 - **[stitch-prompt.md](/.agent/frontend/stitch-prompt.md):** Instruções para geração de interfaces.
+
+### Recurso Compartilhado
+- **[shared.md](/.agent/shared.md):** Documentação sobre o diretório `/shared` (Zod schemas/Types).
 
 ## 5. Mentalidade de Desenvolvimento
 Ao trabalhar neste projeto, priorize:

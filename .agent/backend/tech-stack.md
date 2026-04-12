@@ -1,4 +1,4 @@
-# Tech Stack - AgendaOk
+# Tech Stack - ConfirmaZap
 
 ## Core
 - **Runtime:** Node.js (LTS - v24+)

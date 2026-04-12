@@ -1,6 +1,6 @@
-# Fluxo de Autenticação - AgendaOk
+# Fluxo de Autenticação - ConfirmaZap
 
-O AgendaOk utiliza um sistema de autenticação dual que suporta tanto o login tradicional (Email e Senha) quanto o Login Social (Google OAuth2).
+O ConfirmaZap utiliza um sistema de autenticação dual que suporta tanto o login tradicional (Email e Senha) quanto o Login Social (Google OAuth2).
 
 ## 1. Login com Google (Fluxo OAuth2)
 

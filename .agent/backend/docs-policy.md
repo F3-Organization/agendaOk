@@ -1,6 +1,6 @@
 # Política de Documentação de API
 
-Para manter o padrão profissional da AgendaOk API, toda nova funcionalidade ou alteração de endpoint **DEVE** seguir rigorosamente as regras de documentação descritas abaixo.
+Para manter o padrão profissional da ConfirmaZap API, toda nova funcionalidade ou alteração de endpoint **DEVE** seguir rigorosamente as regras de documentação descritas abaixo.
 
 ## Requisitos Mandatórios
 

@@ -1,4 +1,4 @@
-# Docker Setup & Containerization - AgendaOk
+# Docker Setup & Containerization - ConfirmaZap
 
 Este documento descreve como a aplicação está dockerizada, as etapas do build e como gerenciar o ambiente de contêineres.
 
@@ -17,8 +17,8 @@ O projeto utiliza um `Dockerfile` multi-estágio para otimizar o tamanho da imag
 
 O arquivo `compose.yaml` (ou `docker-compose.yml`) gerencia os serviços necessários:
 
-- **api**: A aplicação Node.js (AgendaOk). Depende de `database` e `redis`.
-- **database**: PostgreSQL (v16). Gerencia dois bancos de dados: `agendaok` (app) e `evolution` (WhatsApp).
+- **api**: A aplicação Node.js (ConfirmaZap). Depende de `database` e `redis`.
+- **database**: PostgreSQL (v16). Gerencia dois bancos de dados: `confirmazap` (app) e `evolution` (WhatsApp).
 - **redis**: Cache e Message Broker para BullMQ e Evolution API.
 - **evolution-api**: Gateway de WhatsApp (v2.x).
 

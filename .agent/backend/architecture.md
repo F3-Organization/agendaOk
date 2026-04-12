@@ -1,6 +1,6 @@
-# Arquitetura do Projeto - AgendaOk
+# Arquitetura do Projeto - ConfirmaZap
 
-Este documento descreve a organização e os princípios arquiteturais seguidos no desenvolvimento do **AgendaOk**. O projeto utiliza uma abordagem pragmática baseada em **Ports and Adapters**, focada em produtividade com TypeORM.
+Este documento descreve a organização e os princípios arquiteturais seguidos no desenvolvimento do **ConfirmaZap**. O projeto utiliza uma abordagem pragmática baseada em **Ports and Adapters**, focada em produtividade com TypeORM.
 
 ## 1. Visão Geral das Camadas
 
@@ -62,39 +62,20 @@ O ciclo de vida da aplicação segue uma sequência rigorosa em `src/bootstrap.t
 
 ---
 
-## 4. Evolução do Banco de Dados (Migrations)
+## 4. Sincronização do Banco de Dados (Schema Sync)
 
-O projeto utiliza **Migrations** para qualquer alteração no esquema do banco de dados (DDL). 
+O projeto **NÃO** utiliza arquivos de migration. A evolução do banco de dados é feita através da sincronização direta das Entidades do TypeORM.
 
-- **Geração**: Use sempre `typeorm migration:generate` para criar novas migrations baseadas nas entidades.
-- **Execução**: As migrations são executadas automaticamente no `bootstrap` através de `AppDataSource.runMigrations()`.
-- **Regra de Ouro**: Nunca utilize `synchronize: true` em nenhum ambiente. Toda alteração de tabela deve ser rastreável via arquivo de migration na pasta `src/migrations`.
+- **Sincronização Local**: Use `npm run schema:sync` para atualizar o esquema do banco de dados local com as mudanças feitas nas entidades.
+- **Visualização de Alterações**: Use `npm run schema:diff` para gerar o log do SQL que seria executado, permitindo validar as mudanças antes de sincronizar.
+- **Ambiente de Produção**: As alterações no banco são aplicadas manualmente ou via scripts de deploy utilizando os mesmos comandos de sincronização de schema.
 
 ---
 
-## 4. API Routing & Middleware
+## 5. API Routing & Middleware
 
 - **Prefixo de Rota**: Todas as rotas de API são automaticamente prefixadas com `/api` pelo `FastifyAdapter`.
 - **Autenticação**: 
     - `addRoute`: Rota pública.
     - `addProtectedRoute`: Rota que exige cabeçalho `Authorization: Bearer <JWT>`.
 - **Middleware de Assinatura**: Algumas rotas protegem recursos PRO através do `subscriptionMiddleware`, que verifica o status do usuário no banco.
-
----
-
-## 5. Frontend & Shared Schemas
-
-- **Shared Core**: Localizado em `/shared`, contém os schemas **Zod** utilizados tanto pelo Backend (validação de request) quanto pelo Frontend (formulários e tipos).
-- **Consumo de API**: Realizado via `api-client.ts`, centralizando o tratamento de tokens e baseURL.
-
----
-
-## 6. Arquitetura Frontend
-
-O frontend segue um padrão de separação de responsabilidades para manter os componentes React focados em UI:
-
-1. **UI Components (`web/src/pages/`)**: Componentes "burros" que apenas renderizam dados e reagem a eventos do usuário.
-2. **Hooks / Interactors (`web/src/features/*/hooks/`)**: Concentram a lógica de negócio do frontend. Orquestram estados complexos, consultas (React Query), polling e efeitos colaterais (toasts, navegação).
-3. **Services (`web/src/features/*/services/`)**: Adaptadores para a API, responsáveis apenas por chamadas HTTP e transformações de dados brutas.
-4. **Shared Utils (`web/src/shared/utils/`)**: Utilitários globais de formatação (ex: `formatters.ts`) e ajudantes transversais.
-

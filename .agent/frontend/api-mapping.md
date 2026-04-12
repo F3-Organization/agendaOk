@@ -1,3 +1,5 @@
+[🏠 Voltar ao Contexto](../CONTEXT.md)
+
 # API Mapping & Shared Type Safety
 
 The Monorepo allows for **End-to-End Type Safety** by sharing Zod schemas between the Fastify backend and the React frontend via the `@shared` alias.
@@ -30,3 +32,11 @@ Mapping of frontend feature hooks to backend Fastify routes.
 |------|-----------|-------------|
 | `useConnect` | `POST /api/whatsapp/connect` | Fetch QR Code Base64. |
 | `useDisconnect` | `DELETE /api/whatsapp/disconnect` | Terminate session. |
+
+---
+
+## Documentos Relacionados
+- [Especificação da API](./backend-api-spec.md)
+- [Arquitetura Frontend](./architecture.md)
+- [Recursos Compartilhados](../shared.md)
+

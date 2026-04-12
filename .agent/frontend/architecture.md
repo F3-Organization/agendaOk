@@ -1,3 +1,5 @@
+[🏠 Voltar ao Contexto](../CONTEXT.md)
+
 # Arquitetura Frontend - ConfirmaZap
 
 Este documento descreve a organização e os princípios arquiteturais seguidos no desenvolvimento do frontend da **ConfirmaZap**, utilizando React com Vite e seguindo o padrão **Feature-Driven**.
@@ -40,3 +42,12 @@ Todos os contratos de API são definidos como schemas **Zod** no diretório comp
 - **Tailwind CSS + shadcn/ui**: Para uma interface premium e acessível.
 - **Zustand**: Para estados globais simples e leves (ex: preferências de UI).
 - **Axios**: Cliente HTTP configurado com interceptadores para tratamento de tokens JWT.
+
+---
+
+## Documentos Relacionados
+- [Tech Stack](./tech-stack.md)
+- [Mapeamento de API](./api-mapping.md)
+- [Stitch Prompt](./stitch-prompt.md)
+- [Recursos Compartilhados](../shared.md)
+

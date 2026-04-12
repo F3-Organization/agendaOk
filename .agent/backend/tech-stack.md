@@ -1,3 +1,5 @@
+[🏠 Voltar ao Contexto](../CONTEXT.md)
+
 # Tech Stack - ConfirmaZap
 
 ## Core
@@ -18,3 +20,10 @@
 
 ## Testes (Opcional para MVP, mas configurado)
 - **Test Runner:** Vitest (Mais rápido que Jest e com suporte nativo a ESM/TS).
+
+---
+
+## Documentos Relacionados
+- [Arquitetura](./architecture.md)
+- [Ambiente Docker](./docker-setup.md)
+- [Padrões de Código](./code-style.md)

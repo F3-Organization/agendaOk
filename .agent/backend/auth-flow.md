@@ -1,3 +1,5 @@
+[🏠 Voltar ao Contexto](../CONTEXT.md)
+
 # Fluxo de Autenticação - ConfirmaZap
 
 O ConfirmaZap utiliza um sistema de autenticação dual que suporta tanto o login tradicional (Email e Senha) quanto o Login Social (Google OAuth2).
@@ -42,3 +44,11 @@ O fluxo de autenticação com o Google segue o padrão **Authorization Code Flow
 
 Algumas ações síncronas ou de automação exigem uma assinatura ativa:
 - O `subscriptionMiddleware` intercepta a requisição, busca o registro na tabela `subscriptions` e bloqueia o acesso com um **403 Forbidden** caso o usuário não tenha um plano ativo.
+
+---
+
+## Documentos Relacionados
+- [Regras de Negócio](./business-rules.md)
+- [Arquitetura](./architecture.md)
+- [Padrões de Código](./code-style.md)
+

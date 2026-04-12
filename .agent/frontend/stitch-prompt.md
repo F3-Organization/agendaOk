@@ -1,3 +1,5 @@
+[🏠 Voltar ao Contexto](../CONTEXT.md)
+
 # Stitch Premium Design Prompt (ConfirmaZap)
 
 Utilize este prompt no **Stitch** para gerar uma UI de alta fidelidade que herda toda a inteligência do nosso backend e as diretrizes de arquitetura sênior estabelecidas.
@@ -21,3 +23,10 @@ Utilize este prompt no **Stitch** para gerar uma UI de alta fidelidade que herda
 > 5. **Upgrade PRO**: Banner sutil de upsell para contas FREE, destacando os benefícios (Sincronização ilimitada, suporte prioritário).
 >
 > **Estilo Visual**: Use escalas de cinza ricas, sombras de baixa opacidade, fontes geométricas (Inter/Outfit) e cores de destaque Emerald (sucesso) e Purple (marca). O design deve ser funcional, limpo e transmitir confiança e automação profissional."
+
+---
+
+## Documentos Relacionados
+- [Arquitetura Frontend](./architecture.md)
+- [Contexto Geral](../CONTEXT.md)
+

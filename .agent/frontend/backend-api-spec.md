@@ -1,3 +1,5 @@
+[🏠 Voltar ao Contexto](../CONTEXT.md)
+
 # Backend API Specification (ConfirmaZap)
 
 This document provides a detailed technical specification for the ConfirmaZap API to guide frontend design and development.
@@ -120,3 +122,11 @@ This document provides a detailed technical specification for the ConfirmaZap AP
 *   **Endpoint**: `GET /api/health`
 *   **Description**: Verifies if the API is operational.
 *   **Response**: `{ "status": "ok", "timestamp": "..." }`
+
+---
+
+## Documentos Relacionados
+- [Mapeamento de API](./api-mapping.md)
+- [Arquitetura Frontend](./architecture.md)
+- [Arquitetura Backend](../backend/architecture.md)
+

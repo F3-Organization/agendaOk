@@ -1,3 +1,5 @@
+[🏠 Voltar ao Contexto](./CONTEXT.md)
+
 # Shared Resources (@shared)
 
 Este documento descreve os recursos compartilhados entre o Backend e o Frontend da ConfirmaZap, localizados no diretório raiz `/shared`.
@@ -29,3 +31,10 @@ const UserType = z.infer<typeof userSchema>;
 1. **Sem Lógica de Negócio**: O diretório `shared` deve conter apenas definições de dados, nunca lógica de execução.
 2. **Dependência Zero**: Evite importar módulos do backend ou frontend para dentro do `shared`. Ele deve ser o nível mais baixo de dependência.
 3. **Sincronia**: Sempre que alterar um schema no `shared`, certifique-se de que tanto o backend quanto o frontend continuam compilando e passando nos testes.
+
+---
+
+## Documentos Relacionados
+- [Arquitetura Backend](./backend/architecture.md)
+- [Arquitetura Frontend](./frontend/architecture.md)
+- [Contexto Geral](./CONTEXT.md)

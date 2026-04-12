@@ -1,3 +1,5 @@
+[🏠 Voltar ao Contexto](../CONTEXT.md)
+
 # Política de Documentação de API
 
 Para manter o padrão profissional da ConfirmaZap API, toda nova funcionalidade ou alteração de endpoint **DEVE** seguir rigorosamente as regras de documentação descritas abaixo.
@@ -52,5 +54,12 @@ this.fastify.addRoute("POST", "/exemplo", handler, {
 });
 ```
 
-> [!IMPORTANT]
 > A conformidade com esta política é essencial para que o Swagger UI permaneça como a "fonte da verdade" e facilite a integração de novos desenvolvedores e parceiros.
+
+---
+
+## Documentos Relacionados
+- [Padrões de Código](./code-style.md)
+- [Arquitetura](./architecture.md)
+- [Contexto Geral](../CONTEXT.md)
+

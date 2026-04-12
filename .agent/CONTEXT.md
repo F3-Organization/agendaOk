@@ -20,25 +20,25 @@ A **ConfirmaZap** é uma plataforma SaaS **Multi-Tenant** projetada para profiss
 Este diretório contém a "verdade" técnica e de negócio do projeto, dividida por contexto:
 
 ### Backend
-- **[tech-stack.md](/.agent/backend/tech-stack.md):** As ferramentas e linguagens permitidas.
-- **[business-rules.md](/.agent/backend/business-rules.md):** O comportamento esperado do sistema e lógica de domínio.
-- **[architecture.md](/.agent/backend/architecture.md):** Desenho técnico, padrões de pastas (Hexagonal/Clean) e diagramas.
-- **[code-style.md](/.agent/backend/code-style.md):** Padrões de escrita de código e convenções.
-- **[review-checklist.md](/.agent/backend/review-checklist.md):** Checklist obrigatorio antes de cada commit/review.
-- **[auth-flow.md](/.agent/backend/auth-flow.md):** Detalhes sobre autenticação e segurança.
-- **[testing.md](/.agent/backend/testing.md):** Como garantir a qualidade das funcionalidades.
-- **[docs-policy.md](/.agent/backend/docs-policy.md):** Como documentar novas funcionalidades e manter o `.agent` atualizado.
-- **[docker-setup.md](/.agent/backend/docker-setup.md):** Configuração do ambiente de desenvolvimento via Docker.
+- **[tech-stack.md](./backend/tech-stack.md):** As ferramentas e linguagens permitidas.
+- **[business-rules.md](./backend/business-rules.md):** O comportamento esperado do sistema e lógica de domínio.
+- **[architecture.md](./backend/architecture.md):** Desenho técnico, padrões de pastas (Hexagonal/Clean) e diagramas.
+- **[code-style.md](./backend/code-style.md):** Padrões de escrita de código e convenções.
+- **[review-checklist.md](./backend/review-checklist.md):** Checklist obrigatorio antes de cada commit/review.
+- **[auth-flow.md](./backend/auth-flow.md):** Detalhes sobre autenticação e segurança.
+- **[testing.md](./backend/testing.md):** Como garantir a qualidade das funcionalidades.
+- **[docs-policy.md](./backend/docs-policy.md):** Como documentar novas funcionalidades e manter o `.agent` atualizado.
+- **[docker-setup.md](./backend/docker-setup.md):** Configuração do ambiente de desenvolvimento via Docker.
 
 ### Frontend
-- **[tech-stack.md](/.agent/frontend/tech-stack.md):** Tecnologias e padrões do front (Next.js/React).
-- **[architecture.md](/.agent/frontend/architecture.md):** Organização de pastas e componentes do frontend.
-- **[api-mapping.md](/.agent/frontend/api-mapping.md):** Mapeamento de endpoints consumidos.
-- **[backend-api-spec.md](/.agent/frontend/backend-api-spec.md):** Especificação da API esperada pelo frontend.
-- **[stitch-prompt.md](/.agent/frontend/stitch-prompt.md):** Instruções para geração de interfaces.
+- **[tech-stack.md](./frontend/tech-stack.md):** Tecnologias e padrões do front (Next.js/React).
+- **[architecture.md](./frontend/architecture.md):** Organização de pastas e componentes do frontend.
+- **[api-mapping.md](./frontend/api-mapping.md):** Mapeamento de endpoints consumidos.
+- **[backend-api-spec.md](./frontend/backend-api-spec.md):** Especificação da API esperada pelo frontend.
+- **[stitch-prompt.md](./frontend/stitch-prompt.md):** Instruções para geração de interfaces.
 
 ### Recurso Compartilhado
-- **[shared.md](/.agent/shared.md):** Documentação sobre o diretório `/shared` (Zod schemas/Types).
+- **[shared.md](./shared.md):** Documentação sobre o diretório `/shared` (Zod schemas/Types).
 
 ## 5. Mentalidade de Desenvolvimento
 Ao trabalhar neste projeto, priorize:

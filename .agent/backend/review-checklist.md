@@ -1,3 +1,5 @@
+[🏠 Voltar ao Contexto](../CONTEXT.md)
+
 # Revisão Pós-Implementação (Bug Hunt & Refactoring)
 
 Este checklist deve ser seguido obrigatoriamente após a conclusão de qualquer tarefa, Use Case ou componente de infraestrutura. O objetivo é garantir que o código entregue seja resiliente, limpo e livre de erros óbvios.
@@ -37,5 +39,12 @@ Este checklist deve ser seguido obrigatoriamente após a conclusão de qualquer 
 
 ---
 
-> [!IMPORTANT]
 > **NUNCA** finalize uma tarefa que envolva persistência sem antes passar por este checklist. A integridade do banco de dados do ConfirmaZap depende da revisão minuciosa das alterações de esquema via `schema:diff`.
+
+---
+
+## Documentos Relacionados
+- [Padrões de Código](./code-style.md)
+- [Guia de Testes](./testing.md)
+- [Arquitetura](./architecture.md)
+

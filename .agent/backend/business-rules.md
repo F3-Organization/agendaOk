@@ -1,3 +1,5 @@
+[🏠 Voltar ao Contexto](../CONTEXT.md)
+
 # Business Rules - ConfirmaZap (Multi-Tenant SaaS)
 
 ## 1. Arquitetura Multi-Tenant
@@ -52,3 +54,10 @@ Quando o cliente responde no WhatsApp:
 +- **Expiração/Cancelamento:** Notificar quando uma cobrança expira ou um checkout é abandonado, resultando na perda ou não ativação do status PRO.
 +- **Reembolso:** Confirmar o processamento de reembolsos e a consequente revogação do acesso premium.
 +*Nota: Todos os e-mails de cobrança devem conter informações de suporte e links para contato via WhatsApp oficial do sistema.*
+
+---
+
+## Documentos Relacionados
+- [Arquitetura](./architecture.md)
+- [Fluxo de Autenticação](./auth-flow.md)
+- [Contexto Geral](../CONTEXT.md)

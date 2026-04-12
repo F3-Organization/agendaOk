@@ -1,3 +1,5 @@
+[🏠 Voltar ao Contexto](../CONTEXT.md)
+
 # Docker Setup & Containerization - ConfirmaZap
 
 Este documento descreve como a aplicação está dockerizada, as etapas do build e como gerenciar o ambiente de contêineres.
@@ -48,6 +50,13 @@ As variáveis foram atualizadas para o padrão Evolution v2:
 
 ---
 
-> [!TIP]
 > **Logs:** Para visualizar apenas os logs da API em tempo real:
 > `docker compose logs -f api`
+
+---
+
+## Documentos Relacionados
+- [Tech Stack](./tech-stack.md)
+- [Arquitetura](./architecture.md)
+- [Contexto Geral](../CONTEXT.md)
+

@@ -1,3 +1,5 @@
+[🏠 Voltar ao Contexto](../CONTEXT.md)
+
 # Arquitetura do Projeto - ConfirmaZap
 
 Este documento descreve a organização e os princípios arquiteturais seguidos no desenvolvimento do **ConfirmaZap**. O projeto utiliza uma abordagem pragmática baseada em **Ports and Adapters**, focada em produtividade com TypeORM.
@@ -79,3 +81,11 @@ O projeto **NÃO** utiliza arquivos de migration. A evolução do banco de dados
     - `addRoute`: Rota pública.
     - `addProtectedRoute`: Rota que exige cabeçalho `Authorization: Bearer <JWT>`.
 - **Middleware de Assinatura**: Algumas rotas protegem recursos PRO através do `subscriptionMiddleware`, que verifica o status do usuário no banco.
+
+---
+
+## Documentos Relacionados
+- [Tech Stack](./tech-stack.md)
+- [Regras de Negócio](./business-rules.md)
+- [Testes e Qualidade](./testing.md)
+- [Recursos Compartilhados](../shared.md)

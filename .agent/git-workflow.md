@@ -55,6 +55,7 @@ Como um Agente de IA, você **DEVE** seguir estas regras ao realizar tarefas de 
 2. **Commit por Unidade de Trabalho:** Não faça commits gigantescos. Divida o trabalho em commits lógicos seguindo os tipos acima.
 3. **Draft de Commit:** Após concluir uma alteração, sempre proponha a mensagem de commit correspondente.
 4. **Resumo Visual:** Ao finalizar, utilize commits de `docs:` para atualizar o `.agent/CONTEXT.md` ou outros guias se necessário.
+5. **Push Obligatório:** Sempre que concluir uma tarefa de codificação e realizar o commit, realize o `git push` para garantir que o repositório remoto esteja atualizado.
 
 ---
 

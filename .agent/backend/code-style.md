@@ -42,4 +42,4 @@
 ---
 
 ## 7. Definição de Pronto (Definition of Done)
-Após finalizar qualquer implementação, siga obrigatoriamente o **[Checklist de Revisão](file:///home/felipe/Repositories/personal/agendaOk/.agent/review-checklist.md)** para garantir a qualidade, ausência de bugs e aderência aos princípios SOLID.
+Após finalizar qualquer implementação, siga obrigatoriamente o **[Checklist de Revisão](/.agent/backend/review-checklist.md)** para garantir a qualidade, ausência de bugs e aderência aos princípios SOLID.

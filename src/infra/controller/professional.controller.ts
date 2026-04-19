@@ -29,6 +29,7 @@ export class ProfessionalController {
         // GET /company/professionals
         this.fastify.addProtectedRoute("GET", "/company/professionals", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
+            if (!user.companyId) return reply.code(400).send({ error: "Company not selected" });
             try {
                 const professionals = await this.manageProfessionals.list(user.companyId);
                 reply.send(professionals);
@@ -40,6 +41,7 @@ export class ProfessionalController {
         // POST /company/professionals
         this.fastify.addProtectedRoute("POST", "/company/professionals", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
+            if (!user.companyId) return reply.code(400).send({ error: "Company not selected" });
             const schema = z.object({
                 name: z.string().min(1),
                 specialty: z.string().optional(),
@@ -66,6 +68,7 @@ export class ProfessionalController {
         // PUT /company/professionals/:id
         this.fastify.addProtectedRoute("PUT", "/company/professionals/:id", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
+            if (!user.companyId) return reply.code(400).send({ error: "Company not selected" });
             const { id } = request.params as { id: string };
             const schema = z.object({
                 name: z.string().min(1).optional(),
@@ -98,6 +101,7 @@ export class ProfessionalController {
         // DELETE /company/professionals/:id
         this.fastify.addProtectedRoute("DELETE", "/company/professionals/:id", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
+            if (!user.companyId) return reply.code(400).send({ error: "Company not selected" });
             const { id } = request.params as { id: string };
 
             try {
@@ -116,6 +120,7 @@ export class ProfessionalController {
         // GET /company/bot-config
         this.fastify.addProtectedRoute("GET", "/company/bot-config", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
+            if (!user.companyId) return reply.code(400).send({ error: "Company not selected" });
             try {
                 const config = await this.manageBotConfig.get(user.companyId);
                 reply.send(config || {});
@@ -127,6 +132,7 @@ export class ProfessionalController {
         // PUT /company/bot-config
         this.fastify.addProtectedRoute("PUT", "/company/bot-config", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
+            if (!user.companyId) return reply.code(400).send({ error: "Company not selected" });
             const schema = z.object({
                 businessType: z.string().optional(),
                 businessDescription: z.string().optional(),

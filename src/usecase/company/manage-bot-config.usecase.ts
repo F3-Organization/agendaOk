@@ -3,14 +3,14 @@ import { CompanyConfig } from "../../infra/database/entities/company-config.enti
 
 interface UpdateBotConfigInput {
     companyId: string;
-    businessType?: string;
-    businessDescription?: string;
-    botGreeting?: string;
-    botInstructions?: string;
-    address?: string;
-    workingHours?: Record<string, Array<{ start: string; end: string }>>;
-    servicesOffered?: string[];
-    botEnabled?: boolean;
+    businessType?: string | undefined;
+    businessDescription?: string | undefined;
+    botGreeting?: string | undefined;
+    botInstructions?: string | undefined;
+    address?: string | undefined;
+    workingHours?: Record<string, Array<{ start: string; end: string }>> | undefined;
+    servicesOffered?: string[] | undefined;
+    botEnabled?: boolean | undefined;
 }
 
 export class ManageBotConfigUseCase {
@@ -18,20 +18,20 @@ export class ManageBotConfigUseCase {
         private readonly companyConfigRepository: ICompanyConfigRepository
     ) {}
 
-    async get(companyId: string): Promise<Partial<CompanyConfig> | null> {
+    async get(companyId: string): Promise<Record<string, unknown> | null> {
         const config = await this.companyConfigRepository.findByCompanyId(companyId);
         if (!config) return null;
 
-        return {
-            businessType: config.businessType,
-            businessDescription: config.businessDescription,
-            botGreeting: config.botGreeting,
-            botInstructions: config.botInstructions,
-            address: config.address,
-            workingHours: config.workingHours,
-            servicesOffered: config.servicesOffered,
-            botEnabled: config.botEnabled,
-        };
+        const result: Record<string, unknown> = {};
+        if (config.businessType !== undefined) result.businessType = config.businessType;
+        if (config.businessDescription !== undefined) result.businessDescription = config.businessDescription;
+        if (config.botGreeting !== undefined) result.botGreeting = config.botGreeting;
+        if (config.botInstructions !== undefined) result.botInstructions = config.botInstructions;
+        if (config.address !== undefined) result.address = config.address;
+        if (config.workingHours !== undefined) result.workingHours = config.workingHours;
+        if (config.servicesOffered !== undefined) result.servicesOffered = config.servicesOffered;
+        if (config.botEnabled !== undefined) result.botEnabled = config.botEnabled;
+        return result;
     }
 
     async update(input: UpdateBotConfigInput): Promise<void> {

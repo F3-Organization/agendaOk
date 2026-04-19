@@ -4,19 +4,19 @@ import { Professional } from "../../infra/database/entities/professional.entity"
 interface CreateProfessionalInput {
     companyId: string;
     name: string;
-    specialty?: string;
-    workingHours?: Record<string, Array<{ start: string; end: string }>>;
-    appointmentDuration?: number;
+    specialty?: string | undefined;
+    workingHours?: Record<string, Array<{ start: string; end: string }>> | undefined;
+    appointmentDuration?: number | undefined;
 }
 
 interface UpdateProfessionalInput {
     id: string;
     companyId: string;
-    name?: string;
-    specialty?: string;
-    workingHours?: Record<string, Array<{ start: string; end: string }>>;
-    appointmentDuration?: number;
-    active?: boolean;
+    name?: string | undefined;
+    specialty?: string | undefined;
+    workingHours?: Record<string, Array<{ start: string; end: string }>> | undefined;
+    appointmentDuration?: number | undefined;
+    active?: boolean | undefined;
 }
 
 export class ManageProfessionalsUseCase {
@@ -32,8 +32,8 @@ export class ManageProfessionalsUseCase {
         const professional = new Professional();
         professional.companyId = input.companyId;
         professional.name = input.name;
-        professional.specialty = input.specialty;
-        professional.workingHours = input.workingHours;
+        if (input.specialty !== undefined) professional.specialty = input.specialty;
+        if (input.workingHours !== undefined) professional.workingHours = input.workingHours;
         professional.appointmentDuration = input.appointmentDuration || 60;
         professional.active = true;
 

@@ -3,15 +3,11 @@ import { FastifyAdapter } from "../adapters/fastfy.adapter";
 import { ManageProfessionalsUseCase } from "../../usecase/company/manage-professionals.usecase";
 import { ManageBotConfigUseCase } from "../../usecase/company/manage-bot-config.usecase";
 import { AuthUserPayload } from "../types/auth.types";
-import { z } from "zod";
-
-const workingHoursSchema = z.record(
-    z.enum(["mon", "tue", "wed", "thu", "fri", "sat", "sun"]),
-    z.array(z.object({
-        start: z.string().regex(/^\d{2}:\d{2}$/),
-        end: z.string().regex(/^\d{2}:\d{2}$/)
-    }))
-).optional();
+import {
+    createProfessionalSchema,
+    updateProfessionalSchema,
+    updateBotConfigSchema,
+} from "./schemas/professional.schema";
 
 export class ProfessionalController {
     constructor(
@@ -42,14 +38,8 @@ export class ProfessionalController {
         this.fastify.addProtectedRoute("POST", "/company/professionals", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
             if (!user.companyId) return reply.code(400).send({ error: "Company not selected" });
-            const schema = z.object({
-                name: z.string().min(1),
-                specialty: z.string().optional(),
-                workingHours: workingHoursSchema,
-                appointmentDuration: z.number().min(5).max(480).optional(),
-            });
 
-            const parseResult = schema.safeParse(request.body);
+            const parseResult = createProfessionalSchema.safeParse(request.body);
             if (!parseResult.success) {
                 return reply.code(400).send({ error: "Validation failed", details: parseResult.error.format() });
             }
@@ -70,15 +60,8 @@ export class ProfessionalController {
             const user = request.user as AuthUserPayload;
             if (!user.companyId) return reply.code(400).send({ error: "Company not selected" });
             const { id } = request.params as { id: string };
-            const schema = z.object({
-                name: z.string().min(1).optional(),
-                specialty: z.string().optional(),
-                workingHours: workingHoursSchema,
-                appointmentDuration: z.number().min(5).max(480).optional(),
-                active: z.boolean().optional(),
-            });
 
-            const parseResult = schema.safeParse(request.body);
+            const parseResult = updateProfessionalSchema.safeParse(request.body);
             if (!parseResult.success) {
                 return reply.code(400).send({ error: "Validation failed", details: parseResult.error.format() });
             }
@@ -133,18 +116,8 @@ export class ProfessionalController {
         this.fastify.addProtectedRoute("PUT", "/company/bot-config", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
             if (!user.companyId) return reply.code(400).send({ error: "Company not selected" });
-            const schema = z.object({
-                businessType: z.string().optional(),
-                businessDescription: z.string().optional(),
-                botGreeting: z.string().optional(),
-                botInstructions: z.string().optional(),
-                address: z.string().optional(),
-                workingHours: workingHoursSchema,
-                servicesOffered: z.array(z.string()).optional(),
-                botEnabled: z.boolean().optional(),
-            });
 
-            const parseResult = schema.safeParse(request.body);
+            const parseResult = updateBotConfigSchema.safeParse(request.body);
             if (!parseResult.success) {
                 return reply.code(400).send({ error: "Validation failed", details: parseResult.error.format() });
             }

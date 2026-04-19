@@ -60,6 +60,7 @@ import { CreateCompanyUseCase } from "../../usecase/company/create-company.useca
 import { ListCompaniesUseCase } from "../../usecase/company/list-companies.usecase";
 import { SelectCompanyUseCase } from "../../usecase/company/select-company.usecase";
 import { UpdateCompanyUseCase } from "../../usecase/company/update-company.usecase";
+import { DeleteCompanyUseCase } from "../../usecase/company/delete-company.usecase";
 
 import { SyncCalendarQueue } from "../queue/sync-calendar.queue";
 import { SyncCalendarWorker } from "../queue/sync-calendar.worker";
@@ -289,6 +290,10 @@ const getUseCase = {
     ),
     updateCompany: () => new UpdateCompanyUseCase(
         getRepo.company()
+    ),
+    deleteCompany: () => new DeleteCompanyUseCase(
+        getRepo.company(),
+        getRepo.companyConfig()
     )
 };
 
@@ -330,7 +335,8 @@ export const factory = {
             getUseCase.listCompanies(),
             getUseCase.createCompany(),
             getUseCase.selectCompany(),
-            getUseCase.updateCompany()
+            getUseCase.updateCompany(),
+            getUseCase.deleteCompany()
         ),
         calendar: () => new CalendarController(
             adapterInstance,

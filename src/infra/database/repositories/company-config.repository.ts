@@ -39,4 +39,8 @@ export class CompanyConfigRepository implements ICompanyConfigRepository {
     async updateByCompanyId(companyId: string, data: Partial<CompanyConfig>): Promise<void> {
         await this.repository.update({ companyId }, data);
     }
+
+    async deleteByCompanyId(companyId: string): Promise<void> {
+        await this.repository.delete({ companyId });
+    }
 }

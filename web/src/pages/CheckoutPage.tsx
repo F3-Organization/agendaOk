@@ -28,7 +28,7 @@ export const CheckoutPage: React.FC = () => {
 
   useEffect(() => {
     if (!checkoutUrl) {
-      navigate('/subscriptions');
+      navigate('/subscription');
     }
   }, [checkoutUrl, navigate]);
 

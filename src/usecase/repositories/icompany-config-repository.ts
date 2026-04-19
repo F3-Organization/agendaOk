@@ -8,4 +8,5 @@ export interface ICompanyConfigRepository {
     findByLastMessageId(messageId: string): Promise<CompanyConfig | null>;
     findAllActive(): Promise<CompanyConfig[]>;
     updateByCompanyId(companyId: string, data: Partial<CompanyConfig>): Promise<void>;
+    deleteByCompanyId(companyId: string): Promise<void>;
 }

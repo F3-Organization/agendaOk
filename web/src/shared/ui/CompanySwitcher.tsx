@@ -14,6 +14,7 @@ export const CompanySwitcher = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const companies = useAuthStore((state) => state.companies);
+  const maxCompanies = useAuthStore((state) => state.maxCompanies);
   const selectedCompany = useAuthStore((state) => state.selectedCompany);
   const selectCompany = useAuthStore((state) => state.selectCompany);
 
@@ -130,20 +131,22 @@ export const CompanySwitcher = () => {
             })}
           </div>
 
-          <div className="border-t border-white/[0.06] px-1.5 py-1">
-            <button
-              onClick={() => {
-                setIsOpen(false);
-                navigate('/create-company');
-              }}
-              className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md text-[13px] font-medium text-muted-foreground/60 hover:bg-white/[0.04] hover:text-foreground transition-all"
-            >
-              <div className="w-6 h-6 rounded-md border border-dashed border-white/[0.12] flex items-center justify-center">
-                <Plus className="w-3 h-3" />
-              </div>
-              {t('company.switcher.newCompany', 'Nova Empresa')}
-            </button>
-          </div>
+          {companies.length < maxCompanies && (
+            <div className="border-t border-white/[0.06] px-1.5 py-1">
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                  navigate('/create-company');
+                }}
+                className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md text-[13px] font-medium text-muted-foreground/60 hover:bg-white/[0.04] hover:text-foreground transition-all"
+              >
+                <div className="w-6 h-6 rounded-md border border-dashed border-white/[0.12] flex items-center justify-center">
+                  <Plus className="w-3 h-3" />
+                </div>
+                {t('company.switcher.newCompany', 'Nova Empresa')}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -22,9 +22,10 @@ interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   companies: Company[];
+  maxCompanies: number;
   selectedCompany: Company | null;
   setAuth: (user: User, token: string) => void;
-  setCompanies: (companies: Company[]) => void;
+  setCompanies: (companies: Company[], maxCompanies?: number) => void;
   selectCompany: (companyId: string) => Promise<void>;
   addCompany: (company: Company) => void;
   logout: () => void;
@@ -37,6 +38,7 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       isAuthenticated: false,
       companies: [],
+      maxCompanies: 1,
       selectedCompany: null,
       setAuth: (user, token) => {
         if (!token) {
@@ -46,8 +48,8 @@ export const useAuthStore = create<AuthState>()(
         localStorage.setItem('auth_token', token);
         set({ user, token, isAuthenticated: true });
       },
-      setCompanies: (companies) => {
-        set({ companies });
+      setCompanies: (companies, maxCompanies) => {
+        set({ companies, ...(maxCompanies !== undefined && { maxCompanies }) });
       },
       selectCompany: async (companyId: string) => {
         const { data } = await companyService.select(companyId);

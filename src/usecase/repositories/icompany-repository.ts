@@ -6,4 +6,5 @@ export interface ICompanyRepository {
     findByOwnerId(ownerId: string): Promise<Company[]>;
     findBySlug(slug: string): Promise<Company | null>;
     update(id: string, data: Partial<Company>): Promise<void>;
+    delete(id: string): Promise<void>;
 }

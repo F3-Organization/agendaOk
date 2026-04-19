@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Phone,
@@ -14,21 +15,30 @@ import {
   CheckCircle2,
   AlertCircle,
   ArrowRight,
-  Building2
+  Building2,
+  Trash2,
+  Pencil
 } from 'lucide-react';
 import { PageLayout } from '../shared/ui/PageLayout';
 import { Card } from '../shared/ui/Card';
 import { Button } from '../shared/ui/Button';
 import { Input } from '../shared/ui/Input';
 import { apiClient } from '../shared/api/api-client';
+import { companyService } from '../features/company/company.service';
 import { useAuthStore } from '../features/auth/auth.store';
 
 export const CompanySettingsPage = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const selectedCompany = useAuthStore((state) => state.selectedCompany);
+  const companies = useAuthStore((state) => state.companies);
+  const setCompanies = useAuthStore((state) => state.setCompanies);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [companyName, setCompanyName] = useState(selectedCompany?.name ?? '');
 
   const showSuccess = (msg: string) => {
     setSuccessMessage(msg);
@@ -59,6 +69,39 @@ export const CompanySettingsPage = () => {
     },
     onError: (error: any) => {
       showError(error.response?.data?.error || t('company.settings.messages.saveError', 'Erro ao salvar configurações'));
+    },
+  });
+
+  const renameMutation = useMutation({
+    mutationFn: async (name: string) => {
+      await companyService.update(selectedCompany!.id, name);
+    },
+    onSuccess: () => {
+      // Update local store
+      const updated = companies.map(c => c.id === selectedCompany!.id ? { ...c, name: companyName } : c);
+      setCompanies(updated);
+      useAuthStore.setState({ selectedCompany: { ...selectedCompany!, name: companyName } });
+      setIsEditingName(false);
+      showSuccess(t('company.settings.messages.renameSuccess', 'Nome atualizado com sucesso!'));
+    },
+    onError: (error: any) => {
+      showError(error.response?.data?.message || t('company.settings.messages.renameError', 'Erro ao renomear'));
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      await companyService.delete(selectedCompany!.id);
+    },
+    onSuccess: () => {
+      const remaining = companies.filter(c => c.id !== selectedCompany!.id);
+      setCompanies(remaining);
+      useAuthStore.setState({ selectedCompany: null });
+      navigate(remaining.length > 0 ? '/select-company' : '/create-company');
+    },
+    onError: (error: any) => {
+      showError(error.response?.data?.message || t('company.settings.messages.deleteError', 'Erro ao excluir empresa'));
+      setShowDeleteConfirm(false);
     },
   });
 
@@ -95,6 +138,62 @@ export const CompanySettingsPage = () => {
       <div className="max-w-4xl mx-auto space-y-24 pb-40 relative">
         <div className="absolute top-0 -right-20 w-80 h-80 bg-primary/10 rounded-full blur-[100px] -z-10 pointer-events-none" />
         <div className="absolute bottom-40 -left-20 w-80 h-80 bg-primary-dim/5 rounded-full blur-[100px] -z-10 pointer-events-none" />
+
+        {/* Company Identity Section */}
+        <section className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="space-y-2 px-1">
+            <div className="flex items-center gap-3 text-primary">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
+                <Building2 className="w-5 h-5" />
+              </div>
+              <h2 className="text-2xl font-black tracking-tight">{t('company.settings.identity.title', 'Identidade')}</h2>
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl opacity-70">
+              {t('company.settings.identity.description', 'Nome e informações básicas da empresa.')}
+            </p>
+          </div>
+
+          <Card variant="glass" className="p-8 space-y-6 border-white/5">
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-muted-foreground/50 uppercase tracking-[0.3em] ml-1">
+                {t('company.settings.identity.nameLabel', 'Nome da Empresa')}
+              </label>
+              {isEditingName ? (
+                <div className="flex gap-3">
+                  <Input
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    className="h-12 bg-black/40 border-white/5 focus:bg-black/60 focus:border-primary/30 transition-all rounded-lg font-medium flex-1"
+                  />
+                  <Button
+                    onClick={() => renameMutation.mutate(companyName)}
+                    disabled={renameMutation.isPending || !companyName.trim()}
+                    className="h-12 px-6 bg-primary text-primary-dim rounded-lg"
+                  >
+                    {renameMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => { setIsEditingName(false); setCompanyName(selectedCompany?.name ?? ''); }}
+                    className="h-12 px-4 rounded-lg"
+                  >
+                    {t('common.cancel', 'Cancelar')}
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between h-12 px-4 rounded-lg bg-black/40 border border-white/5">
+                  <span className="font-bold text-foreground">{selectedCompany?.name}</span>
+                  <button
+                    onClick={() => setIsEditingName(true)}
+                    className="text-muted-foreground/40 hover:text-primary transition-colors"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+          </Card>
+        </section>
 
         <form onSubmit={handleSubmit} className="space-y-24">
           {/* WhatsApp Section */}
@@ -268,6 +367,63 @@ export const CompanySettingsPage = () => {
             </div>
           </section>
         </form>
+
+        {/* Danger Zone */}
+        <section className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
+          <div className="space-y-2 px-1">
+            <div className="flex items-center gap-3 text-red-400">
+              <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center border border-red-500/20">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <h2 className="text-2xl font-black tracking-tight">{t('company.settings.danger.title', 'Zona de Perigo')}</h2>
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl opacity-70">
+              {t('company.settings.danger.description', 'Ações irreversíveis. Tenha cuidado.')}
+            </p>
+          </div>
+
+          <Card variant="glass" className="p-8 border-red-500/10">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-foreground">{t('company.settings.danger.deleteTitle', 'Excluir Empresa')}</h3>
+                <p className="text-sm text-muted-foreground/60 mt-1">
+                  {t('company.settings.danger.deleteDescription', 'Todos os dados, agendamentos e configurações serão perdidos permanentemente.')}
+                </p>
+              </div>
+              {!showDeleteConfirm ? (
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="h-10 px-6 border border-red-500/20 text-red-400 hover:bg-red-500/10 text-xs font-bold tracking-widest uppercase rounded-lg"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  {t('company.settings.danger.deleteButton', 'Excluir')}
+                </Button>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="ghost"
+                    onClick={() => setShowDeleteConfirm(false)}
+                    className="h-10 px-4 text-xs font-bold uppercase rounded-lg"
+                  >
+                    {t('common.cancel', 'Cancelar')}
+                  </Button>
+                  <Button
+                    onClick={() => deleteMutation.mutate()}
+                    disabled={deleteMutation.isPending}
+                    className="h-10 px-6 bg-red-500 hover:bg-red-600 text-white text-xs font-bold tracking-widest uppercase rounded-lg"
+                  >
+                    {deleteMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      t('company.settings.danger.confirmDelete', 'Confirmar Exclusão')
+                    )}
+                  </Button>
+                </div>
+              )}
+            </div>
+          </Card>
+        </section>
 
         {/* Global Notifications Island */}
         <div className="fixed bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-8 px-12 py-7 glass-island z-[50] animate-in fade-in slide-in-from-bottom-20 duration-1000 ring-2 ring-white/5 group shadow-[0_20px_50px_rgba(0,0,0,0.6)]">

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Building2, Plus, Loader2, Zap } from 'lucide-react';
+import { Building2, Plus, Loader2, Zap, Lock } from 'lucide-react';
 import { useAuthStore } from '../features/auth/auth.store';
+import { companyService } from '../features/company/company.service';
 import { Card } from '../shared/ui/Card';
 import { Button } from '../shared/ui/Button';
 
@@ -10,8 +11,17 @@ export const SelectCompanyPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const companies = useAuthStore((state) => state.companies);
+  const maxCompanies = useAuthStore((state) => state.maxCompanies);
+  const setCompanies = useAuthStore((state) => state.setCompanies);
   const selectCompany = useAuthStore((state) => state.selectCompany);
   const [loadingId, setLoadingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Fetch companies from API to get the latest maxCompanies
+    companyService.list().then(({ data }) => {
+      setCompanies(data.companies, data.maxCompanies);
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (companies.length === 0) {
@@ -30,6 +40,8 @@ export const SelectCompanyPage = () => {
       setLoadingId(null);
     }
   };
+
+  const canCreateMore = companies.length < maxCompanies;
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 selection:bg-primary/20 selection:text-primary relative overflow-hidden">
@@ -93,15 +105,22 @@ export const SelectCompanyPage = () => {
         </div>
 
         {/* New company button */}
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/create-company')}
-          disabled={loadingId !== null}
-          className="w-full h-12 border border-outline-variant/50 hover:border-primary/30 hover:bg-primary/5 font-bold text-sm gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          {t('company.select.newCompany', 'Nova Empresa')}
-        </Button>
+        {canCreateMore ? (
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/create-company')}
+            disabled={loadingId !== null}
+            className="w-full h-12 border border-outline-variant/50 hover:border-primary/30 hover:bg-primary/5 font-bold text-sm gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            {t('company.select.newCompany', 'Nova Empresa')}
+          </Button>
+        ) : (
+          <div className="flex items-center justify-center gap-2 p-3 rounded-lg bg-surface-high/30 text-muted-foreground/50 text-xs font-medium">
+            <Lock className="w-3.5 h-3.5" />
+            {t('company.select.limitReached', `Limite de ${maxCompanies} empresa(s) no plano atual`)}
+          </div>
+        )}
       </div>
     </div>
   );

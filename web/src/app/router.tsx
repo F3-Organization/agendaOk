@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from '../features/auth/auth.store';
 import { LoginPage } from '../pages/LoginPage';
 import { DashboardPage } from '../pages/DashboardPage';
+import { AppointmentsPage } from '../pages/AppointmentsPage';
 import { WhatsAppPage } from '../pages/WhatsAppPage';
 import { SubscriptionPage } from '../pages/SubscriptionPage';
 import { SettingsPage } from '../pages/SettingsPage';
@@ -49,6 +50,16 @@ export const AppRouter = () => {
           isAuthenticated
             ? selectedCompany
               ? <DashboardPage />
+              : <Navigate to="/select-company" />
+            : <Navigate to="/login" />
+        }
+      />
+      <Route
+        path="/appointments"
+        element={
+          isAuthenticated
+            ? selectedCompany
+              ? <AppointmentsPage />
               : <Navigate to="/select-company" />
             : <Navigate to="/login" />
         }

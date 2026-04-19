@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "npm run schema:sync && ts-node src/bootstrap.ts",
+    "dev": "npm run schema:sync && nodemon --watch src --watch shared --ext ts --exec \"ts-node -T src/bootstrap.ts\"",
+    "dev:no-sync": "nodemon --watch src --watch shared --ext ts --exec \"ts-node -T src/bootstrap.ts\"",
     "build": "tsc",
     "start": "npm run migration:run && node dist/src/bootstrap.js",
     "start:no-migrate": "node dist/src/bootstrap.js",
@@ -13,7 +14,7 @@
     "test:coverage": "vitest run --coverage",
     "schema:sync": "typeorm-ts-node-commonjs schema:sync -d src/infra/config/data-source.ts",
     "schema:diff": "typeorm-ts-node-commonjs schema:log -d src/infra/config/data-source.ts",
-    "setup:evolution": "ts-node src/infra/scripts/setup-evolution.ts"
+    "setup:evolution": "tsx src/infra/scripts/setup-evolution.ts"
   },
   "keywords": [],
   "author": "",
@@ -33,8 +34,8 @@
     "fastify": "^5.8.4",
     "ioredis": "^5.10.1",
     "nodemailer": "^8.0.4",
-    "pdfkit": "^0.18.0",
     "otplib": "^12.0.1",
+    "pdfkit": "^0.18.0",
     "pg": "^8.20.0",
     "qrcode-terminal": "^0.12.0",
     "reflect-metadata": "^0.2.2",
@@ -51,7 +52,9 @@
     "@types/pdfkit": "^0.17.5",
     "@types/qrcode-terminal": "^0.12.2",
     "@vitest/coverage-v8": "^3.0.7",
+    "nodemon": "^3.1.14",
     "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "^6.0.2",
     "unplugin-swc": "^1.5.1",
     "vitest": "^3.0.7"

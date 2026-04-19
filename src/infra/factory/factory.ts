@@ -276,7 +276,8 @@ const getUseCase = {
     // Company use cases
     createCompany: () => new CreateCompanyUseCase(
         getRepo.company(),
-        getRepo.companyConfig()
+        getRepo.companyConfig(),
+        getRepo.subscription()
     ),
     listCompanies: () => new ListCompaniesUseCase(
         getRepo.company(),

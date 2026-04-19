@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Company } from '../company/company.types';
 import { companyService } from '../company/company.service';
+import { queryClient } from '../../app/providers';
 
 interface User {
   id: string;
@@ -54,6 +55,8 @@ export const useAuthStore = create<AuthState>()(
         const companies = get().companies;
         const company = companies.find((c) => c.id === companyId) ?? data.company;
         set({ token: data.token, selectedCompany: company });
+        // Clear all cached queries so pages refetch with new company context
+        queryClient.removeQueries();
       },
       addCompany: (company: Company) => {
         set((state) => ({ companies: [...state.companies, company] }));

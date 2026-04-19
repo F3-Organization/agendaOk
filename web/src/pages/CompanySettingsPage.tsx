@@ -41,11 +41,12 @@ export const CompanySettingsPage = () => {
   };
 
   const { data: companyConfig, isLoading } = useQuery({
-    queryKey: ['company-config'],
+    queryKey: ['company-config', selectedCompany?.id],
     queryFn: async () => {
       const response = await apiClient.get('/user/config');
       return response.data;
     },
+    enabled: !!selectedCompany,
   });
 
   const updateMutation = useMutation({
@@ -53,7 +54,7 @@ export const CompanySettingsPage = () => {
       await apiClient.patch('/user/config', data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['company-config'] });
+      queryClient.invalidateQueries({ queryKey: ['company-config', selectedCompany?.id] });
       showSuccess(t('company.settings.messages.saveSuccess', 'Configurações salvas com sucesso!'));
     },
     onError: (error: any) => {

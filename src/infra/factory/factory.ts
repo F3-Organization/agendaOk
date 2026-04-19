@@ -168,6 +168,7 @@ const getUseCase = {
         getRepo.user(),
         getRepo.subscription(),
         getRepo.companyConfig(),
+        getRepo.company(),
         abacatePayAdapter,
         getRepo.subscriptionPayment()
     ),
@@ -209,7 +210,7 @@ const getUseCase = {
         redisService
     ),
     getUserConfig: () => new GetUserConfigUseCase(getRepo.user(), getRepo.userConfig()),
-    updateUserConfig: () => new UpdateUserConfigUseCase(getRepo.user(), getRepo.userConfig(), evolutionAdapter),
+    updateUserConfig: () => new UpdateUserConfigUseCase(getRepo.user(), getRepo.companyConfig(), evolutionAdapter),
     changePassword: () => new ChangePasswordUseCase(getRepo.user()),
     setPassword: () => new SetPasswordUseCase(getRepo.user()),
     toggle2FA: () => new Toggle2FAUseCase(getRepo.user()),
@@ -259,6 +260,8 @@ const getUseCase = {
     authenticateGoogle: () => new AuthenticateGoogleUseCase(
         googleCalendarAdapter,
         getRepo.user(),
+        getRepo.company(),
+        getRepo.companyConfig(),
         getUseCase.exchangeGoogleCode()
     ),
     loginVerify2FA: () => new LoginVerify2FAUseCase(

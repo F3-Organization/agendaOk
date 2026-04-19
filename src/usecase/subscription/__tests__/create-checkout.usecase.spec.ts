@@ -3,6 +3,7 @@ import { CreateSubscriptionCheckoutUseCase } from "../create-checkout.usecase";
 import { UserRepository } from "../../../infra/database/repositories/user.repository";
 import { SubscriptionRepository } from "../../../infra/database/repositories/subscription.repository";
 import { CompanyConfigRepository } from "../../../infra/database/repositories/company-config.repository";
+import { ICompanyRepository } from "../../repositories/icompany-repository";
 import { IPaymentGateway } from "../../ports/ipayment-gateway";
 import { ISubscriptionPaymentRepository } from "../../repositories/isubscription-payment-repository";
 import { SubscriptionStatus } from "../../../infra/database/entities/subscription.entity";
@@ -12,6 +13,7 @@ describe("CreateSubscriptionCheckoutUseCase", () => {
     let userRepository: UserRepository;
     let subscriptionRepository: SubscriptionRepository;
     let companyConfigRepository: CompanyConfigRepository;
+    let companyRepository: ICompanyRepository;
     let paymentGateway: IPaymentGateway;
     let paymentRepository: ISubscriptionPaymentRepository;
 
@@ -31,6 +33,12 @@ describe("CreateSubscriptionCheckoutUseCase", () => {
         companyConfigRepository = {
             findByCompanyId: vi.fn(),
             updateByCompanyId: vi.fn()
+        } as any;
+
+        companyRepository = {
+            findByOwnerId: vi.fn(),
+            findById: vi.fn(),
+            save: vi.fn()
         } as any;
 
         paymentGateway = {
@@ -53,6 +61,7 @@ describe("CreateSubscriptionCheckoutUseCase", () => {
             userRepository,
             subscriptionRepository,
             companyConfigRepository,
+            companyRepository,
             paymentGateway,
             paymentRepository
         );
@@ -80,6 +89,7 @@ describe("CreateSubscriptionCheckoutUseCase", () => {
     it("deve criar novo customer se não existir um customerId", async () => {
         vi.mocked(userRepository.findById).mockResolvedValueOnce({ id: "user-1", name: "User", email: "user@test.com" } as any);
         vi.mocked(subscriptionRepository.findByUserId).mockResolvedValueOnce(null);
+        vi.mocked(companyRepository.findByOwnerId).mockResolvedValueOnce([{ id: "company-1" }] as any);
         vi.mocked(companyConfigRepository.findByCompanyId).mockResolvedValueOnce({
             whatsappNumber: "5511999999999",
             taxId: "123.456.789-00"

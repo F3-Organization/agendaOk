@@ -72,8 +72,8 @@ export class AuthController {
             const { code } = parseResult.data;
 
             try {
-                const { user } = await this.authenticateGoogle.execute(code);
-                return this.sendAuthResponse(reply, user, "Authentication successful!");
+                const { user, companyId } = await this.authenticateGoogle.execute(code);
+                return this.sendAuthResponse(reply, user, "Authentication successful!", companyId);
             } catch (error: any) {
                 this.fastify.logInfo("[AuthController] Authentication failed:", { error: error.message });
                 reply.code(500).send({
@@ -356,7 +356,9 @@ export class AuthController {
                 taxId: z.string().optional(),
                 syncEnabled: z.boolean().optional(),
                 silentWindowStart: z.string().optional(),
-                silentWindowEnd: z.string().optional()
+                silentWindowEnd: z.string().optional(),
+                name: z.string().optional(),
+                email: z.string().email().optional()
             });
 
             const parseResult = schema.safeParse(request.body);
@@ -365,7 +367,9 @@ export class AuthController {
             }
 
             try {
-                await this.updateUserConfig.execute(user.id, parseResult.data);
+                // Use companyId from JWT if available, fallback to userId for backward compat
+                const companyId = user.companyId || user.id;
+                await this.updateUserConfig.execute(user.id, companyId, parseResult.data);
                 reply.send({ message: "Configuration updated successfully" });
             } catch (error: any) {
                 reply.code(500).send({ error: "Failed to update configuration", message: error.message });
@@ -446,7 +450,7 @@ export class AuthController {
         });
     }
 
-    private sendAuthResponse(reply: FastifyReply, user: User, message: string) {
+    private sendAuthResponse(reply: FastifyReply, user: User, message: string, companyId?: string) {
         if (user.twoFactorEnabled) {
             const tempToken = this.fastify.sign({
                 id: user.id,
@@ -464,7 +468,8 @@ export class AuthController {
             id: user.id,
             email: user.email,
             name: user.name,
-            role: user.role
+            role: user.role,
+            companyId: companyId || undefined
         });
 
         return reply.send({
@@ -475,7 +480,8 @@ export class AuthController {
                 name: user.name, 
                 email: user.email, 
                 role: user.role,
-                hasPassword: !!user.password
+                hasPassword: !!user.password,
+                companyId: companyId || undefined
             }
         });
     }

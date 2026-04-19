@@ -3,6 +3,7 @@ import { UserRepository } from "../../infra/database/repositories/user.repositor
 import { IPaymentGateway } from "../ports/ipayment-gateway";
 import { env } from "../../infra/config/configs";
 import { CompanyConfigRepository } from "../../infra/database/repositories/company-config.repository";
+import { ICompanyRepository } from "../repositories/icompany-repository";
 import { SubscriptionStatus } from "../../infra/database/entities/subscription.entity";
 import { ISubscriptionPaymentRepository } from "../repositories/isubscription-payment-repository";
 import { SubscriptionPaymentStatus } from "../../infra/database/entities/subscription-payment.entity";
@@ -12,6 +13,7 @@ export class CreateSubscriptionCheckoutUseCase {
         private readonly userRepository: UserRepository,
         private readonly subscriptionRepository: SubscriptionRepository,
         private readonly companyConfigRepository: CompanyConfigRepository,
+        private readonly companyRepository: ICompanyRepository,
         private readonly paymentGateway: IPaymentGateway,
         private readonly paymentRepository: ISubscriptionPaymentRepository
     ) { }
@@ -19,8 +21,9 @@ export class CreateSubscriptionCheckoutUseCase {
         const user = await this.userRepository.findById(userId);
         if (!user) throw new Error("User not found");
 
-        const baseUrl = env.domain.startsWith('http') ? env.domain : `https://${env.domain}`;
-        let subscription = await this.subscriptionRepository.findByUserId(userId);
+        const baseUrl = env.domain;
+
+        const subscription = await this.subscriptionRepository.findByUserId(userId);
 
         if (subscription?.status === SubscriptionStatus.ACTIVE) {
             return { 
@@ -41,14 +44,19 @@ export class CreateSubscriptionCheckoutUseCase {
             }
         }
 
-        // Para checkout, buscar taxId/whatsapp de qualquer company config do user
-        // TODO: Futuramente mover taxId para o perfil do User
-        const userConfig = await this.companyConfigRepository.findByCompanyId(userId);
-        if (!userConfig?.whatsappNumber || !userConfig?.taxId) {
+        // Resolve user's company to get taxId/whatsappNumber
+        const companies = await this.companyRepository.findByOwnerId(userId);
+        if (companies.length === 0) {
+            throw new Error("User has no company configured.");
+        }
+        const primaryCompany = companies[0]!;
+
+        const companyConfig = await this.companyConfigRepository.findByCompanyId(primaryCompany.id);
+        if (!companyConfig?.whatsappNumber || !companyConfig?.taxId) {
             throw new Error("User must configure WhatsApp Number and Tax ID (CPF/CNPJ) before checkout.");
         }
 
-        let customerId = userConfig.billingCustomerId;
+        let customerId = companyConfig.billingCustomerId;
         let customerExists = false;
 
         if (customerId) {
@@ -65,13 +73,13 @@ export class CreateSubscriptionCheckoutUseCase {
             const customer = await this.paymentGateway.createCustomer({
                 name: user.name,
                 email: user.email,
-                cellphone: userConfig.whatsappNumber,
-                taxId: userConfig.taxId
+                cellphone: companyConfig.whatsappNumber,
+                taxId: companyConfig.taxId
             });
             customerId = customer.id;
             
             // Salvar ID do cliente para futuras cobranças
-            await this.companyConfigRepository.updateByCompanyId(userConfig.id, { billingCustomerId: customerId });
+            await this.companyConfigRepository.updateByCompanyId(primaryCompany.id, { billingCustomerId: customerId });
         }
 
         // 2. Criar Assinatura (Recorrência) diretamente via Billing (V1)

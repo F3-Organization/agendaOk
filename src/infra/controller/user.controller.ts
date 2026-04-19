@@ -72,10 +72,12 @@ export class UserController {
     }
 
     async updateUserConfig(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-        const userId = (request.user as any).id;
+        const user = request.user as any;
+        const userId = user.id;
+        const companyId = user.companyId || userId;
         const data = updateUserConfigSchema.parse(request.body);
         
-        await this.updateUserConfigUseCase.execute(userId, data);
+        await this.updateUserConfigUseCase.execute(userId, companyId, data);
         
         reply.status(200).send({ message: "Configurações atualizadas com sucesso" });
     }

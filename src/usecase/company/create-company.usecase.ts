@@ -38,13 +38,6 @@ export class CreateCompanyUseCase {
         config.companyId = savedCompany.id;
         await this.companyConfigRepository.save(config);
 
-        // Create FREE subscription for the company
-        await this.subscriptionRepository.save({
-            companyId: savedCompany.id,
-            plan: "FREE",
-            status: SubscriptionStatus.ACTIVE
-        } as any);
-
         return savedCompany;
     }
 

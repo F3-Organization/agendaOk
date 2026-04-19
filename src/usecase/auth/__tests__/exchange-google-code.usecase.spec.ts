@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ExchangeGoogleCodeUseCase } from "../exchange-google-code.usecase";
 import { IGoogleCalendarService } from "../../ports/igoogle-calendar-service";
-import { IUserConfigRepository } from "../../repositories/iuser-config-repository";
+import { ICompanyConfigRepository } from "../../repositories/icompany-config-repository";
 import { IIntegrationRepository } from "../../repositories/iintegration-repository";
 
 describe("ExchangeGoogleCodeUseCase", () => {
     let sut: ExchangeGoogleCodeUseCase;
     let googleService: IGoogleCalendarService;
-    let userConfigRepository: IUserConfigRepository;
+    let companyConfigRepository: ICompanyConfigRepository;
     let integrationRepository: IIntegrationRepository;
 
     beforeEach(() => {
@@ -24,9 +24,14 @@ describe("ExchangeGoogleCodeUseCase", () => {
             getUserProfile: vi.fn()
         };
 
-        userConfigRepository = {
-            findByUserId: vi.fn().mockResolvedValue({ syncEnabled: false }),
-            save: vi.fn()
+        companyConfigRepository = {
+            findByCompanyId: vi.fn().mockResolvedValue({ syncEnabled: false }),
+            save: vi.fn(),
+            updateByCompanyId: vi.fn(),
+            findByInstanceName: vi.fn(),
+            findByWhatsappNumber: vi.fn(),
+            findByLastMessageId: vi.fn(),
+            findAllActive: vi.fn()
         } as any;
 
         integrationRepository = {
@@ -34,7 +39,7 @@ describe("ExchangeGoogleCodeUseCase", () => {
             save: vi.fn()
         } as any;
 
-        sut = new ExchangeGoogleCodeUseCase(googleService, userConfigRepository, integrationRepository);
+        sut = new ExchangeGoogleCodeUseCase(googleService, companyConfigRepository, integrationRepository);
     });
 
     it("deve criar uma nova integração se não existir para a empresa", async () => {
@@ -93,5 +98,20 @@ describe("ExchangeGoogleCodeUseCase", () => {
         }));
 
         vi.useRealTimers();
+    });
+
+    it("deve habilitar sync na company config", async () => {
+        const config = { syncEnabled: false };
+        vi.mocked(companyConfigRepository.findByCompanyId).mockResolvedValueOnce(config as any);
+        vi.mocked(integrationRepository.findByCompanyAndProvider).mockResolvedValueOnce(null);
+
+        await sut.execute("company-1", {
+            access_token: "access-123",
+            expires_in: 3600
+        });
+
+        expect(companyConfigRepository.save).toHaveBeenCalledWith(expect.objectContaining({
+            syncEnabled: true
+        }));
     });
 });

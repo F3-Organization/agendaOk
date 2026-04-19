@@ -1,7 +1,8 @@
 import { SubscriptionStatus } from "../../infra/database/entities/subscription.entity";
 import { ISubscriptionRepository } from "../repositories/isubscription-repository";
 import { IScheduleRepository } from "../repositories/ischedule-repository";
-import { CompanyConfigRepository } from "../../infra/database/repositories/company-config.repository";
+import { ICompanyRepository } from "../repositories/icompany-repository";
+import { ICompanyConfigRepository } from "../repositories/icompany-config-repository";
 import { env } from "../../infra/config/configs";
 
 export interface SubscriptionStatusResponse {
@@ -21,22 +22,34 @@ export class GetSubscriptionStatusUseCase {
     constructor(
         private readonly subscriptionRepo: ISubscriptionRepository,
         private readonly scheduleRepo: IScheduleRepository,
-        private readonly userConfigRepo: CompanyConfigRepository
+        private readonly companyRepo: ICompanyRepository,
+        private readonly companyConfigRepo: ICompanyConfigRepository
     ) {}
 
     async execute(userId: string): Promise<SubscriptionStatusResponse> {
         const subscription = await this.subscriptionRepo.findByUserId(userId);
-        const userConfig = await this.userConfigRepo.findByCompanyId(userId);
+
+        // Resolve user's primary company for config and message count
+        const companies = await this.companyRepo.findByOwnerId(userId);
+        const primaryCompany = companies[0];
+        const companyConfig = primaryCompany
+            ? await this.companyConfigRepo.findByCompanyId(primaryCompany.id)
+            : null;
         
         const now = new Date();
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-        const messageCount = await this.scheduleRepo.countMonthlyNotifications(userId, startOfMonth, endOfMonth);
+
+        // Count messages across all user's companies
+        let messageCount = 0;
+        for (const company of companies) {
+            messageCount += await this.scheduleRepo.countMonthlyNotifications(company.id, startOfMonth, endOfMonth);
+        }
 
         const baseResponse = {
             messageCount,
-            taxId: userConfig?.taxId,
-            whatsappNumber: userConfig?.whatsappNumber
+            taxId: companyConfig?.taxId,
+            whatsappNumber: companyConfig?.whatsappNumber
         };
 
         if (!subscription) {

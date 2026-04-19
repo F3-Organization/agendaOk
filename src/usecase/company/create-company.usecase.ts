@@ -1,9 +1,7 @@
 import { ICompanyRepository } from "../repositories/icompany-repository";
 import { ICompanyConfigRepository } from "../repositories/icompany-config-repository";
-import { ISubscriptionRepository } from "../repositories/isubscription-repository";
 import { Company } from "../../infra/database/entities/company.entity";
 import { CompanyConfig } from "../../infra/database/entities/company-config.entity";
-import { SubscriptionStatus } from "../../infra/database/entities/subscription.entity";
 
 interface CreateCompanyInput {
     ownerId: string;
@@ -13,8 +11,7 @@ interface CreateCompanyInput {
 export class CreateCompanyUseCase {
     constructor(
         private readonly companyRepository: ICompanyRepository,
-        private readonly companyConfigRepository: ICompanyConfigRepository,
-        private readonly subscriptionRepository: ISubscriptionRepository
+        private readonly companyConfigRepository: ICompanyConfigRepository
     ) {}
 
     async execute(input: CreateCompanyInput): Promise<Company> {

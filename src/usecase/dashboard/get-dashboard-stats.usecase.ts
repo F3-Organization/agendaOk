@@ -7,12 +7,12 @@ import { DashboardStats } from "../../../shared/schemas/dashboard.schema";
 export class GetDashboardStatsUseCase {
     constructor(
         private readonly scheduleRepo: IScheduleRepository,
-        private readonly userConfigRepo: ICompanyConfigRepository,
+        private readonly companyConfigRepo: ICompanyConfigRepository,
         private readonly integrationRepo: IIntegrationRepository
     ) {}
 
     public async execute(companyId: string): Promise<DashboardStats> {
-        const config = await this.userConfigRepo.findByCompanyId(companyId);
+        const config = await this.companyConfigRepo.findByCompanyId(companyId);
         const integration = await this.integrationRepo.findByCompanyAndProvider(companyId, "GOOGLE");
         const calendarConnected = !!(integration && integration.refreshToken);
         const now = new Date();

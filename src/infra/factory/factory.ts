@@ -118,7 +118,7 @@ const getUseCase = {
     ),
     generateGoogleAuthUrl: () => new GenerateGoogleAuthUrlUseCase(googleCalendarAdapter),
 
-    exchangeGoogleCode: () => new ExchangeGoogleCodeUseCase(googleCalendarAdapter, getRepo.userConfig(), getRepo.integration()),
+    exchangeGoogleCode: () => new ExchangeGoogleCodeUseCase(googleCalendarAdapter, getRepo.companyConfig(), getRepo.integration()),
     syncCalendar: () => new SyncCalendarUseCase(
         googleCalendarAdapter, 
         getRepo.schedule(), 
@@ -209,7 +209,7 @@ const getUseCase = {
         getRepo.user(),
         redisService
     ),
-    getUserConfig: () => new GetUserConfigUseCase(getRepo.user(), getRepo.userConfig()),
+    getUserConfig: () => new GetUserConfigUseCase(getRepo.user(), getRepo.company(), getRepo.companyConfig()),
     updateUserConfig: () => new UpdateUserConfigUseCase(getRepo.user(), getRepo.companyConfig(), evolutionAdapter),
     changePassword: () => new ChangePasswordUseCase(getRepo.user()),
     setPassword: () => new SetPasswordUseCase(getRepo.user()),
@@ -252,7 +252,8 @@ const getUseCase = {
     ),
     registerUser: () => new RegisterUserUseCase(
         getRepo.user(),
-        getRepo.userConfig()
+        getRepo.company(),
+        getRepo.companyConfig()
     ),
     login: () => new LoginUseCase(
         getRepo.user()
@@ -272,13 +273,13 @@ const getUseCase = {
     getSubscriptionStatus: () => new GetSubscriptionStatusUseCase(
         getRepo.subscription(),
         getRepo.schedule(),
+        getRepo.company(),
         getRepo.companyConfig()
     ),
     // Company use cases
     createCompany: () => new CreateCompanyUseCase(
         getRepo.company(),
-        getRepo.companyConfig(),
-        getRepo.subscription()
+        getRepo.companyConfig()
     ),
     listCompanies: () => new ListCompaniesUseCase(
         getRepo.company(),
@@ -323,7 +324,8 @@ export const factory = {
             getUseCase.verifyEmailSetPassword(),
             getUseCase.updateUserConfig(),
             getRepo.user(),
-            getRepo.userConfig()
+            getRepo.company(),
+            getRepo.companyConfig()
         ),
         company: () => new CompanyController(
             adapterInstance,

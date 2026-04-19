@@ -66,8 +66,10 @@ export class UserController {
     }
 
     async getUserConfig(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-        const userId = (request.user as any).id;
-        const config = await this.getUserConfigUseCase.execute(userId);
+        const user = request.user as any;
+        const userId = user.id;
+        const companyId = user.companyId || undefined;
+        const config = await this.getUserConfigUseCase.execute(userId, companyId);
         reply.send(config);
     }
 

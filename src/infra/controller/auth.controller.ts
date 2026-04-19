@@ -1,5 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { IUserConfigRepository } from "../../usecase/repositories/iuser-config-repository";
+import { ICompanyConfigRepository } from "../../usecase/repositories/icompany-config-repository";
+import { ICompanyRepository } from "../../usecase/repositories/icompany-repository";
 import { IUserRepository } from "../../usecase/repositories/iuser-repository";
 import { FastifyAdapter } from "../adapters/fastfy.adapter";
 import { GenerateGoogleAuthUrlUseCase } from "../../usecase/auth/generate-google-auth-url.usecase";
@@ -33,7 +34,8 @@ export class AuthController {
         private readonly verifyEmailSetPassword: VerifyEmailSetPasswordUseCase,
         private readonly updateUserConfig: UpdateUserConfigUseCase,
         private readonly userRepo: IUserRepository,
-        private readonly userConfigRepo: IUserConfigRepository
+        private readonly companyRepo: ICompanyRepository,
+        private readonly companyConfigRepo: ICompanyConfigRepository
     ) {
         this.fastify.logInfo("[AuthController] Initializing...");
         this.registerRoutes();
@@ -117,15 +119,24 @@ export class AuthController {
         this.fastify.addProtectedRoute("GET", "/auth/me", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
             const fullUser = await this.userRepo.findById(user.id);
-            const config = await this.userConfigRepo.findByUserId(user.id);
+
+            // Resolve company config from JWT companyId or user's first company
+            let companyId = user.companyId;
+            if (!companyId) {
+                const companies = await this.companyRepo.findByOwnerId(user.id);
+                companyId = companies[0]?.id;
+            }
+            const config = companyId ? await this.companyConfigRepo.findByCompanyId(companyId) : null;
             
             reply.send({
                 id: user.id,
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                companyId: companyId || null,
                 config: config ? {
                     whatsappNumber: config.whatsappNumber,
+                    taxId: config.taxId,
                     syncEnabled: config.syncEnabled,
                     silentWindowStart: config.silentWindowStart,
                     silentWindowEnd: config.silentWindowEnd

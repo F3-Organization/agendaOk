@@ -1,6 +1,6 @@
 import { IEvolutionService } from "../ports/ievolution-service";
 import { IScheduleRepository } from "../repositories/ischedule-repository";
-import { IUserConfigRepository } from "../repositories/iuser-config-repository";
+import { ICompanyConfigRepository } from "../repositories/icompany-config-repository";
 import { IClientRepository } from "../repositories/iclient-repository";
 import { ISubscriptionRepository } from "../repositories/isubscription-repository";
 import { CheckUsageLimitUseCase } from "../subscription/check-usage-limit.usecase";
@@ -8,25 +8,25 @@ import { CheckUsageLimitUseCase } from "../subscription/check-usage-limit.usecas
 export class NotifyUpcomingAppointmentsUseCase {
     constructor(
         private readonly scheduleRepository: IScheduleRepository,
-        private readonly userConfigRepository: IUserConfigRepository,
+        private readonly companyConfigRepository: ICompanyConfigRepository,
         private readonly clientRepository: IClientRepository,
         private readonly subscriptionRepository: ISubscriptionRepository,
         private readonly evolutionService: IEvolutionService,
         private readonly checkUsageLimit: CheckUsageLimitUseCase
     ) {}
 
-    async execute(userId: string): Promise<void> {
-        const config = await this.userConfigRepository.findByUserId(userId);
+    async execute(companyId: string): Promise<void> {
+        const config = await this.companyConfigRepository.findByCompanyId(companyId);
         if (!config || !config.whatsappInstanceName) {
             return;
         }
 
-        const usage = await this.checkUsageLimit.execute(userId);
+        const usage = await this.checkUsageLimit.execute(companyId);
         const isPro = usage.plan === "PRO";
         let currentMonthCount = usage.count;
 
         if (!usage.canSend && !isPro) {
-            console.log(`[NotifyUseCase] User ${userId} has reached the 50-message limit for FREE plan. Skipping.`);
+            console.log(`[NotifyUseCase] User ${companyId} has reached the 50-message limit for FREE plan. Skipping.`);
             return;
         }
 
@@ -39,25 +39,25 @@ export class NotifyUpcomingAppointmentsUseCase {
             return;
         }
 
-        const appointments = await this.scheduleRepository.findNextToNotify(userId, now, next24h);
+        const appointments = await this.scheduleRepository.findNextToNotify(companyId, now, next24h);
 
         for (const appointment of appointments) {
             if (!isPro && currentMonthCount >= 50) {
-                console.log(`[NotifyUseCase] User ${userId} hit the 50-message limit during processing. Skipping remaining.`);
+                console.log(`[NotifyUseCase] User ${companyId} hit the 50-message limit during processing. Skipping remaining.`);
                 break;
             }
 
             let phoneNumber = this.extractPhoneNumber(`${appointment.title} ${appointment.description || ""}`);
             
             if (!phoneNumber && appointment.clientId) {
-                const client = await this.clientRepository.findById(appointment.clientId, userId);
+                const client = await this.clientRepository.findById(appointment.clientId, companyId);
                 if (client?.phone) {
                     phoneNumber = client.phone;
                 }
             }
 
             if (!phoneNumber) {
-                const client = await this.clientRepository.findByNameOrEmail(userId, appointment.title);
+                const client = await this.clientRepository.findByNameOrEmail(companyId, appointment.title);
                 if (client?.phone) {
                     phoneNumber = client.phone;
                 }
@@ -68,7 +68,7 @@ export class NotifyUpcomingAppointmentsUseCase {
                 
                 try {
                     await this.evolutionService.sendText(config.whatsappInstanceName, phoneNumber, message);
-                    await this.scheduleRepository.updateNotified(appointment.id, userId, true, new Date());
+                    await this.scheduleRepository.updateNotified(appointment.id, companyId, true, new Date());
                     if (!isPro) currentMonthCount++;
                 } catch (error) {
                     console.error(`[NotifyUseCase] Failed to send notification for appointment ${appointment.id}:`, error);

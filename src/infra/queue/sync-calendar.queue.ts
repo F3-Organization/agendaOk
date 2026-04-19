@@ -14,10 +14,10 @@ export class SyncCalendarQueue {
         });
     }
 
-    async addSyncJob(userId: string): Promise<void> {
+    async addSyncJob(companyId: string): Promise<void> {
         await this.queue.add(
-            `sync-${userId}`,
-            { userId },
+            `sync-${companyId}`,
+            { companyId },
             {
                 removeOnComplete: true,
                 attempts: 3,

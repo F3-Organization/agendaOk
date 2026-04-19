@@ -14,22 +14,22 @@ export class ScheduleRepository implements IScheduleRepository {
         return await this.repository.save(schedule);
     }
 
-    async findById(id: string, userId: string): Promise<Schedule | null> {
-        return await this.repository.findOne({ where: { id, userId } });
+    async findById(id: string, companyId: string): Promise<Schedule | null> {
+        return await this.repository.findOne({ where: { id, companyId } });
     }
 
     async findByGoogleEventId(googleEventId: string): Promise<Schedule | null> {
         return await this.repository.findOneBy({ googleEventId });
     }
 
-    async findByUserId(userId: string): Promise<Schedule[]> {
-        return await this.repository.find({ where: { userId } });
+    async findByCompanyId(companyId: string): Promise<Schedule[]> {
+        return await this.repository.find({ where: { companyId } });
     }
 
-    async findNextToNotify(userId: string, startRange: Date, endRange: Date): Promise<Schedule[]> {
+    async findNextToNotify(companyId: string, startRange: Date, endRange: Date): Promise<Schedule[]> {
         return await this.repository.find({
             where: {
-                userId,
+                companyId,
                 startAt: Between(startRange, endRange),
                 status: ScheduleStatus.PENDING,
                 isNotified: false
@@ -37,34 +37,34 @@ export class ScheduleRepository implements IScheduleRepository {
         });
     }
 
-    async updateStatus(id: string, userId: string, status: ScheduleStatus): Promise<void> {
-        await this.repository.update({ id, userId }, { status });
+    async updateStatus(id: string, companyId: string, status: ScheduleStatus): Promise<void> {
+        await this.repository.update({ id, companyId }, { status });
     }
 
-    async updateNotified(id: string, userId: string, isNotified: boolean, notifiedAt?: Date): Promise<void> {
+    async updateNotified(id: string, companyId: string, isNotified: boolean, notifiedAt?: Date): Promise<void> {
         const updateData: any = { isNotified };
         if (notifiedAt) updateData.notifiedAt = notifiedAt;
-        await this.repository.update({ id, userId }, updateData);
+        await this.repository.update({ id, companyId }, updateData);
     }
 
-    async countMonthlyNotifications(userId: string, startDate: Date, endDate: Date): Promise<number> {
+    async countMonthlyNotifications(companyId: string, startDate: Date, endDate: Date): Promise<number> {
         return await this.repository.count({
             where: {
-                userId,
+                companyId,
                 isNotified: true,
                 notifiedAt: Between(startDate, endDate)
             }
         });
     }
 
-    async delete(id: string, userId: string): Promise<void> {
-        await this.repository.delete({ id, userId });
+    async delete(id: string, companyId: string): Promise<void> {
+        await this.repository.delete({ id, companyId });
     }
 
-    async findLastPendingInvite(userId: string): Promise<Schedule | null> {
+    async findLastPendingInvite(companyId: string): Promise<Schedule | null> {
         return await this.repository.findOne({
             where: {
-                userId,
+                companyId,
                 isOwner: false,
                 status: ScheduleStatus.PENDING
             },

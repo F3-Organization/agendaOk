@@ -27,7 +27,7 @@ export class SubscriptionController {
         // 1. Criar Checkout de Assinatura
         this.fastify.addProtectedRoute("POST", "/subscription/checkout", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
-            const userId = user.id;
+            const userId = user.companyId!;
 
             try {
                 const result = await this.createCheckout.execute(userId);
@@ -55,7 +55,7 @@ export class SubscriptionController {
         // 2. Ver Status da Assinatura
         this.fastify.addProtectedRoute("GET", "/subscription/status", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
-            const userId = user.id;
+            const userId = user.companyId!;
 
             try {
                 const status = await this.getStatus.execute(userId);
@@ -88,7 +88,7 @@ export class SubscriptionController {
         // 3. Histórico de Pagamentos
         this.fastify.addProtectedRoute("GET", "/subscription/payments", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
-            const userId = user.id;
+            const userId = user.companyId!;
 
             try {
                 const history = await this.getHistory.execute(userId);
@@ -123,7 +123,7 @@ export class SubscriptionController {
         this.fastify.addProtectedRoute("GET", "/subscription/payments/:id/pdf", async (request: FastifyRequest, reply: FastifyReply) => {
             const params = request.params as { id: string };
             const user = request.user as AuthUserPayload;
-            const userId = user.id;
+            const userId = user.companyId!;
 
             try {
                 const pdfBuffer = await this.generatePdf.execute(params.id, userId);

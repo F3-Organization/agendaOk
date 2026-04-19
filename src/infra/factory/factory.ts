@@ -7,6 +7,7 @@ import { adminMiddleware } from "../middleware/auth.middleware";
 import { AppController } from "../controller/app.controller";
 import { AuthController } from "../controller/auth.controller";
 import { CalendarController } from "../controller/calendar.controller";
+import { CompanyController } from "../controller/company.controller";
 import { EvolutionWebhookController } from "../controller/evolution-webhook.controller";
 import { SubscriptionController } from "../controller/subscription.controller";
 import { GetUserConfigUseCase } from "../../usecase/user/get-user-config.usecase";
@@ -18,6 +19,8 @@ import { Verify2FAUseCase } from "../../usecase/user/verify-2fa.usecase";
 import { Validate2FAUseCase } from "../../usecase/user/validate-2fa.usecase";
 import { UserController } from "../controller/user.controller";
 import { UserRepository } from "../database/repositories/user.repository";
+import { CompanyRepository } from "../database/repositories/company.repository";
+import { CompanyConfigRepository } from "../database/repositories/company-config.repository";
 import { ClientRepository } from "../database/repositories/client.repository";
 import { ScheduleRepository } from "../database/repositories/schedule.repository";
 import { UserConfigRepository } from "../database/repositories/user-config.repository";
@@ -53,6 +56,10 @@ import { AuthenticateGoogleUseCase } from "../../usecase/auth/authenticate-googl
 import { LoginVerify2FAUseCase } from "../../usecase/auth/login-verify-2fa.usecase";
 import { GetSubscriptionStatusUseCase } from "../../usecase/subscription/get-subscription-status.usecase";
 import { CheckUsageLimitUseCase } from "../../usecase/subscription/check-usage-limit.usecase";
+import { CreateCompanyUseCase } from "../../usecase/company/create-company.usecase";
+import { ListCompaniesUseCase } from "../../usecase/company/list-companies.usecase";
+import { SelectCompanyUseCase } from "../../usecase/company/select-company.usecase";
+import { UpdateCompanyUseCase } from "../../usecase/company/update-company.usecase";
 
 import { SyncCalendarQueue } from "../queue/sync-calendar.queue";
 import { SyncCalendarWorker } from "../queue/sync-calendar.worker";
@@ -79,6 +86,8 @@ const redisService = new RedisService();
 
 // Lazy Instances
 let userRepository: UserRepository;
+let companyRepository: CompanyRepository;
+let companyConfigRepository: CompanyConfigRepository;
 let clientRepository: ClientRepository;
 let scheduleRepository: ScheduleRepository;
 let userConfigRepository: UserConfigRepository;
@@ -91,6 +100,8 @@ let notifyQueue: NotifyQueue;
 
 const getRepo = {
     user: () => userRepository || (userRepository = new UserRepository()),
+    company: () => companyRepository || (companyRepository = new CompanyRepository()),
+    companyConfig: () => companyConfigRepository || (companyConfigRepository = new CompanyConfigRepository()),
     client: () => clientRepository || (clientRepository = new ClientRepository()),
     schedule: () => scheduleRepository || (scheduleRepository = new ScheduleRepository()),
     userConfig: () => userConfigRepository || (userConfigRepository = new UserConfigRepository()),
@@ -111,7 +122,7 @@ const getUseCase = {
     syncCalendar: () => new SyncCalendarUseCase(
         googleCalendarAdapter, 
         getRepo.schedule(), 
-        getRepo.userConfig(),
+        getRepo.companyConfig(),
         getRepo.user(),
         getRepo.integration(),
         evolutionAdapter,
@@ -125,7 +136,7 @@ const getUseCase = {
 
     notifyUpcomingAppointments: () => new NotifyUpcomingAppointmentsUseCase(
         getRepo.schedule(),
-        getRepo.userConfig(),
+        getRepo.companyConfig(),
         getRepo.client(),
         getRepo.subscription(),
         evolutionAdapter,
@@ -133,18 +144,18 @@ const getUseCase = {
     ),
     confirmAppointment: () => new ConfirmAppointmentUseCase(
         getRepo.schedule(),
-        getRepo.userConfig(),
+        getRepo.companyConfig(),
         getRepo.integration(),
         googleCalendarAdapter
     ),
     cancelAppointment: () => new CancelAppointmentUseCase(
         getRepo.schedule(),
-        getRepo.userConfig(),
+        getRepo.companyConfig(),
         getRepo.integration(),
         googleCalendarAdapter
     ),
     handleEvolutionWebhook: () => new HandleEvolutionWebhookUseCase(
-        getRepo.userConfig(),
+        getRepo.companyConfig(),
         getRepo.schedule(),
         getUseCase.confirmAppointment(),
         getUseCase.cancelAppointment(),
@@ -155,7 +166,7 @@ const getUseCase = {
     createSubscriptionCheckout: () => new CreateSubscriptionCheckoutUseCase(
         getRepo.user(),
         getRepo.subscription(),
-        getRepo.userConfig(),
+        getRepo.companyConfig(),
         abacatePayAdapter,
         getRepo.subscriptionPayment()
     ),
@@ -163,7 +174,7 @@ const getUseCase = {
         getRepo.subscription(),
         getRepo.subscriptionPayment(),
         getRepo.user(),
-        getRepo.userConfig(),
+        getRepo.companyConfig(),
         new SubscriptionNotificationService(mailAdapter),
         focusNFeAdapter
     ),
@@ -174,18 +185,18 @@ const getUseCase = {
     generateInvoicePdf: () => new GenerateInvoicePdfUseCase(
         getRepo.subscriptionPayment(),
         getRepo.user(),
-        getRepo.userConfig()
+        getRepo.companyConfig()
     ),
     connectWhatsapp: () => new ConnectWhatsappUseCase(
-        getRepo.userConfig(),
+        getRepo.companyConfig(),
         evolutionAdapter
     ),
     disconnectWhatsapp: () => new DisconnectWhatsappUseCase(
-        getRepo.userConfig(),
+        getRepo.companyConfig(),
         evolutionAdapter
     ),
     getWhatsappStatus: () => new GetWhatsappStatusUseCase(
-        getRepo.userConfig(),
+        getRepo.companyConfig(),
         evolutionAdapter
     ),
     sendEmailVerification: () => new SendEmailVerificationUseCase(
@@ -203,38 +214,38 @@ const getUseCase = {
     toggle2FA: () => new Toggle2FAUseCase(getRepo.user()),
     verify2FA: () => new Verify2FAUseCase(getRepo.user()),
     validate2FA: () => new Validate2FAUseCase(getRepo.user()),
-    getDashboardStats: () => new GetDashboardStatsUseCase(getRepo.schedule(), getRepo.userConfig(), getRepo.integration()),
+    getDashboardStats: () => new GetDashboardStatsUseCase(getRepo.schedule(), getRepo.companyConfig(), getRepo.integration()),
     getAppointments: () => new GetAppointmentsUseCase(
         getRepo.schedule()
     ),
     createAppointment: () => new CreateAppointmentUseCase(
         googleCalendarAdapter,
         getRepo.schedule(),
-        getRepo.userConfig(),
+        getRepo.companyConfig(),
         getRepo.integration()
     ),
     updateAppointment: () => new UpdateAppointmentUseCase(
         googleCalendarAdapter,
         getRepo.schedule(),
-        getRepo.userConfig(),
+        getRepo.companyConfig(),
         getRepo.integration()
     ),
     deleteAppointment: () => new DeleteAppointmentUseCase(
         googleCalendarAdapter,
         getRepo.schedule(),
-        getRepo.userConfig(),
+        getRepo.companyConfig(),
         getRepo.integration()
     ),
     acceptInvite: () => new AcceptInviteUseCase(
         googleCalendarAdapter,
         getRepo.schedule(),
-        getRepo.userConfig(),
+        getRepo.companyConfig(),
         getRepo.integration()
     ),
     declineInvite: () => new DeclineInviteUseCase(
         googleCalendarAdapter,
         getRepo.schedule(),
-        getRepo.userConfig(),
+        getRepo.companyConfig(),
         getRepo.integration()
     ),
     registerUser: () => new RegisterUserUseCase(
@@ -257,7 +268,24 @@ const getUseCase = {
     getSubscriptionStatus: () => new GetSubscriptionStatusUseCase(
         getRepo.subscription(),
         getRepo.schedule(),
-        getRepo.userConfig()
+        getRepo.companyConfig()
+    ),
+    // Company use cases
+    createCompany: () => new CreateCompanyUseCase(
+        getRepo.company(),
+        getRepo.companyConfig(),
+        getRepo.subscription()
+    ),
+    listCompanies: () => new ListCompaniesUseCase(
+        getRepo.company(),
+        getRepo.subscription()
+    ),
+    selectCompany: () => new SelectCompanyUseCase(
+        getRepo.company(),
+        adapterInstance
+    ),
+    updateCompany: () => new UpdateCompanyUseCase(
+        getRepo.company()
     )
 };
 
@@ -292,6 +320,13 @@ export const factory = {
             getUseCase.updateUserConfig(),
             getRepo.user(),
             getRepo.userConfig()
+        ),
+        company: () => new CompanyController(
+            adapterInstance,
+            getUseCase.listCompanies(),
+            getUseCase.createCompany(),
+            getUseCase.selectCompany(),
+            getUseCase.updateCompany()
         ),
         calendar: () => new CalendarController(
             adapterInstance,
@@ -343,6 +378,6 @@ export const factory = {
     },
     workers: {
         sync: () => new SyncCalendarWorker(getUseCase.syncCalendar()),
-        notify: () => new NotifyWorker(getUseCase.notifyUpcomingAppointments(), getRepo.userConfig())
+        notify: () => new NotifyWorker(getUseCase.notifyUpcomingAppointments(), getRepo.companyConfig())
     }
 };

@@ -1,10 +1,10 @@
 import { Entity, Column, ManyToOne, OneToMany, JoinColumn, Index } from "typeorm";
-import { User } from "./user.entity";
+import { Company } from "./company.entity";
 import { Schedule } from "./schedule.entity";
 import { BaseEntity } from "./base.entity";
 
 @Entity("clients")
-@Index(["userId", "phone"])
+@Index(["companyId", "phone"])
 export class Client extends BaseEntity {
     @Column({ name: "name" })
     name!: string;
@@ -15,12 +15,12 @@ export class Client extends BaseEntity {
     @Column({ name: "phone" })
     phone!: string;
 
-    @Column({ name: "user_id" })
-    userId!: string;
+    @Column({ name: "company_id" })
+    companyId!: string;
 
-    @ManyToOne(() => User)
-    @JoinColumn({ name: "user_id" })
-    user!: User;
+    @ManyToOne(() => Company)
+    @JoinColumn({ name: "company_id" })
+    company!: Company;
 
     @OneToMany(() => Schedule, (schedule) => schedule.client)
     schedules?: Schedule[];

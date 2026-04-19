@@ -13,8 +13,8 @@ export class CheckUsageLimitUseCase {
      * FREE users are capped at 50 messages/month.
      * PRO users have no limit.
      */
-    async execute(userId: string): Promise<{ canSend: boolean; plan: string; count: number; limit: number }> {
-        const subscription = await this.subscriptionRepository.findByUserId(userId);
+    async execute(companyId: string): Promise<{ canSend: boolean; plan: string; count: number; limit: number }> {
+        const subscription = await this.subscriptionRepository.findByCompanyId(companyId);
         const plan = subscription?.plan || "FREE";
         const status = subscription?.status || SubscriptionStatus.INACTIVE;
 
@@ -33,7 +33,7 @@ export class CheckUsageLimitUseCase {
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
         
-        const count = await this.scheduleRepository.countMonthlyNotifications(userId, startOfMonth, endOfMonth);
+        const count = await this.scheduleRepository.countMonthlyNotifications(companyId, startOfMonth, endOfMonth);
         const limit = 50;
 
         return {

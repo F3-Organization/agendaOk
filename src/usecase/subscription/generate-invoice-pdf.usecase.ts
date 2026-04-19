@@ -1,14 +1,14 @@
 import PDFDocument from 'pdfkit';
 import { ISubscriptionPaymentRepository } from '../repositories/isubscription-payment-repository';
 import { IUserRepository } from '../repositories/iuser-repository';
-import { UserConfigRepository } from '../../infra/database/repositories/user-config.repository';
+import { CompanyConfigRepository } from '../../infra/database/repositories/company-config.repository';
 import { env } from '../../infra/config/configs';
 
 export class GenerateInvoicePdfUseCase {
     constructor(
         private readonly paymentRepository: ISubscriptionPaymentRepository,
         private readonly userRepository: IUserRepository,
-        private readonly userConfigRepository: UserConfigRepository
+        private readonly companyConfigRepository: CompanyConfigRepository
     ) { }
 
     private valorPorExtenso(valor: number): string {
@@ -52,14 +52,14 @@ export class GenerateInvoicePdfUseCase {
         return extenso.charAt(0).toUpperCase() + extenso.slice(1);
     }
 
-    async execute(paymentId: string, userId: string): Promise<Buffer> {
+    async execute(paymentId: string, companyId: string): Promise<Buffer> {
         const payment = await this.paymentRepository.findById(paymentId);
         if (!payment) throw new Error("Payment not found");
 
-        const user = await this.userRepository.findById(userId);
+        const user = await this.userRepository.findById(companyId);
         if (!user) throw new Error("User not found");
 
-        const userConfig = await this.userConfigRepository.findByUserId(userId);
+        const userConfig = await this.companyConfigRepository.findByCompanyId(companyId);
 
         const paymentShortId = payment.id.split('-')[0]?.toUpperCase() || 'INVALID';
         const createdAt = payment.createdAt;

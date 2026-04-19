@@ -14,20 +14,24 @@ export class ClientRepository implements IClientRepository {
         return await this.repository.save(client);
     }
 
-    async findById(id: string, userId: string): Promise<Client | null> {
-        return await this.repository.findOne({ where: { id, userId } });
+    async findById(id: string, companyId: string): Promise<Client | null> {
+        return await this.repository.findOne({ where: { id, companyId } });
     }
 
-    async findByUserId(userId: string): Promise<Client[]> {
-        return await this.repository.find({ where: { userId } });
+    async findByCompanyId(companyId: string): Promise<Client[]> {
+        return await this.repository.find({ where: { companyId } });
     }
 
-    async findByNameOrEmail(userId: string, term: string): Promise<Client | null> {
+    async findByNameOrEmail(companyId: string, term: string): Promise<Client | null> {
         return await this.repository.findOne({
             where: [
-                { userId, name: term },
-                { userId, email: term },
+                { companyId, name: term },
+                { companyId, email: term },
             ],
         });
+    }
+
+    async findByPhone(companyId: string, phone: string): Promise<Client | null> {
+        return await this.repository.findOne({ where: { companyId, phone } });
     }
 }

@@ -1,5 +1,5 @@
 import { IScheduleRepository } from "../repositories/ischedule-repository";
-import { IUserConfigRepository } from "../repositories/iuser-config-repository";
+import { ICompanyConfigRepository } from "../repositories/icompany-config-repository";
 import { IIntegrationRepository } from "../repositories/iintegration-repository";
 import { ScheduleStatus, Schedule } from "../../infra/database/entities/schedule.entity";
 import { DashboardStats } from "../../../shared/schemas/dashboard.schema";
@@ -7,19 +7,19 @@ import { DashboardStats } from "../../../shared/schemas/dashboard.schema";
 export class GetDashboardStatsUseCase {
     constructor(
         private readonly scheduleRepo: IScheduleRepository,
-        private readonly userConfigRepo: IUserConfigRepository,
+        private readonly userConfigRepo: ICompanyConfigRepository,
         private readonly integrationRepo: IIntegrationRepository
     ) {}
 
-    public async execute(userId: string): Promise<DashboardStats> {
-        const config = await this.userConfigRepo.findByUserId(userId);
-        const integration = await this.integrationRepo.findByUserAndProvider(userId, "GOOGLE");
+    public async execute(companyId: string): Promise<DashboardStats> {
+        const config = await this.userConfigRepo.findByCompanyId(companyId);
+        const integration = await this.integrationRepo.findByCompanyAndProvider(companyId, "GOOGLE");
         const calendarConnected = !!(integration && integration.refreshToken);
         const now = new Date();
         const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
 
-        const allSchedules = await this.scheduleRepo.findByUserId(userId);
+        const allSchedules = await this.scheduleRepo.findByCompanyId(companyId);
 
         // Current Period (CP) - Last 7 days
         const cpSchedules = allSchedules.filter(s => s.createdAt >= sevenDaysAgo);

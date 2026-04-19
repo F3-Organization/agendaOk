@@ -17,10 +17,10 @@ export class ExchangeGoogleCodeUseCase {
         }
 
         // 1. Update/Create Integration
-        let integration = await this.integrationRepository.findByUserAndProvider(userId, "GOOGLE");
+        let integration = await this.integrationRepository.findByCompanyAndProvider(userId, "GOOGLE");
         if (!integration) {
             integration = new Integration();
-            integration.userId = userId;
+            integration.companyId = userId;
             integration.provider = "GOOGLE";
         }
 

@@ -2,6 +2,8 @@ import "reflect-metadata";
 import { DataSource } from "typeorm";
 import { env } from "./configs";
 import { User } from "../database/entities/user.entity";
+import { Company } from "../database/entities/company.entity";
+import { CompanyConfig } from "../database/entities/company-config.entity";
 import { Client } from "../database/entities/client.entity";
 import { Schedule } from "../database/entities/schedule.entity";
 import { UserConfig } from "../database/entities/user-config.entity";
@@ -18,7 +20,7 @@ export const AppDataSource = new DataSource({
     database: env.database.database,
     synchronize: false,
     logging: env.debug(),
-    entities: [User, Client, Schedule, UserConfig, Subscription, SubscriptionPayment, Integration],
+    entities: [User, Company, CompanyConfig, Client, Schedule, UserConfig, Subscription, SubscriptionPayment, Integration],
     subscribers: [],
     migrations: [],
 })

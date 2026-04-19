@@ -29,10 +29,10 @@ export class NotifyQueue {
         );
     }
 
-    async addNotificationJob(userId: string): Promise<void> {
+    async addNotificationJob(companyId: string): Promise<void> {
         await this.queue.add(
-            `notify-${userId}`,
-            { userId },
+            `notify-${companyId}`,
+            { companyId },
             {
                 removeOnComplete: true,
                 attempts: 3,

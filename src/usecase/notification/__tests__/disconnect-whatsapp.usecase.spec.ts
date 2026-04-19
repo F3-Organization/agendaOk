@@ -1,23 +1,23 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DisconnectWhatsappUseCase } from "../disconnect-whatsapp.usecase";
 import { IEvolutionService } from "../../ports/ievolution-service";
-import { IUserConfigRepository } from "../../repositories/iuser-config-repository";
-import { UserConfig } from "../../../infra/database/entities/user-config.entity";
+import { ICompanyConfigRepository } from "../../repositories/icompany-config-repository";
+import { CompanyConfig } from "../../../infra/database/entities/company-config.entity";
 
 describe("DisconnectWhatsappUseCase", () => {
     let sut: DisconnectWhatsappUseCase;
-    let userConfigRepository: IUserConfigRepository;
+    let companyConfigRepository: ICompanyConfigRepository;
     let evolutionService: IEvolutionService;
 
     const mockConfig = {
-        userId: "user-1",
+        companyId: "user-1",
         whatsappInstanceName: "instancia-teste"
-    } as UserConfig;
+    } as CompanyConfig;
 
     beforeEach(() => {
-        userConfigRepository = {
-            findByUserId: vi.fn().mockResolvedValue(mockConfig),
-            update: vi.fn(),
+        companyConfigRepository = {
+            findByCompanyId: vi.fn().mockResolvedValue(mockConfig),
+            updateByCompanyId: vi.fn(),
             findByInstanceName: vi.fn(),
             save: vi.fn(),
             findAllActive: vi.fn()
@@ -32,7 +32,7 @@ describe("DisconnectWhatsappUseCase", () => {
             deleteInstance: vi.fn().mockResolvedValue(undefined)
         };
 
-        sut = new DisconnectWhatsappUseCase(userConfigRepository, evolutionService);
+        sut = new DisconnectWhatsappUseCase(companyConfigRepository, evolutionService);
     });
 
     it("deve deslogar, deletar a instância e limpar o banco de dados", async () => {
@@ -40,30 +40,30 @@ describe("DisconnectWhatsappUseCase", () => {
 
         expect(evolutionService.logoutInstance).toHaveBeenCalledWith("instancia-teste");
         expect(evolutionService.deleteInstance).toHaveBeenCalledWith("instancia-teste");
-        expect(userConfigRepository.update).toHaveBeenCalledWith("user-1", {
+        expect(companyConfigRepository.updateByCompanyId).toHaveBeenCalledWith("user-1", {
             whatsappInstanceName: null
         });
     });
 
     it("não deve fazer nada se a configuração do usuário não for encontrada", async () => {
-        vi.mocked(userConfigRepository.findByUserId).mockResolvedValueOnce(null);
+        vi.mocked(companyConfigRepository.findByCompanyId).mockResolvedValueOnce(null);
 
         await sut.execute("user-unknown");
 
         expect(evolutionService.logoutInstance).not.toHaveBeenCalled();
-        expect(userConfigRepository.update).not.toHaveBeenCalled();
+        expect(companyConfigRepository.updateByCompanyId).not.toHaveBeenCalled();
     });
 
     it("não deve fazer nada se o usuário não tiver uma instância ativa", async () => {
-        vi.mocked(userConfigRepository.findByUserId).mockResolvedValueOnce({
-            userId: "user-1",
+        vi.mocked(companyConfigRepository.findByCompanyId).mockResolvedValueOnce({
+            companyId: "user-1",
             whatsappInstanceName: undefined
         } as any);
 
         await sut.execute("user-1");
 
         expect(evolutionService.logoutInstance).not.toHaveBeenCalled();
-        expect(userConfigRepository.update).not.toHaveBeenCalled();
+        expect(companyConfigRepository.updateByCompanyId).not.toHaveBeenCalled();
     });
 
     it("deve limpar o banco de dados mesmo se a Evolution API falhar", async () => {
@@ -72,7 +72,7 @@ describe("DisconnectWhatsappUseCase", () => {
 
         await sut.execute("user-1");
 
-        expect(userConfigRepository.update).toHaveBeenCalledWith("user-1", {
+        expect(companyConfigRepository.updateByCompanyId).toHaveBeenCalledWith("user-1", {
             whatsappInstanceName: null
         });
     });

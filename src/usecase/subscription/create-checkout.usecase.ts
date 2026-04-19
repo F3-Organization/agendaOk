@@ -2,7 +2,7 @@ import { SubscriptionRepository } from "../../infra/database/repositories/subscr
 import { UserRepository } from "../../infra/database/repositories/user.repository";
 import { IPaymentGateway } from "../ports/ipayment-gateway";
 import { env } from "../../infra/config/configs";
-import { UserConfigRepository } from "../../infra/database/repositories/user-config.repository";
+import { CompanyConfigRepository } from "../../infra/database/repositories/company-config.repository";
 import { SubscriptionStatus } from "../../infra/database/entities/subscription.entity";
 import { ISubscriptionPaymentRepository } from "../repositories/isubscription-payment-repository";
 import { SubscriptionPaymentStatus } from "../../infra/database/entities/subscription-payment.entity";
@@ -11,16 +11,16 @@ export class CreateSubscriptionCheckoutUseCase {
     constructor(
         private readonly userRepository: UserRepository,
         private readonly subscriptionRepository: SubscriptionRepository,
-        private readonly userConfigRepository: UserConfigRepository,
+        private readonly companyConfigRepository: CompanyConfigRepository,
         private readonly paymentGateway: IPaymentGateway,
         private readonly paymentRepository: ISubscriptionPaymentRepository
     ) { }
-    async execute(userId: string) {
-        const user = await this.userRepository.findById(userId);
+    async execute(companyId: string) {
+        const user = await this.userRepository.findById(companyId);
         if (!user) throw new Error("User not found");
 
         const baseUrl = env.domain.startsWith('http') ? env.domain : `https://${env.domain}`;
-        let subscription = await this.subscriptionRepository.findByUserId(userId);
+        let subscription = await this.subscriptionRepository.findByCompanyId(companyId);
 
         if (subscription?.status === SubscriptionStatus.ACTIVE) {
             return { 
@@ -41,7 +41,7 @@ export class CreateSubscriptionCheckoutUseCase {
             }
         }
 
-        const userConfig = await this.userConfigRepository.findByUserId(userId);
+        const userConfig = await this.companyConfigRepository.findByCompanyId(companyId);
         if (!userConfig?.whatsappNumber || !userConfig?.taxId) {
             throw new Error("User must configure WhatsApp Number and Tax ID (CPF/CNPJ) before checkout.");
         }
@@ -69,7 +69,7 @@ export class CreateSubscriptionCheckoutUseCase {
             customerId = customer.id;
             
             // Salvar ID do cliente para futuras cobranças
-            await this.userConfigRepository.update(userConfig.id, { billingCustomerId: customerId });
+            await this.companyConfigRepository.updateByCompanyId(userConfig.id, { billingCustomerId: customerId });
         }
 
         // 2. Criar Assinatura (Recorrência) diretamente via Billing (V1)
@@ -78,12 +78,12 @@ export class CreateSubscriptionCheckoutUseCase {
             env.abacatePay.planName,
             env.abacatePay.planPrice,
             `${baseUrl}/subscription`,
-            { userId }
+            { companyId }
         );
 
         // Criar NOVO registro de assinatura PRO como PENDING
         const newSubscriptionData: any = {
-            userId,
+            companyId,
             abacateBillingId: subscriptionCheckout.id,
             abacateCustomerId: customerId,
             checkoutUrl: subscriptionCheckout.url,

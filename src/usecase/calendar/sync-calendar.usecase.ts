@@ -1,6 +1,6 @@
 import { IGoogleCalendarService } from "../ports/igoogle-calendar-service";
 import { IScheduleRepository } from "../repositories/ischedule-repository";
-import { IUserConfigRepository } from "../repositories/iuser-config-repository";
+import { ICompanyConfigRepository } from "../repositories/icompany-config-repository";
 import { IUserRepository } from "../repositories/iuser-repository";
 import { IIntegrationRepository } from "../repositories/iintegration-repository";
 import { IEvolutionService } from "../ports/ievolution-service";
@@ -13,20 +13,20 @@ export class SyncCalendarUseCase {
     constructor(
         private readonly googleService: IGoogleCalendarService,
         private readonly scheduleRepository: IScheduleRepository,
-        private readonly userConfigRepository: IUserConfigRepository,
+        private readonly companyConfigRepository: ICompanyConfigRepository,
         private readonly userRepository: IUserRepository,
         private readonly integrationRepository: IIntegrationRepository,
         private readonly evolutionService: IEvolutionService,
         private readonly checkUsageLimit: CheckUsageLimitUseCase
     ) {}
 
-    async execute(userId: string): Promise<void> {
-        const config = await this.userConfigRepository.findByUserId(userId);
-        const integration = await this.integrationRepository.findByUserAndProvider(userId, "GOOGLE");
-        const user = await this.userRepository.findById(userId);
+    async execute(companyId: string): Promise<void> {
+        const config = await this.companyConfigRepository.findByCompanyId(companyId);
+        const integration = await this.integrationRepository.findByCompanyAndProvider(companyId, "GOOGLE");
+        const user = await this.userRepository.findById(companyId);
         
         if (!config || !integration || !integration.refreshToken || !config.syncEnabled || !user) {
-            console.log(`[SyncCalendar] Sync aborted for user ${userId}: Missing config, integration, refreshed token, or user not found.`);
+            console.log(`[SyncCalendar] Sync aborted for company ${companyId}: Missing config, integration, refreshed token, or user not found.`);
             return;
         }
 
@@ -92,7 +92,7 @@ export class SyncCalendarUseCase {
                 schedule.attendees = event.attendees || [];
                 schedule.isOwner = isOwner;
                 schedule.status = ScheduleStatus.PENDING;
-                schedule.userId = userId;
+                schedule.companyId = companyId;
                 
                 await this.scheduleRepository.save(schedule);
             }
@@ -119,16 +119,16 @@ export class SyncCalendarUseCase {
                         console.log(`[SyncCalendar] Message suppressed: Current time within silent window (${config.silentWindowStart}-${config.silentWindowEnd})`);
                         continue;
                     }
-                    await this.notifyExternalInvite(config.whatsappNumber, schedule, userId);
+                    await this.notifyExternalInvite(config.whatsappNumber, schedule, companyId);
                 }
             }
         }
     }
 
-    private async notifyExternalInvite(number: string, schedule: Schedule, userId: string): Promise<void> {
-        const usage = await this.checkUsageLimit.execute(userId);
+    private async notifyExternalInvite(number: string, schedule: Schedule, companyId: string): Promise<void> {
+        const usage = await this.checkUsageLimit.execute(companyId);
         if (!usage.canSend) {
-            console.log(`[SyncCalendar] Skipping notification for user ${userId}: Quota reached.`);
+            console.log(`[SyncCalendar] Skipping notification for company ${companyId}: Quota reached.`);
             return;
         }
 
@@ -147,7 +147,7 @@ export class SyncCalendarUseCase {
             schedule.notifiedAt = new Date();
             await this.scheduleRepository.save(schedule);
         } catch (error) {
-            console.error(`[SyncCalendar] Failed to send notification to user ${userId}:`, error);
+            console.error(`[SyncCalendar] Failed to send notification to company ${companyId}:`, error);
         }
     }
 

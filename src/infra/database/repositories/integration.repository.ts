@@ -14,13 +14,13 @@ export class IntegrationRepository implements IIntegrationRepository {
         return this.repo.save(integration);
     }
 
-    async findByUserAndProvider(userId: string, provider: string): Promise<Integration | null> {
+    async findByCompanyAndProvider(companyId: string, provider: string): Promise<Integration | null> {
         return this.repo.findOne({
-            where: { userId, provider }
+            where: { companyId, provider }
         });
     }
 
-    async delete(userId: string, provider: string): Promise<void> {
-        await this.repo.delete({ userId, provider });
+    async delete(companyId: string, provider: string): Promise<void> {
+        await this.repo.delete({ companyId, provider });
     }
 }

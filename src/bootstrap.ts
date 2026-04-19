@@ -17,6 +17,7 @@ async function bootstrap() {
         console.log("[Bootstrap] Registering controllers...");
         factory.controller.app();
         factory.controller.auth();
+        factory.controller.company();
         factory.controller.calendar();
         factory.controller.webhook();
         factory.controller.subscription();

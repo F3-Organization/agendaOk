@@ -164,6 +164,10 @@ export class FastifyAdapter implements ITokenService {
         return (this.app as any).jwt.sign(payload, options);
     }
 
+    public signWithCompany(payload: { id: string; companyId: string }): string {
+        return (this.app as any).jwt.sign(payload, { expiresIn: "7d" });
+    }
+
     public verify(token: string): any {
         return (this.app as any).jwt.verify(token);
     }

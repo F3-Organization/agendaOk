@@ -1,17 +1,17 @@
 import { IEvolutionService } from "../ports/ievolution-service";
-import { IUserConfigRepository } from "../repositories/iuser-config-repository";
+import { ICompanyConfigRepository } from "../repositories/icompany-config-repository";
 
 /**
  * Use case to check the connection status of the user's WhatsApp instance.
  */
 export class GetWhatsappStatusUseCase {
     constructor(
-        private readonly userConfigRepository: IUserConfigRepository,
+        private readonly companyConfigRepository: ICompanyConfigRepository,
         private readonly evolutionService: IEvolutionService
     ) {}
 
-    async execute(userId: string): Promise<{ status: string; instanceName: string | null }> {
-        const config = await this.userConfigRepository.findByUserId(userId);
+    async execute(companyId: string): Promise<{ status: string; instanceName: string | null }> {
+        const config = await this.companyConfigRepository.findByCompanyId(companyId);
         
         if (!config || !config.whatsappInstanceName) {
             return { status: "DISCONNECTED", instanceName: null };

@@ -251,9 +251,7 @@ const getUseCase = {
         getRepo.integration()
     ),
     registerUser: () => new RegisterUserUseCase(
-        getRepo.user(),
-        getRepo.company(),
-        getRepo.companyConfig()
+        getRepo.user()
     ),
     login: () => new LoginUseCase(
         getRepo.user()
@@ -262,7 +260,6 @@ const getUseCase = {
         googleCalendarAdapter,
         getRepo.user(),
         getRepo.company(),
-        getRepo.companyConfig(),
         getUseCase.exchangeGoogleCode()
     ),
     loginVerify2FA: () => new LoginVerify2FAUseCase(

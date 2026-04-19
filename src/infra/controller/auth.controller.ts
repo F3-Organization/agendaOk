@@ -75,7 +75,7 @@ export class AuthController {
 
             try {
                 const { user, companyId } = await this.authenticateGoogle.execute(code);
-                return this.sendAuthResponse(reply, user, "Authentication successful!", companyId);
+                return this.sendAuthResponse(reply, user, "Authentication successful!", companyId ?? undefined);
             } catch (error: any) {
                 this.fastify.logInfo("[AuthController] Authentication failed:", { error: error.message });
                 reply.code(500).send({

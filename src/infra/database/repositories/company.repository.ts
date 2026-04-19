@@ -19,7 +19,7 @@ export class CompanyRepository implements ICompanyRepository {
     }
 
     async findByOwnerId(ownerId: string): Promise<Company[]> {
-        return await this.repository.find({ where: { ownerId } });
+        return await this.repository.find({ where: { ownerId }, order: { createdAt: "ASC" } });
     }
 
     async findBySlug(slug: string): Promise<Company | null> {

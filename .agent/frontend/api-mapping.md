@@ -33,6 +33,20 @@ Mapping of frontend feature hooks to backend Fastify routes.
 | `useConnect` | `POST /api/whatsapp/connect` | Fetch QR Code Base64. |
 | `useDisconnect` | `DELETE /api/whatsapp/disconnect` | Terminate session. |
 
+## Professionals Feature (PRO)
+| Hook | API Route | Description |
+|------|-----------|-------------|
+| `useListProfessionals` | `GET /api/company/professionals` | List all professionals for the company. |
+| `useCreateProfessional` | `POST /api/company/professionals` | Create a new professional. |
+| `useUpdateProfessional` | `PUT /api/company/professionals/:id` | Update a professional. |
+| `useDeleteProfessional` | `DELETE /api/company/professionals/:id` | Delete a professional. |
+
+## Bot Config Feature (PRO)
+| Hook | API Route | Description |
+|------|-----------|-------------|
+| `useGetBotConfig` | `GET /api/company/bot-config` | Get bot configuration. |
+| `useUpdateBotConfig` | `PUT /api/company/bot-config` | Update bot configuration. |
+
 ---
 
 ## Documentos Relacionados

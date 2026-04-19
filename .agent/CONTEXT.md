@@ -10,6 +10,7 @@ A **ConfirmaZap** é uma plataforma SaaS **Multi-Tenant** projetada para profiss
 - **Automação de Notificações:** Reduzir o absenteísmo de clientes através de lembretes automáticos no WhatsApp.
 - **Interatividade:** Permitir que o cliente final confirme ou cancele o agendamento respondendo diretamente pelo WhatsApp, com atualização automática no calendário do profissional.
 - **Escalabilidade:** Operar como um SaaS robusto, com planos Free e Pro, integrando pagamentos e gestão de assinaturas.
+- **Autoatendimento IA (PRO):** Bot inteligente via WhatsApp (Gemini API) para triagem, agendamento e interação com clientes de forma autônoma.
 
 ## 3. Modelo Multi-Tenant
 
@@ -19,8 +20,9 @@ O sistema adota um modelo multi-tenant com dois níveis de isolamento:
 User (userId)
  ├── Subscription (userId) — plano FREE/PRO do usuário
  └── Companies (ownerId → userId) — até 3 empresas no plano PRO
-      ├── CompanyConfig — configurações da empresa (WhatsApp, sincronização, etc.)
+      ├── CompanyConfig — configurações da empresa (WhatsApp, sincronização, bot IA, etc.)
       ├── Integrations — tokens de serviços externos (Google, etc.)
+      ├── Professionals — profissionais/médicos da empresa (horários, especialidade)
       ├── Schedules — agendamentos isolados por company
       └── Clients — base de clientes por company
 ```

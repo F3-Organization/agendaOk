@@ -118,7 +118,71 @@ This document provides a detailed technical specification for the ConfirmaZap AP
 
 ---
 
-## 5. System Health
+## 5. Professional Management (PRO)
+
+### List Professionals
+*   **Endpoint**: `GET /api/company/professionals`
+*   **Auth**: Required
+*   **Response (200 OK)**: Array of Professional objects.
+
+### Create Professional
+*   **Endpoint**: `POST /api/company/professionals`
+*   **Auth**: Required
+*   **Body**:
+    ```json
+    {
+      "name": "Dr. João Silva",
+      "specialty": "Dermatologista",
+      "workingHours": {
+        "mon": [{"start": "08:00", "end": "12:00"}, {"start": "14:00", "end": "18:00"}],
+        "tue": [{"start": "08:00", "end": "12:00"}]
+      },
+      "appointmentDuration": 30
+    }
+    ```
+*   **Response (201 Created)**: The created Professional object.
+
+### Update Professional
+*   **Endpoint**: `PUT /api/company/professionals/:id`
+*   **Auth**: Required
+*   **Body**: Partial Professional object (same fields as create, all optional).
+*   **Response (200 OK)**: `{ "message": "Professional updated successfully" }`
+
+### Delete Professional
+*   **Endpoint**: `DELETE /api/company/professionals/:id`
+*   **Auth**: Required
+*   **Response (200 OK)**: `{ "message": "Professional deleted successfully" }`
+
+---
+
+## 6. Bot Config (PRO)
+
+### Get Bot Config
+*   **Endpoint**: `GET /api/company/bot-config`
+*   **Auth**: Required
+*   **Response (200 OK)**:
+    ```json
+    {
+      "businessType": "clinic",
+      "businessDescription": "Clínica dermatológica...",
+      "botGreeting": "Olá! Bem-vindo à...",
+      "botInstructions": "Sempre pergunte...",
+      "address": "Rua...",
+      "workingHours": {},
+      "servicesOffered": ["Limpeza de pele", "Botox"],
+      "botEnabled": true
+    }
+    ```
+
+### Update Bot Config
+*   **Endpoint**: `PUT /api/company/bot-config`
+*   **Auth**: Required
+*   **Body**: Partial object with any of the fields above.
+*   **Response (200 OK)**: `{ "message": "Bot config updated successfully" }`
+
+---
+
+## 7. System Health
 *   **Endpoint**: `GET /api/health`
 *   **Description**: Verifies if the API is operational.
 *   **Response**: `{ "status": "ok", "timestamp": "..." }`

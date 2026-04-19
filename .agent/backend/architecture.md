@@ -38,9 +38,11 @@ graph TD
         - `Schedule`: Agendamentos sincronizados por empresa.
         - `Subscription`: Dados da assinatura PRO, vinculada ao **User** (não à Company).
         - `SubscriptionPayment`: Histórico detalhado de pagamentos e cobranças.
+        - `Professional`: Profissionais da empresa (médicos, esteticistas, etc.) com horários de trabalho e especialidade.
     - **database/repositories/**: Contém as implementações concretas de persistência de dados.
-    - **adapters/**: Adaptadores para bibliotecas externas (ex: `FastifyAdapter`, `GoogleCalendarAdapter`, `AbacatePayAdapter`).
+    - **adapters/**: Adaptadores para bibliotecas externas (ex: `FastifyAdapter`, `GoogleCalendarAdapter`, `AbacatePayAdapter`, `GeminiAdapter`).
     - **controller/**: Porta de entrada para requisições externas (HTTP/REST).
+    - **controller/schemas/**: Schemas Zod de validação de entrada, separados dos controllers.
     - **factory/**: **Composition Root**. Centraliza a instanciação e a injeção de dependências.
     - **config/**: Configurações de ambiente, flags de debug e segredos.
 
@@ -56,6 +58,7 @@ erDiagram
     Company ||--o{ Integration : "has (companyId)"
     Company ||--o{ Schedule : "has (companyId)"
     Company ||--o{ Client : "has (companyId)"
+    Company ||--o{ Professional : "has (companyId)"
     Subscription ||--o{ SubscriptionPayment : "has"
 ```
 
@@ -68,6 +71,7 @@ erDiagram
 | `Integration` | `companyId` + `provider` | Tokens OAuth por empresa/provedor |
 | `Schedule` | `companyId` | Agendamentos isolados por empresa |
 | `Client` | `companyId` | Base de clientes por empresa |
+| `Professional` | `companyId` | Profissionais da empresa com horários de trabalho |
 
 ---
 

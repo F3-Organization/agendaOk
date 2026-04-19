@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Zap, Check, ArrowRight, Calendar, MessageSquare, BarChart3, ShieldCheck, ZapOff, Layers, Sparkles } from 'lucide-react';
+import { Zap, Check, ArrowRight, Calendar, MessageSquare, BarChart3, ShieldCheck, ZapOff, Layers, Sparkles, Bot } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { Button } from '../shared/ui/Button';
@@ -137,7 +137,7 @@ export const LandingPage = () => {
             {t('landing.multiTenantTitle')}
           </div>
           
-          <h1 className="text-6xl md:text-9xl font-extrabold tracking-tight leading-[1.3] pb-6 text-transparent bg-clip-text bg-gradient-to-br from-foreground to-foreground/30 max-w-7xl mx-auto">
+          <h1 className="text-6xl md:text-9xl font-extrabold tracking-tight leading-none pb-6 text-transparent bg-clip-text bg-gradient-to-br from-foreground to-foreground/30 max-w-7xl mx-auto" style={{ paddingBottom: '0.2em', lineHeight: 1.15 }}>
             {t('landing.heroTitle')}
           </h1>
           
@@ -303,7 +303,7 @@ export const LandingPage = () => {
               <div className="mb-10">
                 <h3 className="text-2xl font-bold tracking-tight mb-2 uppercase text-[10px] text-primary-dim tracking-[5px]">{t('landing.plans.pro')}</h3>
                 <div className="mt-8 flex items-baseline gap-1">
-                  <span className="text-6xl font-extrabold tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-primary-dim to-primary-container">$49</span>
+                  <span className="text-6xl font-extrabold tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-primary-dim to-primary-container" style={{ paddingBottom: '0.05em' }}>$49</span>
                   <span className="text-muted-foreground font-bold tracking-widest uppercase text-[10px]">/mo</span>
                 </div>
               </div>
@@ -320,6 +320,9 @@ export const LandingPage = () => {
                 </li>
                 <li className="flex items-center gap-4 text-sm font-medium">
                   <Check className="w-4 h-4 text-primary" /> {t('landing.plans.prioritySupport')}
+                </li>
+                <li className="flex items-center gap-4 text-sm font-medium">
+                  <Bot className="w-4 h-4 text-primary" /> Bot IA para autoatendimento
                 </li>
               </ul>
 

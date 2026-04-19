@@ -85,6 +85,34 @@ O sistema deve manter o Profissional informado sobre o status de sua conta atrav
 - **Reembolso:** Confirmar o processamento de reembolsos e a consequente revogação do acesso premium.
 *Nota: Todos os e-mails de cobrança devem conter informações de suporte e links para contato via WhatsApp oficial do sistema.*
 
+## 9. Gestão de Profissionais (Professional)
+- Cada empresa pode cadastrar múltiplos **profissionais** (médicos, esteticistas, etc.).
+- Cada profissional possui: `name`, `specialty`, `workingHours` (horários de trabalho semanais), `appointmentDuration` (duração padrão da consulta em minutos) e `active`.
+- Os horários de trabalho são armazenados como JSON: `Record<'mon'|'tue'|...|'sun', Array<{start: string, end: string}>>`.
+- Profissionais são isolados por `companyId`.
+
+## 10. Bot de Autoatendimento com IA (PRO)
+
+### Visão Geral
+- Recurso exclusivo do **plano PRO**. Cada empresa pode habilitar um bot inteligente via WhatsApp.
+- O bot utiliza a **Gemini API (gemini-2.0-flash)** para processar linguagem natural.
+- O contexto do bot é dinâmico: inclui descrição da empresa, serviços oferecidos, profissionais, horários de trabalho e instruções personalizadas.
+
+### Fluxo de Mensagens (Webhook)
+1. O webhook da Evolution API recebe a mensagem do cliente.
+2. O sistema verifica **palavras-chave de confirmação/cancelamento** primeiro (fallback rápido).
+3. Se não for uma palavra-chave, e o bot estiver habilitado + plano PRO → encaminha para a IA.
+4. O `ConversationService` (Redis) mantém o histórico da conversa (TTL 30min, max 20 mensagens).
+5. O `GeminiAdapter` monta um prompt dinâmico com o contexto da empresa e envia para a API.
+
+### Configuração do Bot
+- Via `CompanyConfig`: `botEnabled`, `botGreeting`, `botInstructions`, `businessType`, `businessDescription`, `address`, `servicesOffered`.
+- Via `Professional`: lista de profissionais com especialidades e horários.
+
+### Variáveis de Ambiente
+- `GEMINI_API_KEY`: Chave de acesso à API do Google Gemini.
+- `GEMINI_MODEL`: Modelo a ser utilizado (padrão: `gemini-2.0-flash`).
+
 ---
 
 ## Documentos Relacionados

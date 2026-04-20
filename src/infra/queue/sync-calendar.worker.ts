@@ -9,8 +9,8 @@ export class SyncCalendarWorker {
         this.worker = new Worker(
             "sync-calendar",
             async (job: Job) => {
-                const { userId } = job.data;
-                await this.syncUseCase.execute(userId);
+                const { companyId } = job.data;
+                await this.syncUseCase.execute(companyId);
             },
             {
                 connection: {

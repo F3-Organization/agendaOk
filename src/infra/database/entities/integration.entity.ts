@@ -1,16 +1,16 @@
 import { Entity, Column, ManyToOne, JoinColumn, Index } from "typeorm";
-import { User } from "./user.entity";
+import { Company } from "./company.entity";
 import { BaseEntity } from "./base.entity";
 
 @Entity("integrations")
-@Index(["userId", "provider"], { unique: true })
+@Index(["companyId", "provider"], { unique: true })
 export class Integration extends BaseEntity {
-    @Column({ type: "uuid", name: "user_id" })
-    userId!: string;
+    @Column({ type: "uuid", name: "company_id" })
+    companyId!: string;
 
-    @ManyToOne(() => User)
-    @JoinColumn({ name: "user_id" })
-    user!: User;
+    @ManyToOne(() => Company)
+    @JoinColumn({ name: "company_id" })
+    company!: Company;
 
     @Column({ type: "varchar" })
     provider!: string;

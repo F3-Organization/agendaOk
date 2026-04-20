@@ -1,6 +1,8 @@
-# Guia de Testes - AgendaOk
+[🏠 Voltar ao Contexto](../CONTEXT.md)
 
-Este documento estabelece os padrões e estratégias de testes para o projeto AgendaOk, garantindo a confiabilidade dos fluxos de sincronização e notificações.
+# Guia de Testes - ConfirmaZap
+
+Este documento estabelece os padrões e estratégias de testes para o projeto ConfirmaZap, garantindo a confiabilidade dos fluxos de sincronização e notificações.
 
 ## 🧪 Estratégia de Testes
 
@@ -49,3 +51,11 @@ Para manter o projeto pragmático e rápido, recomendamos a seguinte stack de te
 
 > [!TIP]
 > **Definição de Pronto:** Uma funcionalidade só é considerada "Pronta" se possuir cobertura mínima de testes de unidade para os seus Use Cases principais.
+
+---
+
+## Documentos Relacionados
+- [Arquitetura](./architecture.md)
+- [Padrões de Código](./code-style.md)
+- [Checklist de Revisão](./review-checklist.md)
+

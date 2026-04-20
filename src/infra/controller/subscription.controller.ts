@@ -5,6 +5,7 @@ import { HandleAbacatePayWebhookUseCase } from "../../usecase/subscription/handl
 import { GetSubscriptionStatusUseCase } from "../../usecase/subscription/get-subscription-status.usecase";
 import { GetSubscriptionPaymentHistoryUseCase } from "../../usecase/subscription/get-payment-history.usecase";
 import { GenerateInvoicePdfUseCase } from "../../usecase/subscription/generate-invoice-pdf.usecase";
+import { IPlanRepository } from "../../usecase/repositories/iplan-repository";
 import { AuthUserPayload } from "../types/auth.types";
 import { env } from "../config/configs";
 import { createHmac } from "crypto";
@@ -17,13 +18,47 @@ export class SubscriptionController {
         private readonly handleWebhook: HandleAbacatePayWebhookUseCase,
         private readonly getStatus: GetSubscriptionStatusUseCase,
         private readonly getHistory: GetSubscriptionPaymentHistoryUseCase,
-        private readonly generatePdf: GenerateInvoicePdfUseCase
+        private readonly generatePdf: GenerateInvoicePdfUseCase,
+        private readonly planRepository: IPlanRepository
     ) {
         this.fastify.logInfo("[SubscriptionController] Initializing...");
         this.registerRoutes();
     }
 
     private registerRoutes() {
+        // 0. Listar Planos (público)
+        this.fastify.addRoute("GET", "/subscription/plans", async (_request: FastifyRequest, reply: FastifyReply) => {
+            try {
+                const plans = await this.planRepository.findActive();
+                reply.send(plans);
+            } catch (error: any) {
+                reply.code(500).send({ error: "Failed to fetch plans" });
+            }
+        }, {
+            tags: ["Subscription"],
+            summary: "Lists all active plans",
+            response: {
+                200: {
+                    type: "array",
+                    items: {
+                        type: "object",
+                        properties: {
+                            id: { type: "string" },
+                            slug: { type: "string" },
+                            name: { type: "string" },
+                            description: { type: "string", nullable: true },
+                            priceInCents: { type: "number" },
+                            messageLimit: { type: "number", nullable: true },
+                            maxDevices: { type: "number" },
+                            features: { type: "array", items: { type: "string" } },
+                            isPurchasable: { type: "boolean" },
+                            sortOrder: { type: "number" }
+                        }
+                    }
+                }
+            }
+        });
+
         // 1. Criar Checkout de Assinatura
         this.fastify.addProtectedRoute("POST", "/subscription/checkout", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
@@ -76,7 +111,9 @@ export class SubscriptionController {
                         currentPeriodEnd: { type: "string", format: "date-time" },
                         checkoutUrl: { type: "string" },
                         amount: { type: "number" },
-                        planName: { type: "string" }
+                        planName: { type: "string" },
+                        taxId: { type: "string", nullable: true },
+                        whatsappNumber: { type: "string", nullable: true }
                     }
                 },
                 500: { type: "object", properties: { error: { type: "string" } } }
@@ -160,11 +197,16 @@ export class SubscriptionController {
             const payload = parseResult.data;
             const rawBody = JSON.stringify(request.body);
 
-            if (!signature && env.isProduction()) {
-                return reply.code(401).send({ error: "Missing signature" });
+            if (env.isProduction() && !env.abacatePay.webhookSecret) {
+                this.fastify.logInfo("[SubscriptionController] ABACATE_WEBHOOK_SECRET not configured in production");
+                return reply.code(503).send({ error: "Webhook not configured" });
             }
 
-            if (env.isProduction() || env.abacatePay.webhookSecret) {
+            if (env.abacatePay.webhookSecret) {
+                if (!signature) {
+                    return reply.code(401).send({ error: "Missing signature" });
+                }
+
                 const hmac = createHmac("sha256", env.abacatePay.webhookSecret);
                 const digest = hmac.update(rawBody).digest("hex");
 

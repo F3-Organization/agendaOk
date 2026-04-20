@@ -12,10 +12,10 @@ export class DashboardController {
 
     private registerRoutes() {
         this.fastify.addProtectedRoute("GET", "/dashboard/stats", async (request: FastifyRequest, reply: FastifyReply) => {
-            const user = request.user as { id: string };
-            const userId = user.id;
+            const user = request.user as { id: string; companyId?: string };
+            const companyId = user.companyId!;
 
-            const stats = await this.getStats.execute(userId);
+            const stats = await this.getStats.execute(companyId);
 
             return reply.send(stats);
         }, {

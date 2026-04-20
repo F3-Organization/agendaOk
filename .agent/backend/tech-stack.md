@@ -1,4 +1,6 @@
-# Tech Stack - AgendaOk
+[🏠 Voltar ao Contexto](../CONTEXT.md)
+
+# Tech Stack - ConfirmaZap
 
 ## Core
 - **Runtime:** Node.js (LTS - v24+)
@@ -15,6 +17,14 @@
 ## Integrações Externas (Adapters)
 - **Google Calendar API:** `googleapis` (v118+). Autenticação via OAuth2.
 - **WhatsApp API:** Evolution API (Consumo via HTTP/REST simples).
+- **IA Generativa:** Google Gemini API (`@google/generative-ai`). Modelo padrão: `gemini-2.0-flash`. Usado para o bot de autoatendimento (PRO).
 
 ## Testes (Opcional para MVP, mas configurado)
 - **Test Runner:** Vitest (Mais rápido que Jest e com suporte nativo a ESM/TS).
+
+---
+
+## Documentos Relacionados
+- [Arquitetura](./architecture.md)
+- [Ambiente Docker](./docker-setup.md)
+- [Padrões de Código](./code-style.md)

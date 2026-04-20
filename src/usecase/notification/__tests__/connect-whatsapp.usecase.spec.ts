@@ -1,23 +1,23 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ConnectWhatsappUseCase } from "../connect-whatsapp.usecase";
 import { IEvolutionService } from "../../ports/ievolution-service";
-import { IUserConfigRepository } from "../../repositories/iuser-config-repository";
-import { UserConfig } from "../../../infra/database/entities/user-config.entity";
+import { ICompanyConfigRepository } from "../../repositories/icompany-config-repository";
+import { CompanyConfig } from "../../../infra/database/entities/company-config.entity";
 
 describe("ConnectWhatsappUseCase", () => {
     let sut: ConnectWhatsappUseCase;
-    let userConfigRepository: IUserConfigRepository;
+    let companyConfigRepository: ICompanyConfigRepository;
     let evolutionService: IEvolutionService;
 
     const mockConfig = {
-        userId: "user-1",
+        companyId: "user-1",
         whatsappInstanceName: undefined
-    } as UserConfig;
+    } as CompanyConfig;
 
     beforeEach(() => {
-        userConfigRepository = {
-            findByUserId: vi.fn().mockResolvedValue(mockConfig),
-            update: vi.fn(),
+        companyConfigRepository = {
+            findByCompanyId: vi.fn().mockResolvedValue(mockConfig),
+            updateByCompanyId: vi.fn(),
             findByInstanceName: vi.fn(),
             save: vi.fn(),
             findAllActive: vi.fn()
@@ -32,7 +32,7 @@ describe("ConnectWhatsappUseCase", () => {
             deleteInstance: vi.fn()
         };
 
-        sut = new ConnectWhatsappUseCase(userConfigRepository, evolutionService);
+        sut = new ConnectWhatsappUseCase(companyConfigRepository, evolutionService);
     });
 
     it("deve criar uma instancia, configurar webhook e retornar o QR Code", async () => {
@@ -40,7 +40,7 @@ describe("ConnectWhatsappUseCase", () => {
 
         expect(evolutionService.createInstance).toHaveBeenCalled();
         expect(evolutionService.setWebhook).toHaveBeenCalled();
-        expect(userConfigRepository.update).toHaveBeenCalledWith("user-1", expect.objectContaining({
+        expect(companyConfigRepository.updateByCompanyId).toHaveBeenCalledWith("user-1", expect.objectContaining({
             whatsappInstanceName: expect.stringContaining("agent_")
         }));
         expect(result).toEqual({ base64: "qr-code-64" });
@@ -56,7 +56,7 @@ describe("ConnectWhatsappUseCase", () => {
     });
 
     it("deve lançar erro se o usuário não tiver configuração", async () => {
-        vi.mocked(userConfigRepository.findByUserId).mockResolvedValueOnce(null);
+        vi.mocked(companyConfigRepository.findByCompanyId).mockResolvedValueOnce(null);
 
         await expect(sut.execute("user-2")).rejects.toThrow("User configuration not found");
     });

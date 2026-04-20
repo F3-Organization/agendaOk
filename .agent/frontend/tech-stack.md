@@ -1,3 +1,5 @@
+[🏠 Voltar ao Contexto](../CONTEXT.md)
+
 # Tech Stack (Senior SaaS Monorepo)
 
 Selected technologies for the full ConfirmaZap ecosystem, optimized for high performance and horizontal scaling.
@@ -24,3 +26,11 @@ Selected technologies for the full ConfirmaZap ecosystem, optimized for high per
 ## Forms & Validation
 - **React Hook Form**: Performant form handling with minimal re-renders.
 - **Zod**: Schema validation for form inputs and API response verification.
+
+---
+
+## Documentos Relacionados
+- [Arquitetura Frontend](./architecture.md)
+- [Especificação da API](./backend-api-spec.md)
+- [Contexto Geral](../CONTEXT.md)
+

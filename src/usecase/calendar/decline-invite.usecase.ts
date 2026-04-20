@@ -1,6 +1,6 @@
 import { IGoogleCalendarService } from "../ports/igoogle-calendar-service";
 import { IScheduleRepository } from "../repositories/ischedule-repository";
-import { IUserConfigRepository } from "../repositories/iuser-config-repository";
+import { ICompanyConfigRepository } from "../repositories/icompany-config-repository";
 import { IIntegrationRepository } from "../repositories/iintegration-repository";
 import { ScheduleStatus } from "../../infra/database/entities/schedule.entity";
 
@@ -8,21 +8,21 @@ export class DeclineInviteUseCase {
     constructor(
         private readonly googleService: IGoogleCalendarService,
         private readonly scheduleRepository: IScheduleRepository,
-        private readonly userConfigRepository: IUserConfigRepository,
+        private readonly companyConfigRepository: ICompanyConfigRepository,
         private readonly integrationRepository: IIntegrationRepository
     ) {}
 
-    async execute(userId: string, appointmentId: string): Promise<void> {
-        const schedule = await this.scheduleRepository.findById(appointmentId, userId);
+    async execute(companyId: string, appointmentId: string): Promise<void> {
+        const schedule = await this.scheduleRepository.findById(appointmentId, companyId);
         if (!schedule) throw new Error("Appointment not found");
-        if (schedule.userId !== userId) throw new Error("Not authorized");
+        if (schedule.companyId !== companyId) throw new Error("Not authorized");
         
         if (schedule.isOwner) {
             throw new Error("Cannot decline your own event. Delete it instead.");
         }
 
-        const config = await this.userConfigRepository.findByUserId(userId);
-        const integration = await this.integrationRepository.findByUserAndProvider(userId, "GOOGLE");
+        const config = await this.companyConfigRepository.findByCompanyId(companyId);
+        const integration = await this.integrationRepository.findByCompanyAndProvider(companyId, "GOOGLE");
         
         if (!config || !integration || !integration.accessToken) {
             throw new Error("Google Calendar integration not configured");

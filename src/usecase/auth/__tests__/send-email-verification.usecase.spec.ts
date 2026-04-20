@@ -31,7 +31,7 @@ describe("SendEmailVerificationUseCase", () => {
         );
         expect(mailService.sendMail).toHaveBeenCalledWith(
             email,
-            "AgendaOK - Verificação de E-mail",
+            "ConfirmaZap - Verificação de E-mail",
             expect.stringContaining("Seu código de verificação")
         );
     });

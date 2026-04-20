@@ -1,46 +1,48 @@
 import { ISubscriptionRepository } from "../repositories/isubscription-repository";
 import { IScheduleRepository } from "../repositories/ischedule-repository";
+import { ICompanyRepository } from "../repositories/icompany-repository";
+import { IPlanRepository } from "../repositories/iplan-repository";
 import { SubscriptionStatus } from "../../infra/database/entities/subscription.entity";
+
+const FREE_FALLBACK_LIMIT = 50;
 
 export class CheckUsageLimitUseCase {
     constructor(
         private readonly subscriptionRepository: ISubscriptionRepository,
-        private readonly scheduleRepository: IScheduleRepository
+        private readonly scheduleRepository: IScheduleRepository,
+        private readonly companyRepository: ICompanyRepository,
+        private readonly planRepository: IPlanRepository
     ) {}
 
-    /**
-     * Verifies if the user can still send messages based on their plan's monthly limit.
-     * FREE users are capped at 50 messages/month.
-     * PRO users have no limit.
-     */
-    async execute(userId: string): Promise<{ canSend: boolean; plan: string; count: number; limit: number }> {
-        const subscription = await this.subscriptionRepository.findByUserId(userId);
-        const plan = subscription?.plan || "FREE";
-        const status = subscription?.status || SubscriptionStatus.INACTIVE;
-
-        // PRO plans have unlimited messages if active
-        if (status === SubscriptionStatus.ACTIVE && plan === "PRO") {
-            return { 
-                canSend: true, 
-                plan: "PRO", 
-                count: 0, 
-                limit: -1 
-            };
+    async execute(companyId: string): Promise<{ canSend: boolean; plan: string; count: number; limit: number }> {
+        const company = await this.companyRepository.findById(companyId);
+        if (!company) {
+            return { canSend: true, plan: "FREE", count: 0, limit: FREE_FALLBACK_LIMIT };
         }
 
-        // Calculate usage for the current month
+        const subscription = await this.subscriptionRepository.findByUserId(company.ownerId);
+        const planSlug = subscription?.plan || "FREE";
+        const status = subscription?.status || SubscriptionStatus.INACTIVE;
+
+        const planDef = await this.planRepository.findBySlug(planSlug);
+        const messageLimit = planDef?.messageLimit ?? FREE_FALLBACK_LIMIT;
+
+        // null messageLimit means unlimited
+        if (status === SubscriptionStatus.ACTIVE && planDef?.messageLimit === null) {
+            return { canSend: true, plan: planSlug, count: 0, limit: -1 };
+        }
+
         const now = new Date();
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-        
-        const count = await this.scheduleRepository.countMonthlyNotifications(userId, startOfMonth, endOfMonth);
-        const limit = 50;
+
+        const count = await this.scheduleRepository.countMonthlyNotifications(companyId, startOfMonth, endOfMonth);
 
         return {
-            canSend: count < limit,
-            plan,
+            canSend: count < messageLimit,
+            plan: planSlug,
             count,
-            limit
+            limit: messageLimit
         };
     }
 }

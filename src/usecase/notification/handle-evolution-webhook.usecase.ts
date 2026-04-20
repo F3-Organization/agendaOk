@@ -1,5 +1,7 @@
-import { IUserConfigRepository } from "../repositories/iuser-config-repository";
+import { ICompanyConfigRepository } from "../repositories/icompany-config-repository";
 import { IScheduleRepository } from "../repositories/ischedule-repository";
+import { IProfessionalRepository } from "../repositories/iprofessional-repository";
+import { ICompanyRepository } from "../repositories/icompany-repository";
 import { IEvolutionService } from "../ports/ievolution-service";
 import { ConfirmAppointmentUseCase } from "../calendar/confirm-appointment.usecase";
 import { CancelAppointmentUseCase } from "../calendar/cancel-appointment.usecase";
@@ -8,17 +10,23 @@ import { EvolutionWebhookPayload } from "../../../shared/schemas/evolution.schem
 import { env } from "../../infra/config/configs";
 import { CheckUsageLimitUseCase } from "../subscription/check-usage-limit.usecase";
 import { isWithinSilentWindow } from "../../shared/utils/time.util";
-import { UserConfig } from "../../infra/database/entities/user-config.entity";
+import { CompanyConfig } from "../../infra/database/entities/company-config.entity";
+import { GeminiAdapter } from "../../infra/adapters/gemini.adapter";
+import { ConversationService } from "../chatbot/conversation.service";
 
 export class HandleEvolutionWebhookUseCase {
     constructor(
-        private readonly userConfigRepository: IUserConfigRepository,
+        private readonly companyConfigRepository: ICompanyConfigRepository,
         private readonly scheduleRepository: IScheduleRepository,
         private readonly confirmAppointment: ConfirmAppointmentUseCase,
         private readonly cancelAppointment: CancelAppointmentUseCase,
         private readonly acceptInvite: AcceptInviteUseCase,
         private readonly evolutionService: IEvolutionService,
-        private readonly checkUsageLimit: CheckUsageLimitUseCase
+        private readonly checkUsageLimit: CheckUsageLimitUseCase,
+        private readonly geminiAdapter: GeminiAdapter,
+        private readonly conversationService: ConversationService,
+        private readonly professionalRepository: IProfessionalRepository,
+        private readonly companyRepository: ICompanyRepository
     ) {}
 
     async execute(payload: EvolutionWebhookPayload): Promise<void> {
@@ -64,43 +72,95 @@ export class HandleEvolutionWebhookUseCase {
         
         if (!jid) return;
 
-        const config = await this.userConfigRepository.findByInstanceName(instanceName);
+        const config = await this.companyConfigRepository.findByInstanceName(instanceName);
         if (config) {
-            const updateData: Partial<UserConfig> = { whatsappLid: jid };
+            const updateData: Partial<CompanyConfig> = { whatsappLid: jid };
 
             if (rawNumber && !rawNumber.includes("@")) {
                 updateData.whatsappNumber = this.normalizeNumber(rawNumber);
             }
 
-            await this.userConfigRepository.update(config.userId, updateData);
+            await this.companyConfigRepository.updateByCompanyId(config.companyId, updateData);
         }
     }
 
     private async handleUserInstanceMessage(instanceName: string, senderNumber: string, fullJid: string, text: string): Promise<void> {
-        const config = await this.userConfigRepository.findByInstanceName(instanceName);
+        const config = await this.companyConfigRepository.findByInstanceName(instanceName);
         if (!config) return;
 
-        const usage = await this.checkUsageLimit.execute(config.userId);
+        const usage = await this.checkUsageLimit.execute(config.companyId);
         if (!usage.canSend) {
             return;
         }
 
-        const isConfirmation = this.isConfirmation(text) || this.isCancellation(text);
-        if (!isConfirmation && isWithinSilentWindow(config.silentWindowStart ?? "23:59", config.silentWindowEnd ?? "08:00")) {
+        // Check if the message is a direct confirmation/cancellation response to a notification
+        const isDirectResponse = this.isConfirmation(text) || this.isCancellation(text);
+
+        if (!isDirectResponse && isWithinSilentWindow(config.silentWindowStart ?? "23:59", config.silentWindowEnd ?? "08:00")) {
             return;
         }
 
+        // Handle direct confirmation/cancellation (keyword-based fallback)
         if (this.isConfirmation(text)) {
             try {
-                await this.confirmAppointment.execute(config.userId, senderNumber);
+                await this.confirmAppointment.execute(config.companyId, senderNumber);
                 await this.evolutionService.sendText(instanceName, fullJid, "✅ Ótimo! Seu agendamento foi confirmado com sucesso. Te esperamos!");
-            } catch (error) {}
+                return;
+            } catch (error) {
+                // If no appointment to confirm, fall through to AI
+            }
         } else if (this.isCancellation(text)) {
             try {
-                await this.cancelAppointment.execute(config.userId, senderNumber);
+                await this.cancelAppointment.execute(config.companyId, senderNumber);
                 await this.evolutionService.sendText(instanceName, fullJid, "❌ Certo, seu agendamento foi cancelado. Entre em contato para remarcar quando puder.");
-            } catch (error) {}
+                return;
+            } catch (error) {
+                // If no appointment to cancel, fall through to AI
+            }
         }
+
+        // AI-powered response (only for PRO users with bot enabled)
+        if (usage.plan === "PRO" && config.botEnabled && env.gemini.apiKey) {
+            try {
+                await this.handleAIResponse(config, instanceName, senderNumber, fullJid, text);
+            } catch (error) {
+                console.error("[HandleWebhook] AI response failed, skipping:", error);
+                // Don't send any fallback message — silent failure
+            }
+        }
+    }
+
+    private async handleAIResponse(
+        config: CompanyConfig,
+        instanceName: string,
+        senderNumber: string,
+        fullJid: string,
+        text: string
+    ): Promise<void> {
+        // Load company info
+        const company = await this.companyRepository.findById(config.companyId);
+        const companyName = company?.name || "Empresa";
+
+        // Load professionals
+        const professionals = await this.professionalRepository.findActiveByCompanyId(config.companyId);
+
+        // Get conversation history
+        const history = await this.conversationService.getHistory(config.companyId, senderNumber);
+
+        // Call Gemini
+        const response = await this.geminiAdapter.chat(
+            config,
+            companyName,
+            professionals,
+            history,
+            text
+        );
+
+        // Save conversation history
+        await this.conversationService.addMessages(config.companyId, senderNumber, text, response.text);
+
+        // Send response via WhatsApp
+        await this.evolutionService.sendText(instanceName, fullJid, response.text);
     }
 
     private async handleSystemBotMessage(
@@ -120,32 +180,32 @@ export class HandleEvolutionWebhookUseCase {
         
         if (!this.isConfirmation(text) && !match) return;
         
-        let config: UserConfig | null = null;
+        let config: CompanyConfig | null = null;
 
         if (match && match[1]) {
             const configId = match[1];
-            config = await this.userConfigRepository.findById(configId);
+            config = await this.companyConfigRepository.findByCompanyId(configId);
             
             if (config && (!config.whatsappLid || config.whatsappLid !== fullJid)) {
-                await this.userConfigRepository.update(config.userId, { whatsappLid: fullJid });
+                await this.companyConfigRepository.updateByCompanyId(config.companyId, { whatsappLid: fullJid });
             }
         }
 
         if (!config && stanzaId) {
-            config = await this.userConfigRepository.findByLastMessageId(stanzaId);
+            config = await this.companyConfigRepository.findByLastMessageId(stanzaId);
             if (config && (!config.whatsappLid || config.whatsappLid !== fullJid)) {
-                await this.userConfigRepository.update(config.userId, { whatsappLid: fullJid });
+                await this.companyConfigRepository.updateByCompanyId(config.companyId, { whatsappLid: fullJid });
             }
         }
 
         if (!config) {
-            config = await this.userConfigRepository.findByWhatsappNumber(fullJid);
+            config = await this.companyConfigRepository.findByWhatsappNumber(fullJid);
             if (!config) {
-                config = await this.userConfigRepository.findByWhatsappNumber(phoneNumber);
+                config = await this.companyConfigRepository.findByWhatsappNumber(phoneNumber);
             }
 
             if (config) {
-                await this.userConfigRepository.update(config.userId, { whatsappLid: fullJid });
+                await this.companyConfigRepository.updateByCompanyId(config.companyId, { whatsappLid: fullJid });
             }
         }
 
@@ -158,17 +218,17 @@ export class HandleEvolutionWebhookUseCase {
 
         if (!config) return;
 
-        const usage = await this.checkUsageLimit.execute(config.userId);
+        const usage = await this.checkUsageLimit.execute(config.companyId);
         if (!usage.canSend) return;
 
-        const lastInvite = await this.scheduleRepository.findLastPendingInvite(config.userId);
+        const lastInvite = await this.scheduleRepository.findLastPendingInvite(config.companyId);
         if (!lastInvite) {
             await this.evolutionService.sendText(env.evolution.systemBotInstance, fullJid, "⚠️ Não encontrei nenhum convite pendente para aceitar no momento.");
             return;
         }
 
         try {
-            await this.acceptInvite.execute(config.userId, lastInvite.id);
+            await this.acceptInvite.execute(config.companyId, lastInvite.id);
             await this.evolutionService.sendText(env.evolution.systemBotInstance, fullJid, `✅ Perfeito! O compromisso *"${lastInvite.title}"* foi aceito e confirmado no seu Google Calendar.`);
         } catch (error: unknown) {
             await this.evolutionService.sendText(env.evolution.systemBotInstance, fullJid, "❌ Ops, tive um problema ao tentar aceitar seu convite. Tente novamente.");

@@ -394,7 +394,15 @@ export const DashboardPage = () => {
                   if (dashboardStats?.calendarConnected) {
                     syncMutation.mutate();
                   } else {
-                    window.location.href = `${apiClient.defaults.baseURL}/auth/google`;
+                    const width = 500;
+                    const height = 600;
+                    const left = window.screenX + (window.outerWidth - width) / 2;
+                    const top = window.screenY + (window.outerHeight - height) / 2;
+                    window.open(
+                      `${apiClient.defaults.baseURL}/auth/google`,
+                      'google_calendar',
+                      `width=${width},height=${height},left=${left},top=${top},toolbar=0,scrollbars=1,status=1,resizable=1,location=1,menuBar=0`
+                    );
                   }
                 }}
                 disabled={syncMutation.isPending}
@@ -409,20 +417,8 @@ export const DashboardPage = () => {
             </div>
           </Card>
 
-          <Card variant="base" className="p-8 bg-surface-low border-dashed border-2">
-            <div className="flex flex-col items-center text-center space-y-4">
-              <div className="w-10 h-10 rounded-full bg-surface-high flex items-center justify-center">
-                <ArrowUpRight className="w-5 h-5 text-muted-foreground" />
-              </div>
-              <div>
-                <h4 className="font-bold text-sm tracking-tight mb-1">{t('dashboard.newConnection.title')}</h4>
-                <p className="text-xs text-muted-foreground">{t('dashboard.newConnection.subtitle')}</p>
-              </div>
-              <Button variant="ghost" size="sm" className="w-full font-bold uppercase text-[10px] tracking-widest border border-outline-variant/30">
-                {t('dashboard.newConnection.button')}
-              </Button>
-            </div>
-          </Card>
+
+
         </div>
       </div>
       

@@ -6,16 +6,54 @@ import { SubscriptionStatus } from "../../../infra/database/entities/subscriptio
 describe("HandleAbacatePayWebhookUseCase", () => {
     let sut: HandleAbacatePayWebhookUseCase;
     let subscriptionRepository: SubscriptionRepository;
+    let paymentRepository: any;
+    let userRepository: any;
+    let companyConfigRepository: any;
+    let notificationService: any;
+    let fiscalAdapter: any;
 
     beforeEach(() => {
         subscriptionRepository = {
             findByBillingId: vi.fn(),
             updateStatus: vi.fn(),
             findByUserId: vi.fn(),
-            createOrUpdate: vi.fn()
+            createOrUpdate: vi.fn(),
+            deactivateOthers: vi.fn()
         } as any;
 
-        sut = new HandleAbacatePayWebhookUseCase(subscriptionRepository);
+        paymentRepository = {
+            findByBillingId: vi.fn(),
+            create: vi.fn(),
+            update: vi.fn(),
+            findPendingByUser: vi.fn()
+        };
+
+        userRepository = {
+            findById: vi.fn()
+        };
+
+        companyConfigRepository = {
+            findByCompanyId: vi.fn()
+        };
+
+        notificationService = {
+            notifyPaymentSuccess: vi.fn(),
+            notifySubscriptionExpired: vi.fn(),
+            notifySubscriptionRefunded: vi.fn()
+        };
+
+        fiscalAdapter = {
+            emitirNfse: vi.fn()
+        };
+
+        sut = new HandleAbacatePayWebhookUseCase(
+            subscriptionRepository,
+            paymentRepository,
+            userRepository,
+            companyConfigRepository,
+            notificationService,
+            fiscalAdapter
+        );
     });
 
     it("deve ativar a assinatura quando o evento for billing.paid", async () => {
@@ -26,6 +64,7 @@ describe("HandleAbacatePayWebhookUseCase", () => {
 
         const mockSubscription = { id: "sub-1", userId: "user-1" };
         vi.mocked(subscriptionRepository.findByBillingId).mockResolvedValueOnce(mockSubscription as any);
+        paymentRepository.findByBillingId.mockResolvedValueOnce({ id: "pay-1" });
 
         const result = await sut.execute(payload);
 
@@ -33,7 +72,8 @@ describe("HandleAbacatePayWebhookUseCase", () => {
             "sub-1",
             "user-1",
             SubscriptionStatus.ACTIVE,
-            expect.any(Date)
+            expect.any(Date),
+            "PRO"
         );
         expect(result.status).toBe("processed");
     });

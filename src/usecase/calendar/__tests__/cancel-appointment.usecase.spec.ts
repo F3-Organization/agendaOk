@@ -2,13 +2,15 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { CancelAppointmentUseCase } from "../cancel-appointment.usecase";
 import { IGoogleCalendarService } from "../../ports/igoogle-calendar-service";
 import { IScheduleRepository } from "../../repositories/ischedule-repository";
-import { IUserConfigRepository } from "../../repositories/iuser-config-repository";
+import { ICompanyConfigRepository } from "../../repositories/icompany-config-repository";
+import { IIntegrationRepository } from "../../repositories/iintegration-repository";
 import { ScheduleStatus } from "../../../infra/database/entities/schedule.entity";
 
 describe("CancelAppointmentUseCase", () => {
     let sut: CancelAppointmentUseCase;
     let scheduleRepository: IScheduleRepository;
-    let userConfigRepository: IUserConfigRepository;
+    let companyConfigRepository: ICompanyConfigRepository;
+    let integrationRepository: IIntegrationRepository;
     let googleService: IGoogleCalendarService;
 
     beforeEach(() => {
@@ -18,12 +20,12 @@ describe("CancelAppointmentUseCase", () => {
             updateNotified: vi.fn(),
             save: vi.fn(),
             findByGoogleEventId: vi.fn(),
-            findByUserId: vi.fn()
+            findByCompanyId: vi.fn()
         };
 
-        userConfigRepository = {
-            findByUserId: vi.fn().mockResolvedValue({
-                googleAccessToken: "valid-token"
+        companyConfigRepository = {
+            findByCompanyId: vi.fn().mockResolvedValue({
+                companyId: "user-1"
             }),
             findByInstanceName: vi.fn(),
             findAllActive: vi.fn(),
@@ -40,7 +42,12 @@ describe("CancelAppointmentUseCase", () => {
             getUserProfile: vi.fn()
         };
 
-        sut = new CancelAppointmentUseCase(scheduleRepository, userConfigRepository, googleService);
+        integrationRepository = {
+            findByCompanyAndProvider: vi.fn().mockResolvedValue({ accessToken: "valid-token", refreshToken: "refresh-token" }),
+            save: vi.fn()
+        } as any;
+
+        sut = new CancelAppointmentUseCase(scheduleRepository, companyConfigRepository, integrationRepository, googleService);
     });
 
     it("deve cancelar o agendamento se o número de telefone coincidir", async () => {
@@ -93,7 +100,7 @@ describe("CancelAppointmentUseCase", () => {
     });
 
     it("não deve tentar atualizar Google se o usuário não tiver token", async () => {
-        vi.mocked(userConfigRepository.findByUserId).mockResolvedValueOnce(null);
+        vi.mocked(integrationRepository.findByCompanyAndProvider).mockResolvedValueOnce(null);
         
         const mockSchedule = {
             id: "1",

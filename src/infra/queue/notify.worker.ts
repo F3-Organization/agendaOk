@@ -1,14 +1,14 @@
 import { Worker, Job } from "bullmq";
 import { env } from "../config/configs";
 import { NotifyUpcomingAppointmentsUseCase } from "../../usecase/notification/notify-upcoming-appointments.usecase";
-import { IUserConfigRepository } from "../../usecase/repositories/iuser-config-repository";
+import { ICompanyConfigRepository } from "../../usecase/repositories/icompany-config-repository";
 
 export class NotifyWorker {
     private worker: Worker;
 
     constructor(
         private readonly notifyUseCase: NotifyUpcomingAppointmentsUseCase,
-        private readonly userConfigRepository: IUserConfigRepository
+        private readonly companyConfigRepository: ICompanyConfigRepository
     ) {
         this.worker = new Worker(
             "notifications",
@@ -18,8 +18,8 @@ export class NotifyWorker {
                     return;
                 }
 
-                const { userId } = job.data;
-                await this.notifyUseCase.execute(userId);
+                const { companyId } = job.data;
+                await this.notifyUseCase.execute(companyId);
             },
             {
                 connection: {
@@ -40,9 +40,9 @@ export class NotifyWorker {
     }
 
     private async handleGlobalCheck() {
-        const activeConfigs = await this.userConfigRepository.findAllActive();
+        const activeConfigs = await this.companyConfigRepository.findAllActive();
         for (const config of activeConfigs) {
-            await this.notifyUseCase.execute(config.userId);
+            await this.notifyUseCase.execute(config.companyId);
         }
     }
 }

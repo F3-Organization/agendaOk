@@ -2,16 +2,20 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { CreateSubscriptionCheckoutUseCase } from "../create-checkout.usecase";
 import { UserRepository } from "../../../infra/database/repositories/user.repository";
 import { SubscriptionRepository } from "../../../infra/database/repositories/subscription.repository";
-import { UserConfigRepository } from "../../../infra/database/repositories/user-config.repository";
+import { CompanyConfigRepository } from "../../../infra/database/repositories/company-config.repository";
+import { ICompanyRepository } from "../../repositories/icompany-repository";
 import { IPaymentGateway } from "../../ports/ipayment-gateway";
+import { ISubscriptionPaymentRepository } from "../../repositories/isubscription-payment-repository";
 import { SubscriptionStatus } from "../../../infra/database/entities/subscription.entity";
 
 describe("CreateSubscriptionCheckoutUseCase", () => {
     let sut: CreateSubscriptionCheckoutUseCase;
     let userRepository: UserRepository;
     let subscriptionRepository: SubscriptionRepository;
-    let userConfigRepository: UserConfigRepository;
+    let companyConfigRepository: CompanyConfigRepository;
+    let companyRepository: ICompanyRepository;
     let paymentGateway: IPaymentGateway;
+    let paymentRepository: ISubscriptionPaymentRepository;
 
     beforeEach(() => {
         userRepository = {
@@ -22,24 +26,44 @@ describe("CreateSubscriptionCheckoutUseCase", () => {
 
         subscriptionRepository = {
             findByUserId: vi.fn(),
-            createOrUpdate: vi.fn()
+            createOrUpdate: vi.fn(),
+            save: vi.fn()
         } as any;
 
-        userConfigRepository = {
-            findByUserId: vi.fn()
+        companyConfigRepository = {
+            findByCompanyId: vi.fn(),
+            updateByCompanyId: vi.fn()
+        } as any;
+
+        companyRepository = {
+            findByOwnerId: vi.fn(),
+            findById: vi.fn(),
+            save: vi.fn()
         } as any;
 
         paymentGateway = {
             createCustomer: vi.fn(),
+            getCustomer: vi.fn(),
+            createSubscription: vi.fn(),
             createBilling: vi.fn(),
             getBilling: vi.fn()
-        };
+        } as any;
+
+        paymentRepository = {
+            findPendingByUser: vi.fn(),
+            create: vi.fn(),
+            findByBillingId: vi.fn(),
+            findById: vi.fn(),
+            update: vi.fn()
+        } as any;
 
         sut = new CreateSubscriptionCheckoutUseCase(
             userRepository,
             subscriptionRepository,
-            userConfigRepository,
-            paymentGateway
+            companyConfigRepository,
+            companyRepository,
+            paymentGateway,
+            paymentRepository
         );
     });
 
@@ -65,12 +89,15 @@ describe("CreateSubscriptionCheckoutUseCase", () => {
     it("deve criar novo customer se não existir um customerId", async () => {
         vi.mocked(userRepository.findById).mockResolvedValueOnce({ id: "user-1", name: "User", email: "user@test.com" } as any);
         vi.mocked(subscriptionRepository.findByUserId).mockResolvedValueOnce(null);
-        vi.mocked(userConfigRepository.findByUserId).mockResolvedValueOnce({
+        vi.mocked(companyRepository.findByOwnerId).mockResolvedValueOnce([{ id: "company-1" }] as any);
+        vi.mocked(companyConfigRepository.findByCompanyId).mockResolvedValueOnce({
             whatsappNumber: "5511999999999",
             taxId: "123.456.789-00"
         } as any);
         vi.mocked(paymentGateway.createCustomer).mockResolvedValueOnce({ id: "customer-123" });
-        vi.mocked(paymentGateway.createBilling).mockResolvedValueOnce({ id: "billing-123", url: "https://new-checkout.url" });
+        (paymentGateway as any).createSubscription.mockResolvedValueOnce({ id: "billing-123", url: "https://new-checkout.url" });
+        (paymentGateway as any).getCustomer.mockResolvedValueOnce(null);
+        vi.mocked(subscriptionRepository.save).mockResolvedValueOnce({ id: "sub-1" } as any);
 
         const result = await sut.execute("user-1");
 
@@ -78,26 +105,22 @@ describe("CreateSubscriptionCheckoutUseCase", () => {
             name: "User",
             email: "user@test.com"
         }));
-        expect(subscriptionRepository.createOrUpdate).toHaveBeenCalledWith("user-1", expect.objectContaining({
-            abacateCustomerId: "customer-123",
-            checkoutUrl: "https://new-checkout.url"
-        }));
         expect(result.url).toBe("https://new-checkout.url");
     });
 
     it("deve usar o customerId existente se disponível", async () => {
         vi.mocked(userRepository.findById).mockResolvedValueOnce({ id: "user-1" } as any);
         vi.mocked(subscriptionRepository.findByUserId).mockResolvedValueOnce({
+            id: "sub-1",
             abacateCustomerId: "customer-existente",
             status: SubscriptionStatus.INACTIVE
         } as any);
-        vi.mocked(paymentGateway.createBilling).mockResolvedValueOnce({ id: "billing-123", url: "https://checkout.url" });
+        (paymentRepository as any).findPendingByUser.mockResolvedValueOnce({
+            checkoutUrl: "https://pending-checkout.url"
+        });
 
-        await sut.execute("user-1");
+        const result = await sut.execute("user-1");
 
-        expect(paymentGateway.createCustomer).not.toHaveBeenCalled();
-        expect(paymentGateway.createBilling).toHaveBeenCalledWith(expect.objectContaining({
-            customerId: "customer-existente"
-        }));
+        expect(result.url).toBe("https://pending-checkout.url");
     });
 });

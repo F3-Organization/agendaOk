@@ -4,12 +4,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   User,
   Mail,
-  Phone,
-  FileText,
-  Bell,
-  BellOff,
-  Clock,
-  RefreshCw,
   Shield,
   ShieldCheck,
   Lock,
@@ -20,8 +14,7 @@ import {
   KeyRound,
   X,
   QrCode,
-  Copy,
-  ArrowRight
+  Copy
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { PageLayout } from '../shared/ui/PageLayout';
@@ -144,16 +137,10 @@ export const SettingsPage = () => {
     const formData = new FormData(e.currentTarget);
     const rawData = Object.fromEntries(formData.entries());
 
-    const data: any = {
-      syncEnabled: formData.get('syncEnabled') === 'on'
-    };
+    const data: any = {};
 
     if (rawData.name) data.name = rawData.name as string;
     if (rawData.email) data.email = rawData.email as string;
-    if (rawData.whatsappNumber) data.whatsappNumber = rawData.whatsappNumber as string;
-    if (rawData.taxId) data.taxId = rawData.taxId as string;
-    if (rawData.silentWindowStart) data.silentWindowStart = rawData.silentWindowStart as string;
-    if (rawData.silentWindowEnd) data.silentWindowEnd = rawData.silentWindowEnd as string;
 
     updateMutation.mutate(data);
   };
@@ -236,132 +223,13 @@ export const SettingsPage = () => {
                     />
                   </div>
                 </div>
-
-                <div className="space-y-3">
-                  <label className="text-[10px] font-black text-muted-foreground/50 uppercase tracking-[0.3em] ml-1">{t('settings.profile.taxId', 'CPF / CNPJ')}</label>
-                  <div className="relative group/input">
-                    <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40 group-focus-within/input:text-primary transition-colors" />
-                    <Input
-                      name="taxId"
-                      defaultValue={userConfig?.taxId}
-                      className="pl-12 h-12 bg-black/40 border-white/5 focus:bg-black/60 focus:border-primary/30 transition-all rounded-lg font-medium"
-                      placeholder={t('settings.profile.placeholders.taxId', '000.000.000-00')}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <label className="text-[10px] font-black text-muted-foreground/50 uppercase tracking-[0.3em] ml-1">{t('settings.profile.whatsapp', 'WhatsApp de Contato')}</label>
-                  <div className="relative group/input">
-                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40 group-focus-within/input:text-primary transition-colors" />
-                    <Input
-                      name="whatsappNumber"
-                      defaultValue={userConfig?.whatsappNumber}
-                      className="pl-12 h-12 bg-black/40 border-white/5 focus:bg-black/60 focus:border-primary/30 transition-all rounded-lg font-medium"
-                      placeholder={t('settings.profile.placeholders.whatsapp', '11999999999')}
-                    />
-                  </div>
-                  <p className="text-[10px] text-muted-foreground/40 px-2 italic font-medium">
-                    {t('settings.profile.whatsappHint', 'Para alertas administrativos e notificações de sistema.')}
-                  </p>
-                </div>
-              </div>
-            </Card>
-          </section>
-
-          {/* Automation Section */}
-          <section className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
-            <div className="space-y-2 px-1">
-              <div className="flex items-center gap-3 text-primary">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
-                  <Bell className="w-5 h-5" />
-                </div>
-                <h2 className="text-2xl font-black tracking-tight">{t('settings.automation.title', 'Automação & Silêncio')}</h2>
-              </div>
-              <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl opacity-70">
-                {t('settings.automation.description')}
-              </p>
-            </div>
-
-            <Card variant="glass" className="p-8 space-y-10 border-white/5">
-              <div className="flex items-center justify-between p-6 rounded-xl bg-black/30 border border-white/5 shadow-inner group/sync">
-                <div className="flex gap-6">
-                  <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover/sync:rotate-180 transition-transform duration-1000 shadow-xl">
-                    <RefreshCw className="w-7 h-7" />
-                  </div>
-                  <div>
-                    <h3 className="font-black text-lg tracking-tight">{t('settings.automation.syncTitle', 'Sincronização Ativa')}</h3>
-                    <p className="text-xs text-muted-foreground/60 mt-0.5 font-medium">{t('settings.automation.syncDesc', 'Habilite ou desabilite a automação total com o Google Calendar')}</p>
-                  </div>
-                </div>
-                <div className="flex items-center scale-110 pr-2">
-                  <input
-                    type="checkbox"
-                    name="syncEnabled"
-                    defaultChecked={userConfig?.syncEnabled}
-                    className="w-12 h-6 rounded-full bg-white/5 appearance-none cursor-pointer relative checked:bg-primary transition-all border border-white/10 after:content-[''] after:absolute after:top-1 after:left-1 after:w-4 after:h-4 after:rounded-full after:bg-white after:transition-all checked:after:translate-x-6 shadow-inner"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-8">
-                <div className="flex items-center gap-3 px-1 font-black tracking-[0.4em] text-muted-foreground/40 text-[9px] uppercase">
-                  <BellOff className="w-4 h-4" />
-                  {t('settings.automation.silentWindow', 'Janela de Silêncio')}
-                </div>
-                
-                <div className="flex flex-col lg:flex-row gap-12 items-center">
-                  <div className="flex-1 space-y-4">
-                    <p className="text-xs text-muted-foreground/50 leading-relaxed italic border-l-4 border-primary/20 pl-6 py-2">
-                      {t('settings.automation.silentWindowDesc', 'Defina o horário em que o sistema NÃO enviará mensagens automáticas pelo WhatsApp para seus clientes.')}
-                    </p>
-                  </div>
-
-                  <div className="flex-1 flex items-center gap-6 p-6 rounded-xl bg-black/30 border border-white/5 shadow-inner">
-                    <div className="flex-1 space-y-3">
-                      <label className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40 flex items-center gap-2 ml-1">
-                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
-                        {t('settings.automation.start', 'Início')}
-                      </label>
-                      <div className="relative group/input">
-                        <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/30 group-focus-within/input:text-primary transition-colors" />
-                        <Input
-                          name="silentWindowStart"
-                          type="time"
-                          defaultValue={userConfig?.silentWindowStart}
-                          className="pl-12 bg-black/30 border-white/5 focus:bg-black/60 focus:border-primary/30 transition-all font-black text-lg h-12 rounded-lg"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-center pt-8 opacity-20">
-                      <ArrowRight className="w-5 h-5 text-primary" />
-                    </div>
-
-                    <div className="flex-1 space-y-3">
-                      <label className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40 flex items-center gap-2 ml-1">
-                        <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)]" />
-                        {t('settings.automation.end', 'Término')}
-                      </label>
-                      <div className="relative group/input">
-                        <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/30 group-focus-within/input:text-primary transition-colors" />
-                        <Input
-                          name="silentWindowEnd"
-                          type="time"
-                          defaultValue={userConfig?.silentWindowEnd}
-                          className="pl-12 bg-black/30 border-white/5 focus:bg-black/60 focus:border-primary/30 transition-all font-black text-lg h-12 rounded-lg"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
             </Card>
 
             <div className="flex justify-end pt-4">
-              <Button 
-                type="submit" 
-                disabled={updateMutation.isPending} 
+              <Button
+                type="submit"
+                disabled={updateMutation.isPending}
                 className="h-14 px-12 group gap-4 shadow-2xl shadow-primary/20 text-xs font-black tracking-[0.3em] uppercase transition-all hover:scale-[1.03] active:scale-95 bg-primary text-primary-dim rounded-xl"
               >
                 {updateMutation.isPending ? <Loader2 className="w-6 h-6 animate-spin" /> : <><Save className="w-6 h-6 fill-current" /> {t('settings.messages.savePreferences', 'Salvar Preferências')}</>}

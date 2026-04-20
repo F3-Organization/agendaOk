@@ -1,5 +1,6 @@
 import { IGoogleCalendarService } from "../ports/igoogle-calendar-service";
 import { IUserRepository } from "../repositories/iuser-repository";
+import { ICompanyRepository } from "../repositories/icompany-repository";
 import { User } from "../../infra/database/entities/user.entity";
 import { ExchangeGoogleCodeUseCase } from "./exchange-google-code.usecase";
 
@@ -7,10 +8,11 @@ export class AuthenticateGoogleUseCase {
     constructor(
         private readonly googleService: IGoogleCalendarService,
         private readonly userRepo: IUserRepository,
+        private readonly companyRepo: ICompanyRepository,
         private readonly exchangeCode: ExchangeGoogleCodeUseCase
     ) {}
 
-    async execute(code: string): Promise<{ user: User, tokens: any }> {
+    async execute(code: string): Promise<{ user: User, tokens: any, companyId: string | null }> {
         const tokens = await this.googleService.getTokens(code);
         const profile = await this.googleService.getUserProfile(tokens.access_token);
 
@@ -30,9 +32,15 @@ export class AuthenticateGoogleUseCase {
             user = await this.userRepo.save(user);
         }
 
-        // Save/Update tokens via ExchangeGoogleCodeUseCase
-        await this.exchangeCode.execute(user.id, tokens);
+        // Link Google tokens to user's first company if available
+        const companies = await this.companyRepo.findByOwnerId(user.id);
+        const defaultCompanyId = companies[0]?.id ?? null;
 
-        return { user, tokens };
+        if (defaultCompanyId) {
+            // Save/Update Google tokens linked to the primary company
+            await this.exchangeCode.execute(defaultCompanyId, tokens);
+        }
+
+        return { user, tokens, companyId: defaultCompanyId };
     }
 }

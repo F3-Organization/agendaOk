@@ -1,18 +1,19 @@
 import { env } from "../../infra/config/configs";
 import { IEvolutionService } from "../ports/ievolution-service";
-import { IUserConfigRepository } from "../repositories/iuser-config-repository";
+import { ICompanyConfigRepository } from "../repositories/icompany-config-repository";
 import { IUserRepository } from "../repositories/iuser-repository";
 import { AppError } from "../../shared/errors/app-error";
 import { UpdateUserConfigDTO } from "../../../shared/schemas/user.schema";
+import { CompanyConfig } from "../../infra/database/entities/company-config.entity";
 
 export class UpdateUserConfigUseCase {
     constructor(
         private readonly userRepo: IUserRepository,
-        private readonly userConfigRepo: IUserConfigRepository,
+        private readonly companyConfigRepo: ICompanyConfigRepository,
         private readonly evolutionService: IEvolutionService
     ) {}
 
-    async execute(userId: string, data: UpdateUserConfigDTO): Promise<void> {
+    async execute(userId: string, companyId: string, data: UpdateUserConfigDTO): Promise<void> {
         if (!userId) {
             throw new AppError("ID do usuário é obrigatório", 400);
         }
@@ -25,7 +26,7 @@ export class UpdateUserConfigUseCase {
             });
         }
 
-        // 2. Prepare Config Data
+        // 2. Prepare Config Data (saved per company)
         const configData: any = {};
         if (data.whatsappNumber !== undefined) {
              configData.whatsappNumber = data.whatsappNumber ? this.normalizeNumber(data.whatsappNumber) : null;
@@ -35,21 +36,21 @@ export class UpdateUserConfigUseCase {
         if (data.silentWindowEnd !== undefined) configData.silentWindowEnd = data.silentWindowEnd;
         if (data.syncEnabled !== undefined) configData.syncEnabled = data.syncEnabled;
 
-        // 3. Update or Create Config
-        let config = await this.userConfigRepo.findByUserId(userId);
+        // 3. Update or Create CompanyConfig
+        let config = await this.companyConfigRepo.findByCompanyId(companyId);
         const oldNumber = config?.whatsappNumber;
         const oldLid = config?.whatsappLid;
         
         if (!config) {
-            config = await this.userConfigRepo.save({
-                userId,
-                ...configData
-            });
+            const newConfig = new CompanyConfig();
+            newConfig.companyId = companyId;
+            Object.assign(newConfig, configData);
+            config = await this.companyConfigRepo.save(newConfig);
         } else {
             if (Object.keys(configData).length > 0) {
-                await this.userConfigRepo.update(userId, configData);
+                await this.companyConfigRepo.updateByCompanyId(companyId, configData);
                 // Refresh config after update
-                config = await this.userConfigRepo.findByUserId(userId);
+                config = await this.companyConfigRepo.findByCompanyId(companyId);
             }
         }
 

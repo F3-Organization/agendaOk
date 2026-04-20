@@ -1,21 +1,28 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { subscriptionService } from '../subscription.service';
+import { subscriptionService, type Plan } from '../subscription.service';
 import { authService } from '../../auth/auth.service';
 
 export const useSubscription = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [showSuccessBanner, setShowSuccessBanner] = useState(false);
   const [showBillingModal, setShowBillingModal] = useState(false);
   const prevStatusRef = useRef<string | undefined>(undefined);
 
   const SUPPORT_WHATSAPP = import.meta.env.VITE_SUPPORT_WHATSAPP;
 
-  const { data: subStatus, isLoading: isStatusLoading } = useQuery({
+  const { data: plans = [], isLoading: isPlansLoading } = useQuery({
+    queryKey: ['subscription-plans'],
+    queryFn: subscriptionService.getPlans,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: subStatus, isLoading: isStatusLoading, isFetching: isStatusFetching } = useQuery({
     queryKey: ['subscription-status'],
     queryFn: subscriptionService.getStatus,
     refetchInterval: (query) => {
@@ -24,7 +31,8 @@ export const useSubscription = () => {
     }
   });
 
-  const isMissingBillingInfo = !subStatus?.taxId || !subStatus?.whatsappNumber;
+  // Só considera faltando se já carregou os dados e eles realmente não existem
+  const isMissingBillingInfo = !isStatusLoading && !isStatusFetching && (!subStatus?.taxId || !subStatus?.whatsappNumber);
 
   const { data: paymentHistory, isLoading: isHistoryLoading } = useQuery({
     queryKey: ['subscription-payments'],
@@ -67,10 +75,16 @@ export const useSubscription = () => {
 
   const updateBillingConfigMutation = useMutation({
     mutationFn: authService.updateConfig,
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success(t('subscription.billing.infoSaved'));
+      
+      // Invalida e força o refetch imediato do status para garantir que isMissingBillingInfo seja atualizado
+      await queryClient.invalidateQueries({ queryKey: ['subscription-status'] });
+      await queryClient.refetchQueries({ queryKey: ['subscription-status'] });
+      
       setShowBillingModal(false);
-      // Após salvar, dispara o checkout se for o plano PRO
+      
+      // Após salvar e atualizar o estado local, dispara o checkout se for o plano PRO
       checkoutMutation.mutate();
     },
     onError: (error: any) => {
@@ -82,8 +96,12 @@ export const useSubscription = () => {
     await updateBillingConfigMutation.mutateAsync(data);
   };
 
-  const handlePlanAction = (planId: string) => {
-    if (planId === 'PRO') {
+  const handlePlanAction = (planSlug: string) => {
+    const plan = plans.find(p => p.slug === planSlug);
+
+    if (plan?.isPurchasable) {
+      if (isStatusLoading || isStatusFetching) return;
+
       if (isMissingBillingInfo) {
         setShowBillingModal(true);
         return;
@@ -93,15 +111,15 @@ export const useSubscription = () => {
         navigate('/checkout', {
           state: {
             checkoutUrl: subStatus.checkoutUrl,
-            planName: subStatus.planName || t('subscription.plans.pro.name'),
-            amount: subStatus.amount || 4990,
+            planName: subStatus.planName || plan.name,
+            amount: subStatus.amount || plan.priceInCents,
             billingCycle: 'MONTHLY'
           }
         });
       } else {
         checkoutMutation.mutate();
       }
-    } else if (planId === 'ENTERPRISE') {
+    } else if (plan && !plan.isPurchasable && plan.slug !== 'FREE') {
       const message = encodeURIComponent(t('subscription.enterpriseMessage'));
       window.open(`https://wa.me/${SUPPORT_WHATSAPP}?text=${message}`, '_blank');
     }
@@ -116,63 +134,41 @@ export const useSubscription = () => {
     }
   };
 
-  const plans = [
-    {
-      id: 'FREE',
-      name: t('subscription.plans.standard.name'),
-      price: 'R$ 0',
-      description: t('subscription.plans.standard.description'),
-      features: [
-        `100 ${t('subscription.features.monthlyConfirmations')}`,
-        `1 ${t('subscription.features.whatsappDevices')}`,
-        t('subscription.features.support'),
-        t('subscription.features.reporting')
-      ],
-      current: subStatus?.plan === 'FREE' || !subStatus,
-      cta: subStatus?.plan === 'FREE' ? t('common.currentPlan') : t('common.connect')
-    },
-    {
-      id: 'PRO',
-      name: t('subscription.plans.pro.name'),
-      price: 'R$ 49',
-      description: t('subscription.plans.pro.description'),
-      features: [
-        t('subscription.features.unlimitedConfirmations'),
-        `3 ${t('subscription.features.whatsappDevicesPlural')}`,
-        t('subscription.features.prioritySupport'),
-        t('subscription.features.apiAccess'),
-        t('subscription.features.branding')
-      ],
-      current: subStatus?.plan === 'PRO',
-      disabled: false,
-      cta: subStatus?.plan === 'PRO'
-        ? t('common.currentPlan')
-        : subStatus?.status === 'PENDING'
-          ? t('common.completePayment')
-          : t('common.connect')
-    },
-    {
-      id: 'ENTERPRISE',
-      name: t('subscription.plans.enterprise.name'),
-      price: t('subscription.plans.enterprise.customPrice'),
-      description: t('subscription.plans.enterprise.description'),
-      features: [
-        t('subscription.features.unlimitedConfirmations'),
-        t('subscription.features.dedicatedManager'),
-        t('subscription.features.onPremise')
-      ],
-      current: subStatus?.plan === 'ENTERPRISE',
-      cta: t('common.contactSales')
+  const mappedPlans = plans.map((plan: Plan) => {
+    const isCurrent = subStatus?.plan === plan.slug || (!subStatus && plan.slug === 'FREE');
+    const priceDisplay = plan.priceInCents === 0
+      ? 'R$ 0'
+      : `R$ ${Math.floor(plan.priceInCents / 100)}`;
+
+    let cta: string;
+    if (isCurrent) {
+      cta = t('common.currentPlan');
+    } else if (plan.isPurchasable) {
+      cta = subStatus?.status === 'PENDING' ? t('common.completePayment') : t('common.connect');
+    } else {
+      cta = plan.slug === 'FREE' ? t('common.currentPlan') : t('common.contactSales');
     }
-  ];
+
+    return {
+      id: plan.slug,
+      name: plan.name,
+      price: priceDisplay,
+      description: plan.description || '',
+      features: plan.features,
+      messageLimit: plan.messageLimit,
+      isPurchasable: plan.isPurchasable,
+      current: isCurrent,
+      cta,
+    };
+  });
 
   return {
     subStatus,
     paymentHistory,
-    isStatusLoading,
+    isStatusLoading: isStatusLoading || isPlansLoading,
     isHistoryLoading,
     showSuccessBanner,
-    plans,
+    plans: mappedPlans,
     checkoutMutation,
     handlePlanAction,
     handleDownloadPdf,
@@ -184,3 +180,4 @@ export const useSubscription = () => {
     updateBillingConfigMutation
   };
 };
+

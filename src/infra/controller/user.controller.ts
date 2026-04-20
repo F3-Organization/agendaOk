@@ -13,6 +13,7 @@ import {
     verify2FASchema
 } from "../../../shared/schemas/user.schema";
 import { FastifyAdapter } from "../adapters/fastfy.adapter";
+import { ICompanyRepository } from "../../usecase/repositories/icompany-repository";
 
 export class UserController {
     constructor(
@@ -22,7 +23,8 @@ export class UserController {
         private readonly changePasswordUseCase: ChangePasswordUseCase,
         private readonly setPasswordUseCase: SetPasswordUseCase,
         private readonly toggle2FAUseCase: Toggle2FAUseCase,
-        private readonly verify2FAUseCase: Verify2FAUseCase
+        private readonly verify2FAUseCase: Verify2FAUseCase,
+        private readonly companyRepo: ICompanyRepository
     ) {
         this.registerRoutes();
     }
@@ -66,16 +68,31 @@ export class UserController {
     }
 
     async getUserConfig(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-        const userId = (request.user as any).id;
-        const config = await this.getUserConfigUseCase.execute(userId);
+        const user = request.user as any;
+        const userId = user.id;
+        let companyId = user.companyId;
+        if (!companyId) {
+            const companies = await this.companyRepo.findByOwnerId(userId);
+            companyId = companies[0]?.id;
+        }
+        const config = await this.getUserConfigUseCase.execute(userId, companyId);
         reply.send(config);
     }
 
     async updateUserConfig(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-        const userId = (request.user as any).id;
+        const user = request.user as any;
+        const userId = user.id;
+        let companyId = user.companyId;
+        if (!companyId) {
+            const companies = await this.companyRepo.findByOwnerId(userId);
+            companyId = companies[0]?.id;
+        }
+        if (!companyId) {
+            return reply.code(400).send({ error: "No company found for user." });
+        }
         const data = updateUserConfigSchema.parse(request.body);
         
-        await this.updateUserConfigUseCase.execute(userId, data);
+        await this.updateUserConfigUseCase.execute(userId, companyId, data);
         
         reply.status(200).send({ message: "Configurações atualizadas com sucesso" });
     }

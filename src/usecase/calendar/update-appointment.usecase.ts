@@ -1,6 +1,6 @@
 import { IGoogleCalendarService } from "../ports/igoogle-calendar-service";
 import { IScheduleRepository } from "../repositories/ischedule-repository";
-import { IUserConfigRepository } from "../repositories/iuser-config-repository";
+import { ICompanyConfigRepository } from "../repositories/icompany-config-repository";
 import { IIntegrationRepository } from "../repositories/iintegration-repository";
 import { Schedule } from "../../infra/database/entities/schedule.entity";
 
@@ -11,25 +11,25 @@ interface UpdateAppointmentInput {
     clientPhone: string;
     startAt: Date;
     endAt: Date;
-    userId: string;
+    companyId: string;
 }
 
 export class UpdateAppointmentUseCase {
     constructor(
         private readonly googleService: IGoogleCalendarService,
         private readonly scheduleRepository: IScheduleRepository,
-        private readonly userConfigRepository: IUserConfigRepository,
+        private readonly companyConfigRepository: ICompanyConfigRepository,
         private readonly integrationRepository: IIntegrationRepository
     ) {}
 
     async execute(input: UpdateAppointmentInput): Promise<Schedule> {
-        const schedule = await this.scheduleRepository.findById(input.id, input.userId);
+        const schedule = await this.scheduleRepository.findById(input.id, input.companyId);
         if (!schedule) {
             throw new Error("Agendamento não encontrado.");
         }
 
-        const config = await this.userConfigRepository.findByUserId(input.userId);
-        const integration = await this.integrationRepository.findByUserAndProvider(input.userId, "GOOGLE");
+        const config = await this.companyConfigRepository.findByCompanyId(input.companyId);
+        const integration = await this.integrationRepository.findByCompanyAndProvider(input.companyId, "GOOGLE");
         
         if (!config || !integration || !integration.refreshToken) {
             throw new Error("Usuário não possui conexão ativa com o Google Calendar.");

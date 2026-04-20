@@ -2,20 +2,21 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ConfirmAppointmentUseCase } from "../confirm-appointment.usecase";
 import { IGoogleCalendarService } from "../../ports/igoogle-calendar-service";
 import { IScheduleRepository } from "../../repositories/ischedule-repository";
-import { IUserConfigRepository } from "../../repositories/iuser-config-repository";
-import { UserConfig } from "../../../infra/database/entities/user-config.entity";
+import { ICompanyConfigRepository } from "../../repositories/icompany-config-repository";
+import { IIntegrationRepository } from "../../repositories/iintegration-repository";
+import { CompanyConfig } from "../../../infra/database/entities/company-config.entity";
 import { Schedule, ScheduleStatus } from "../../../infra/database/entities/schedule.entity";
 
 describe("ConfirmAppointmentUseCase", () => {
     let sut: ConfirmAppointmentUseCase;
     let googleService: IGoogleCalendarService;
     let scheduleRepository: IScheduleRepository;
-    let userConfigRepository: IUserConfigRepository;
+    let companyConfigRepository: ICompanyConfigRepository;
+    let integrationRepository: IIntegrationRepository;
 
     const mockConfig = {
-        userId: "user-1",
-        googleAccessToken: "token-123"
-    } as UserConfig;
+        companyId: "user-1"
+    } as CompanyConfig;
 
     beforeEach(() => {
         googleService = {
@@ -30,23 +31,29 @@ describe("ConfirmAppointmentUseCase", () => {
         scheduleRepository = {
             save: vi.fn(),
             findByGoogleEventId: vi.fn(),
-            findByUserId: vi.fn(),
+            findByCompanyId: vi.fn(),
             findNextToNotify: vi.fn().mockResolvedValue([]),
             updateStatus: vi.fn(),
             updateNotified: vi.fn()
         };
 
-        userConfigRepository = {
-            findByUserId: vi.fn().mockResolvedValue(mockConfig),
+        companyConfigRepository = {
+            findByCompanyId: vi.fn().mockResolvedValue(mockConfig),
             findByInstanceName: vi.fn(),
             save: vi.fn(),
             update: vi.fn(),
             findAllActive: vi.fn()
         };
 
+        integrationRepository = {
+            findByCompanyAndProvider: vi.fn().mockResolvedValue({ accessToken: "token-123", refreshToken: "refresh-token" }),
+            save: vi.fn()
+        } as any;
+
         sut = new ConfirmAppointmentUseCase(
             scheduleRepository,
-            userConfigRepository,
+            companyConfigRepository,
+            integrationRepository,
             googleService
         );
     });
@@ -124,7 +131,7 @@ describe("ConfirmAppointmentUseCase", () => {
     });
 
     it("não deve tentar atualizar Google se o usuário não tiver token ou configuração", async () => {
-        vi.mocked(userConfigRepository.findByUserId).mockResolvedValueOnce(null);
+        vi.mocked(integrationRepository.findByCompanyAndProvider).mockResolvedValueOnce(null);
         
         const appointment = {
             id: "schedule-123",

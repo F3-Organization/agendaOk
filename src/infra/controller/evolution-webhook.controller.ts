@@ -30,8 +30,7 @@ export class EvolutionWebhookController {
             const payload = parseResult.data;
             
             try {
-                // Verify apikey in production
-                if (env.isProduction() && payload.apikey !== env.evolution.apiKey) {
+                if (payload.apikey !== env.evolution.apiKey) {
                     return reply.code(401).send({ error: "Unauthorized webhook call" });
                 }
 

@@ -19,7 +19,7 @@ export class WhatsappController {
     private registerRoutes() {
         this.fastify.addProtectedRoute("POST", "/whatsapp/connect", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
-            const userId = user.id;
+            const userId = user.companyId!;
             
             try {
                 const qr = await this.connectUseCase.execute(userId);
@@ -56,7 +56,7 @@ export class WhatsappController {
 
         this.fastify.addProtectedRoute("GET", "/whatsapp/status", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
-            return await this.getStatusUseCase.execute(user.id);
+            return await this.getStatusUseCase.execute(user.companyId!);
         }, {
             tags: ["WhatsApp"],
             summary: "Gets current WhatsApp connection status",
@@ -74,7 +74,7 @@ export class WhatsappController {
 
         this.fastify.addProtectedRoute("DELETE", "/whatsapp/disconnect", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
-            const userId = user.id;
+            const userId = user.companyId!;
             
             try {
                 await this.disconnectUseCase.execute(userId);

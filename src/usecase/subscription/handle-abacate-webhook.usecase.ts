@@ -3,7 +3,7 @@ import { SubscriptionStatus } from "../../infra/database/entities/subscription.e
 import { ISubscriptionPaymentRepository } from "../repositories/isubscription-payment-repository";
 import { SubscriptionPaymentStatus } from "../../infra/database/entities/subscription-payment.entity";
 import { UserRepository } from "../../infra/database/repositories/user.repository";
-import { UserConfigRepository } from "../../infra/database/repositories/user-config.repository";
+import { CompanyConfigRepository } from "../../infra/database/repositories/company-config.repository";
 import { SubscriptionNotificationService } from "./subscription-notification.service";
 import { FocusNFeAdapter } from "../../infra/adapters/focus-nfe.adapter";
 import { env } from "../../infra/config/configs";
@@ -13,7 +13,7 @@ export class HandleAbacatePayWebhookUseCase {
         private readonly subscriptionRepository: SubscriptionRepository,
         private readonly paymentRepository: ISubscriptionPaymentRepository,
         private readonly userRepository: UserRepository,
-        private readonly userConfigRepository: UserConfigRepository,
+        private readonly companyConfigRepository: CompanyConfigRepository,
         private readonly notificationService: SubscriptionNotificationService,
         private readonly fiscalAdapter: FocusNFeAdapter
     ) {}
@@ -61,21 +61,22 @@ export class HandleAbacatePayWebhookUseCase {
                 periodEnd.setDate(periodEnd.getDate() + 30);
 
                 await this.subscriptionRepository.updateStatus(
-                    subscription.id, 
+                    subscription.id,
                     subscription.userId,
                     SubscriptionStatus.ACTIVE,
                     periodEnd,
-                    "PRO"
+                    subscription.plan
                 );
 
                 await this.subscriptionRepository.deactivateOthers(subscription.userId, subscription.id);
 
                 // 4. Enviar notificação por e-mail
                 const user = await this.userRepository.findById(subscription.userId);
-                const userConfig = await this.userConfigRepository.findByUserId(subscription.userId);
-                
+                // Para NF, buscar config da primeira company do user (taxId)
+                const userConfig = await this.companyConfigRepository.findByCompanyId(subscription.userId);
+
                 if (user) {
-                    await this.notificationService.notifyPaymentSuccess(user.email, user.name, "PRO");
+                    await this.notificationService.notifyPaymentSuccess(user.email, user.name, subscription.plan);
                     
                     // 5. Emitir Nota Fiscal via Focus NFe (se houver CPF/CNPJ)
                     if (userConfig?.taxId) {

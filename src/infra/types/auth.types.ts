@@ -3,4 +3,5 @@ export interface AuthUserPayload {
     email: string;
     name: string;
     role: "ADMIN" | "USER";
+    companyId?: string;
 }

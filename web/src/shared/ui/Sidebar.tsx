@@ -1,19 +1,24 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { 
-  LayoutDashboard, 
-  Calendar, 
-  MessageCircle, 
-  CreditCard, 
-  Settings, 
-  Globe, 
-  LogOut, 
+import {
+  LayoutDashboard,
+  Calendar,
+  MessageCircle,
+  CreditCard,
+  Settings,
+  Globe,
+  LogOut,
   Zap,
-  X
+  X,
+  Building2,
+  Users,
+  Bot,
+  Shield
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useAuthStore } from '../../features/auth/auth.store';
+import { CompanySwitcher } from './CompanySwitcher';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -33,8 +38,11 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const navigation = [
     { name: t('common.dashboard'), href: '/dashboard', icon: LayoutDashboard },
     { name: t('common.appointments'), href: '/appointments', icon: Calendar },
+    { name: t('professionals.title', 'Profissionais'), href: '/professionals', icon: Users },
+    { name: t('botConfig.nav', 'Bot IA'), href: '/bot-config', icon: Bot },
     { name: t('common.whatsapp'), href: '/whatsapp', icon: MessageCircle },
     { name: t('common.subscription'), href: '/subscription', icon: CreditCard },
+    { name: t('company.settings.navLabel', 'Empresa'), href: '/company/settings', icon: Building2 },
     { name: t('common.settings'), href: '/settings', icon: Settings },
   ];
 
@@ -58,7 +66,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="p-8">
-          <div className="flex items-center justify-between mb-12">
+          <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-pulse-gradient flex items-center justify-center shadow-lg shadow-primary-dim/20">
                 <Zap className="w-6 h-6 text-primary-foreground fill-current" />
@@ -66,13 +74,17 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
               <h1 className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-pulse-gradient">ConfirmaZap</h1>
             </div>
             {onClose && (
-              <button 
+              <button
                 onClick={onClose}
                 className="lg:hidden p-2 rounded-lg hover:bg-surface-high text-muted-foreground transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             )}
+          </div>
+
+          <div className="mb-8">
+            <CompanySwitcher />
           </div>
 
           <nav className="space-y-2">
@@ -99,6 +111,28 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
               );
             })}
           </nav>
+
+          {/* Admin Link */}
+          {user?.role === 'ADMIN' && (
+            <div className="mt-6 pt-4 border-t border-outline-variant/30">
+              <Link
+                to="/admin"
+                onClick={onClose}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 font-medium group",
+                  location.pathname.startsWith('/admin')
+                    ? "bg-red-500/10 text-red-500 shadow-sm"
+                    : "text-muted-foreground hover:bg-surface-high hover:text-red-400"
+                )}
+              >
+                <Shield className={cn(
+                  "w-5 h-5 transition-transform duration-300",
+                  location.pathname.startsWith('/admin') ? "scale-110" : "group-hover:scale-110"
+                )} />
+                Admin Panel
+              </Link>
+            </div>
+          )}
         </div>
 
         <div className="mt-auto p-8 space-y-6">

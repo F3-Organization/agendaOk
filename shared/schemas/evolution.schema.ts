@@ -20,14 +20,14 @@ export const EvolutionWebhookSchema = z.object({
                     quotedMessage: z.any().optional()
                 }).optional()
             }).optional()
-        }).passthrough().optional(),
+        }).loose().optional(),
         state: z.string().optional(),
         statusReason: z.number().optional(),
         number: z.string().optional(),
         jid: z.string().optional(),
         worker: z.string().optional()
-    }).passthrough(),
+    }).loose(),
     apikey: z.string().optional()
-}).passthrough();
+}).loose();
 
 export type EvolutionWebhookPayload = z.infer<typeof EvolutionWebhookSchema>;

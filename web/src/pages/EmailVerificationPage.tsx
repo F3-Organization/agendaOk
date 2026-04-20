@@ -16,6 +16,7 @@ export const EmailVerificationPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const setAuth = useAuthStore((state) => state.setAuth);
+  const setCompanies = useAuthStore((state) => state.setCompanies);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   
@@ -43,8 +44,9 @@ export const EmailVerificationPage = () => {
     setError(null);
     try {
       const response = await authService.verifyRegistration(data);
-      setAuth(response.user, response.token);
-      navigate('/dashboard');
+      setAuth(response.user!, response.token!);
+      if (response.companies) setCompanies(response.companies);
+      navigate(response.companies && response.companies.length > 0 ? '/select-company' : '/create-company');
     } catch (err: any) {
       setError(err.response?.data?.error || t('common.verificationFailed'));
     } finally {

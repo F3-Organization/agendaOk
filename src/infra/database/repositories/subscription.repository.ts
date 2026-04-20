@@ -11,10 +11,9 @@ export class SubscriptionRepository implements ISubscriptionRepository {
     }
 
     async findByUserId(userId: string): Promise<Subscription | null> {
-        // Busca a primeira assinatura ativa, ou a mais recente
         return await this.repository.findOne({ 
             where: { userId },
-            order: { status: "ASC", createdAt: "DESC" } // ACTIVE vem antes de INATIVO/PENDING alfabeticamente? Não, ACTIVE < PENDING.
+            order: { status: "ASC", createdAt: "DESC" }
         });
     }
 

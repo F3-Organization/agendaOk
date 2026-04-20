@@ -1,6 +1,6 @@
 import { IGoogleCalendarService } from "../ports/igoogle-calendar-service";
 import { IScheduleRepository } from "../repositories/ischedule-repository";
-import { IUserConfigRepository } from "../repositories/iuser-config-repository";
+import { ICompanyConfigRepository } from "../repositories/icompany-config-repository";
 import { IIntegrationRepository } from "../repositories/iintegration-repository";
 import { Schedule, ScheduleStatus } from "../../infra/database/entities/schedule.entity";
 
@@ -10,20 +10,20 @@ interface CreateAppointmentInput {
     clientPhone: string;
     startAt: Date;
     endAt: Date;
-    userId: string;
+    companyId: string;
 }
 
 export class CreateAppointmentUseCase {
     constructor(
         private readonly googleService: IGoogleCalendarService,
         private readonly scheduleRepository: IScheduleRepository,
-        private readonly userConfigRepository: IUserConfigRepository,
+        private readonly companyConfigRepository: ICompanyConfigRepository,
         private readonly integrationRepository: IIntegrationRepository
     ) {}
 
     async execute(input: CreateAppointmentInput): Promise<Schedule> {
-        const config = await this.userConfigRepository.findByUserId(input.userId);
-        const integration = await this.integrationRepository.findByUserAndProvider(input.userId, "GOOGLE");
+        const config = await this.companyConfigRepository.findByCompanyId(input.companyId);
+        const integration = await this.integrationRepository.findByCompanyAndProvider(input.companyId, "GOOGLE");
         
         if (!config || !integration || !integration.refreshToken) {
             throw new Error("Usuário não possui conexão ativa com o Google Calendar.");
@@ -79,7 +79,7 @@ export class CreateAppointmentUseCase {
         schedule.startAt = input.startAt;
         schedule.endAt = input.endAt;
         schedule.status = ScheduleStatus.PENDING;
-        schedule.userId = input.userId;
+        schedule.companyId = input.companyId;
 
         return await this.scheduleRepository.save(schedule);
     }                       

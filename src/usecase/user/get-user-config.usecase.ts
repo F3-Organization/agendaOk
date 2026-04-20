@@ -1,21 +1,32 @@
 import { IUserRepository } from "../repositories/iuser-repository";
-import { IUserConfigRepository } from "../repositories/iuser-config-repository";
+import { ICompanyRepository } from "../repositories/icompany-repository";
+import { ICompanyConfigRepository } from "../repositories/icompany-config-repository";
 import { AppError } from "../../shared/errors/app-error";
 import { UserConfigDTO } from "../../../shared/schemas/user.schema";
 
 export class GetUserConfigUseCase {
     constructor(
         private readonly userRepo: IUserRepository,
-        private readonly userConfigRepo: IUserConfigRepository
+        private readonly companyRepo: ICompanyRepository,
+        private readonly companyConfigRepo: ICompanyConfigRepository
     ) {}
 
-    async execute(userId: string): Promise<UserConfigDTO> {
+    async execute(userId: string, companyId?: string): Promise<UserConfigDTO> {
         const user = await this.userRepo.findById(userId);
         if (!user) {
             throw new AppError("Usuário não encontrado", 404);
         }
 
-        const config = await this.userConfigRepo.findByUserId(userId);
+        // If no companyId given, resolve from user's companies
+        let resolvedCompanyId = companyId;
+        if (!resolvedCompanyId) {
+            const companies = await this.companyRepo.findByOwnerId(userId);
+            resolvedCompanyId = companies[0]?.id;
+        }
+
+        const config = resolvedCompanyId
+            ? await this.companyConfigRepo.findByCompanyId(resolvedCompanyId)
+            : null;
 
         return {
             name: user.name,

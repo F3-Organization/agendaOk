@@ -1,20 +1,20 @@
 import { IEvolutionService, EvolutionConnectResponse } from "../ports/ievolution-service";
-import { IUserConfigRepository } from "../repositories/iuser-config-repository";
+import { ICompanyConfigRepository } from "../repositories/icompany-config-repository";
 import { env } from "../../infra/config/configs";
 
 export class ConnectWhatsappUseCase {
     constructor(
-        private readonly userConfigRepository: IUserConfigRepository,
+        private readonly companyConfigRepository: ICompanyConfigRepository,
         private readonly evolutionService: IEvolutionService
     ) { }
 
-    async execute(userId: string): Promise<EvolutionConnectResponse> {
-        const config = await this.userConfigRepository.findByUserId(userId);
+    async execute(companyId: string): Promise<EvolutionConnectResponse> {
+        const config = await this.companyConfigRepository.findByCompanyId(companyId);
         if (!config) {
             throw new Error("User configuration not found");
         }
 
-        const instanceName = `agent_${userId.replace(/-/g, "").substring(0, 10)}`;
+        const instanceName = `agent_${companyId.replace(/-/g, "").substring(0, 10)}`;
 
         try {
             await this.evolutionService.createInstance(instanceName);
@@ -29,7 +29,7 @@ export class ConnectWhatsappUseCase {
 
         await this.evolutionService.setWebhook(instanceName, webhookUrl);
 
-        await this.userConfigRepository.update(userId, {
+        await this.companyConfigRepository.updateByCompanyId(companyId, {
             whatsappInstanceName: instanceName
         });
 

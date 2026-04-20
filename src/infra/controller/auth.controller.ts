@@ -1,5 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { IUserConfigRepository } from "../../usecase/repositories/iuser-config-repository";
+import { ICompanyConfigRepository } from "../../usecase/repositories/icompany-config-repository";
+import { ICompanyRepository } from "../../usecase/repositories/icompany-repository";
 import { IUserRepository } from "../../usecase/repositories/iuser-repository";
 import { FastifyAdapter } from "../adapters/fastfy.adapter";
 import { GenerateGoogleAuthUrlUseCase } from "../../usecase/auth/generate-google-auth-url.usecase";
@@ -33,7 +34,8 @@ export class AuthController {
         private readonly verifyEmailSetPassword: VerifyEmailSetPasswordUseCase,
         private readonly updateUserConfig: UpdateUserConfigUseCase,
         private readonly userRepo: IUserRepository,
-        private readonly userConfigRepo: IUserConfigRepository
+        private readonly companyRepo: ICompanyRepository,
+        private readonly companyConfigRepo: ICompanyConfigRepository
     ) {
         this.fastify.logInfo("[AuthController] Initializing...");
         this.registerRoutes();
@@ -72,8 +74,8 @@ export class AuthController {
             const { code } = parseResult.data;
 
             try {
-                const { user } = await this.authenticateGoogle.execute(code);
-                return this.sendAuthResponse(reply, user, "Authentication successful!");
+                const { user, companyId } = await this.authenticateGoogle.execute(code);
+                return this.sendAuthResponse(reply, user, "Authentication successful!", companyId ?? undefined);
             } catch (error: any) {
                 this.fastify.logInfo("[AuthController] Authentication failed:", { error: error.message });
                 reply.code(500).send({
@@ -117,15 +119,24 @@ export class AuthController {
         this.fastify.addProtectedRoute("GET", "/auth/me", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
             const fullUser = await this.userRepo.findById(user.id);
-            const config = await this.userConfigRepo.findByUserId(user.id);
+
+            // Resolve company config from JWT companyId or user's first company
+            let companyId = user.companyId;
+            if (!companyId) {
+                const companies = await this.companyRepo.findByOwnerId(user.id);
+                companyId = companies[0]?.id;
+            }
+            const config = companyId ? await this.companyConfigRepo.findByCompanyId(companyId) : null;
             
             reply.send({
                 id: user.id,
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                companyId: companyId || null,
                 config: config ? {
                     whatsappNumber: config.whatsappNumber,
+                    taxId: config.taxId,
                     syncEnabled: config.syncEnabled,
                     silentWindowStart: config.silentWindowStart,
                     silentWindowEnd: config.silentWindowEnd
@@ -356,7 +367,9 @@ export class AuthController {
                 taxId: z.string().optional(),
                 syncEnabled: z.boolean().optional(),
                 silentWindowStart: z.string().optional(),
-                silentWindowEnd: z.string().optional()
+                silentWindowEnd: z.string().optional(),
+                name: z.string().optional(),
+                email: z.string().email().optional()
             });
 
             const parseResult = schema.safeParse(request.body);
@@ -365,7 +378,16 @@ export class AuthController {
             }
 
             try {
-                await this.updateUserConfig.execute(user.id, parseResult.data);
+                // Resolve real companyId — never fallback to userId
+                let companyId = user.companyId;
+                if (!companyId) {
+                    const companies = await this.companyRepo.findByOwnerId(user.id);
+                    companyId = companies[0]?.id;
+                }
+                if (!companyId) {
+                    return reply.code(400).send({ error: "No company found for user. Please re-login." });
+                }
+                await this.updateUserConfig.execute(user.id, companyId, parseResult.data);
                 reply.send({ message: "Configuration updated successfully" });
             } catch (error: any) {
                 reply.code(500).send({ error: "Failed to update configuration", message: error.message });
@@ -408,12 +430,15 @@ export class AuthController {
 
             try {
                 const user = await this.loginVerify2FA.execute(tempToken, code);
+                const companies = await this.companyRepo.findByOwnerId(user.id);
+                const resolvedCompanyId = companies[0]?.id;
 
                 const token = this.fastify.sign({
                     id: user.id,
                     email: user.email,
                     name: user.name,
-                    role: user.role
+                    role: user.role,
+                    companyId: resolvedCompanyId || undefined
                 });
 
                 reply.send({
@@ -425,7 +450,11 @@ export class AuthController {
                         email: user.email,
                         role: user.role,
                         hasPassword: !!user.password
-                    }
+                    },
+                    companies: companies.map(c => ({
+                        id: c.id,
+                        name: c.name,
+                    }))
                 });
             } catch (error: any) {
                 this.fastify.logInfo("[AuthController] 2FA verification failed:", { error: error.message });
@@ -446,7 +475,7 @@ export class AuthController {
         });
     }
 
-    private sendAuthResponse(reply: FastifyReply, user: User, message: string) {
+    private async sendAuthResponse(reply: FastifyReply, user: User, message: string, companyId?: string) {
         if (user.twoFactorEnabled) {
             const tempToken = this.fastify.sign({
                 id: user.id,
@@ -460,11 +489,16 @@ export class AuthController {
             });
         }
 
+        // Fetch user's companies to send in the response
+        const companies = await this.companyRepo.findByOwnerId(user.id);
+        const resolvedCompanyId = companyId || companies[0]?.id;
+
         const token = this.fastify.sign({
             id: user.id,
             email: user.email,
             name: user.name,
-            role: user.role
+            role: user.role,
+            companyId: resolvedCompanyId || undefined
         });
 
         return reply.send({
@@ -475,8 +509,13 @@ export class AuthController {
                 name: user.name, 
                 email: user.email, 
                 role: user.role,
-                hasPassword: !!user.password
-            }
+                hasPassword: !!user.password,
+                companyId: resolvedCompanyId || undefined
+            },
+            companies: companies.map(c => ({
+                id: c.id,
+                name: c.name,
+            }))
         });
     }
 }

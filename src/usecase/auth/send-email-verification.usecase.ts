@@ -13,7 +13,7 @@ export class SendEmailVerificationUseCase {
         // Store code in Redis for 15 minutes
         await this.redisService.set(`verify_email:${email}`, code, 900);
 
-        const subject = "AgendaOK - Verificação de E-mail";
+        const subject = "ConfirmaZap - Verificação de E-mail";
         const body = `
             <h1>Verificação de E-mail</h1>
             <p>Seu código de verificação para definir sua senha é:</p>

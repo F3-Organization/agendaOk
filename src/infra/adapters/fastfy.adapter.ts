@@ -20,7 +20,8 @@ export class FastifyAdapter implements ITokenService {
                 customOptions: {
                     keywords: ['example']
                 }
-            }
+            },
+            bodyLimit: 1048576 // 1MB
         })
     }
 
@@ -43,9 +44,9 @@ export class FastifyAdapter implements ITokenService {
         }
 
         await this.app.register(fastifyRateLimit, {
-            max: 100,
+            max: 60,
             timeWindow: '1 minute',
-            allowList: ['127.0.0.1'] // Localhost para health checks
+            allowList: ['127.0.0.1']
         });
 
         await this.app.register(fastifyJwt, {
@@ -160,8 +161,43 @@ export class FastifyAdapter implements ITokenService {
         });
     }
 
+    public addAdminRoute(
+        method: HTTPMethods | HTTPMethods[],
+        path: string,
+        handler: (request: FastifyRequest, reply: FastifyReply) => void,
+        schema?: any,
+        additionalPreHandler?: any
+    ) {
+        const url = `/api${path}`;
+        this.app.log.info({ method, url }, "[FastifyAdapter] Registering admin route");
+        const preHandlers: any[] = [(this.app as any).authenticate];
+        // adminMiddleware will be added by the controller
+        if (additionalPreHandler) {
+            if (Array.isArray(additionalPreHandler)) {
+                preHandlers.push(...additionalPreHandler);
+            } else {
+                preHandlers.push(additionalPreHandler);
+            }
+        }
+
+        this.app.route({
+            method: method,
+            url: url,
+            handler: handler,
+            schema: {
+                ...schema,
+                security: [{ bearerAuth: [] }]
+            },
+            preHandler: preHandlers
+        });
+    }
+
     public sign(payload: any, options?: any): string {
         return (this.app as any).jwt.sign(payload, options);
+    }
+
+    public signWithCompany(payload: { id: string; companyId: string }): string {
+        return (this.app as any).jwt.sign(payload, { expiresIn: "7d" });
     }
 
     public verify(token: string): any {

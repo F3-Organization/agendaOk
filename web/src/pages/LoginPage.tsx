@@ -15,6 +15,7 @@ export const LoginPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const setAuth = useAuthStore((state) => state.setAuth);
+  const setCompanies = useAuthStore((state) => state.setCompanies);
   const [isRegister, setIsRegister] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -48,7 +49,7 @@ export const LoginPage = () => {
       }
 
       setAuth(response.user as AuthUser, response.token as string);
-      navigate('/dashboard');
+      navigate('/select-company');
     } catch (err: any) {
       setError(err.response?.data?.error || t('common.loginFailed'));
     } finally {
@@ -69,7 +70,7 @@ export const LoginPage = () => {
 
       if (response.token) {
         setAuth(response.user as AuthUser, response.token as string);
-        navigate('/dashboard');
+        navigate('/select-company');
       }
     } catch (err: any) {
       setError(err.response?.data?.error || t('common.registrationFailed'));
@@ -91,7 +92,7 @@ export const LoginPage = () => {
         }
 
         setAuth(user as AuthUser, token as string);
-        navigate('/dashboard');
+        navigate('/select-company');
       }
     };
     window.addEventListener('message', handleMessage);

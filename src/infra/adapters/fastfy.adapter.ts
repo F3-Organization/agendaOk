@@ -160,6 +160,37 @@ export class FastifyAdapter implements ITokenService {
         });
     }
 
+    public addAdminRoute(
+        method: HTTPMethods | HTTPMethods[],
+        path: string,
+        handler: (request: FastifyRequest, reply: FastifyReply) => void,
+        schema?: any,
+        additionalPreHandler?: any
+    ) {
+        const url = `/api${path}`;
+        this.app.log.info({ method, url }, "[FastifyAdapter] Registering admin route");
+        const preHandlers: any[] = [(this.app as any).authenticate];
+        // adminMiddleware will be added by the controller
+        if (additionalPreHandler) {
+            if (Array.isArray(additionalPreHandler)) {
+                preHandlers.push(...additionalPreHandler);
+            } else {
+                preHandlers.push(additionalPreHandler);
+            }
+        }
+
+        this.app.route({
+            method: method,
+            url: url,
+            handler: handler,
+            schema: {
+                ...schema,
+                security: [{ bearerAuth: [] }]
+            },
+            preHandler: preHandlers
+        });
+    }
+
     public sign(payload: any, options?: any): string {
         return (this.app as any).jwt.sign(payload, options);
     }

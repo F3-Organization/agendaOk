@@ -18,10 +18,15 @@ import { ProfessionalsPage } from '../pages/ProfessionalsPage';
 import { BotConfigPage } from '../pages/BotConfigPage';
 import { PrivacyPolicyPage } from '../pages/PrivacyPolicyPage';
 import { TermsOfServicePage } from '../pages/TermsOfServicePage';
+import { AdminDashboardPage } from '../pages/admin/AdminDashboardPage';
+import { AdminUsersPage } from '../pages/admin/AdminUsersPage';
+import { AdminCompaniesPage } from '../pages/admin/AdminCompaniesPage';
 
 export const AppRouter = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const selectedCompany = useAuthStore((state) => state.selectedCompany);
+  const user = useAuthStore((state) => state.user);
+  const isAdmin = isAuthenticated && user?.role === 'ADMIN';
 
   return (
     <Routes>
@@ -129,6 +134,20 @@ export const AppRouter = () => {
               : <Navigate to="/select-company" />
             : <Navigate to="/login" />
         }
+      />
+
+      {/* Admin routes */}
+      <Route
+        path="/admin"
+        element={isAdmin ? <AdminDashboardPage /> : <Navigate to="/" />}
+      />
+      <Route
+        path="/admin/users"
+        element={isAdmin ? <AdminUsersPage /> : <Navigate to="/" />}
+      />
+      <Route
+        path="/admin/companies"
+        element={isAdmin ? <AdminCompaniesPage /> : <Navigate to="/" />}
       />
 
       <Route path="*" element={<Navigate to="/" />} />

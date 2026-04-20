@@ -6,6 +6,7 @@ import { FocusNFeAdapter } from "../adapters/focus-nfe.adapter";
 import { GeminiAdapter } from "../adapters/gemini.adapter";
 import { adminMiddleware } from "../middleware/auth.middleware";
 import { AppController } from "../controller/app.controller";
+import { AdminController } from "../controller/admin.controller";
 import { AuthController } from "../controller/auth.controller";
 import { CalendarController } from "../controller/calendar.controller";
 import { CompanyController } from "../controller/company.controller";
@@ -300,7 +301,8 @@ const getUseCase = {
     ),
     selectCompany: () => new SelectCompanyUseCase(
         getRepo.company(),
-        adapterInstance
+        adapterInstance,
+        getRepo.user()
     ),
     updateCompany: () => new UpdateCompanyUseCase(
         getRepo.company()
@@ -408,6 +410,9 @@ export const factory = {
             adapterInstance,
             getUseCase.manageProfessionals(),
             getUseCase.manageBotConfig()
+        ),
+        admin: () => new AdminController(
+            adapterInstance
         )
     },
     queues: {

@@ -25,6 +25,7 @@ async function bootstrap() {
         factory.controller.dashboard();
         factory.controller.user();
         factory.controller.professional();
+        factory.controller.admin();
         console.log("[Bootstrap] Controllers and routes registered.");
 
 

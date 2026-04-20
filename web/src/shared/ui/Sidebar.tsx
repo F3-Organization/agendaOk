@@ -12,7 +12,8 @@ import {
   X,
   Building2,
   Users,
-  Bot
+  Bot,
+  Shield
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -110,6 +111,28 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
               );
             })}
           </nav>
+
+          {/* Admin Link */}
+          {user?.role === 'ADMIN' && (
+            <div className="mt-6 pt-4 border-t border-outline-variant/30">
+              <Link
+                to="/admin"
+                onClick={onClose}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 font-medium group",
+                  location.pathname.startsWith('/admin')
+                    ? "bg-red-500/10 text-red-500 shadow-sm"
+                    : "text-muted-foreground hover:bg-surface-high hover:text-red-400"
+                )}
+              >
+                <Shield className={cn(
+                  "w-5 h-5 transition-transform duration-300",
+                  location.pathname.startsWith('/admin') ? "scale-110" : "group-hover:scale-110"
+                )} />
+                Admin Panel
+              </Link>
+            </div>
+          )}
         </div>
 
         <div className="mt-auto p-8 space-y-6">

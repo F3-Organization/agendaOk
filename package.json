@@ -12,6 +12,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "migration:run": "typeorm-ts-node-commonjs migration:run -d src/infra/config/data-source.ts",
+    "migration:generate": "typeorm-ts-node-commonjs migration:generate -d src/infra/config/data-source.ts",
     "schema:sync": "typeorm-ts-node-commonjs schema:sync -d src/infra/config/data-source.ts",
     "schema:diff": "typeorm-ts-node-commonjs schema:log -d src/infra/config/data-source.ts",
     "setup:evolution": "tsx src/infra/scripts/setup-evolution.ts"

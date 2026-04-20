@@ -1,11 +1,13 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { Zap, Check, ArrowRight, Calendar, MessageSquare, BarChart3, ShieldCheck, ZapOff, Sparkles, Bot, Brain, Clock, Users, MessageCircle, Send } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { Button } from '../shared/ui/Button';
 import { Card } from '../shared/ui/Card';
 import { useAuthStore } from '../features/auth/auth.store';
+import { subscriptionService } from '../features/subscription/subscription.service';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -96,6 +98,19 @@ export const LandingPage = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
+  const { data: apiPlans = [] } = useQuery({
+    queryKey: ['subscription-plans'],
+    queryFn: subscriptionService.getPlans,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const freePlan = apiPlans.find(p => p.slug === 'FREE');
+  const proPlan = apiPlans.find(p => p.slug === 'PRO');
+  const freePrice = freePlan ? 'R$ 0' : 'R$ 0';
+  const proPrice = proPlan ? `R$ ${Math.floor(proPlan.priceInCents / 100)}` : 'R$ 49';
+  const freeFeatures = freePlan?.features ?? [];
+  const proFeatures = proPlan?.features ?? [];
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -380,24 +395,32 @@ export const LandingPage = () => {
               <div className="mb-10">
                 <h3 className="text-2xl font-bold tracking-tight mb-2 uppercase text-[10px] text-muted-foreground tracking-[5px]">{t('landing.plans.free')}</h3>
                 <div className="mt-8 flex items-baseline gap-1">
-                  <span className="text-6xl font-extrabold tracking-tighter">$0</span>
-                  <span className="text-muted-foreground font-bold tracking-widest uppercase text-[10px]">/mo</span>
+                  <span className="text-6xl font-extrabold tracking-tighter">{freePrice}</span>
+                  <span className="text-muted-foreground font-bold tracking-widest uppercase text-[10px]">{t('subscription.pricing.perMonth')}</span>
                 </div>
               </div>
-              
+
               <ul className="space-y-5 mb-12 flex-1">
-                <li className="flex items-center gap-4 text-sm font-medium">
-                  <Check className="w-4 h-4 text-primary flex-shrink-0" /> {t('landing.plans.remindersPerMonth')}
-                </li>
-                <li className="flex items-center gap-4 text-sm font-medium">
-                  <Check className="w-4 h-4 text-primary flex-shrink-0" /> {t('landing.calendarSyncTitle')}
-                </li>
-                <li className="flex items-center gap-4 text-sm font-medium opacity-20 grayscale">
-                  <ZapOff className="w-4 h-4 flex-shrink-0" /> {t('landing.plans.aiBotFeature')}
-                </li>
-                <li className="flex items-center gap-4 text-sm font-medium opacity-20 grayscale">
-                  <ZapOff className="w-4 h-4 flex-shrink-0" /> {t('landing.plans.professionalMgmt')}
-                </li>
+                {freeFeatures.length > 0 ? freeFeatures.map((feature, i) => (
+                  <li key={i} className="flex items-center gap-4 text-sm font-medium">
+                    <Check className="w-4 h-4 text-primary flex-shrink-0" /> {feature}
+                  </li>
+                )) : (
+                  <>
+                    <li className="flex items-center gap-4 text-sm font-medium">
+                      <Check className="w-4 h-4 text-primary flex-shrink-0" /> {t('landing.plans.remindersPerMonth')}
+                    </li>
+                    <li className="flex items-center gap-4 text-sm font-medium">
+                      <Check className="w-4 h-4 text-primary flex-shrink-0" /> {t('landing.calendarSyncTitle')}
+                    </li>
+                    <li className="flex items-center gap-4 text-sm font-medium opacity-20 grayscale">
+                      <ZapOff className="w-4 h-4 flex-shrink-0" /> {t('landing.plans.aiBotFeature')}
+                    </li>
+                    <li className="flex items-center gap-4 text-sm font-medium opacity-20 grayscale">
+                      <ZapOff className="w-4 h-4 flex-shrink-0" /> {t('landing.plans.professionalMgmt')}
+                    </li>
+                  </>
+                )}
               </ul>
 
               <Button variant="secondary" className="w-full h-14 font-bold tracking-widest uppercase text-xs" onClick={() => navigate('/login')}>
@@ -413,30 +436,32 @@ export const LandingPage = () => {
               <div className="mb-10">
                 <h3 className="text-2xl font-bold tracking-tight mb-2 uppercase text-[10px] text-primary-dim tracking-[5px]">{t('landing.plans.pro')}</h3>
                 <div className="mt-8 flex items-baseline gap-1">
-                  <span className="text-6xl font-extrabold tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-primary-dim to-primary-container" style={{ paddingBottom: '0.05em' }}>$49</span>
-                  <span className="text-muted-foreground font-bold tracking-widest uppercase text-[10px]">/mo</span>
+                  <span className="text-6xl font-extrabold tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-primary-dim to-primary-container" style={{ paddingBottom: '0.05em' }}>{proPrice}</span>
+                  <span className="text-muted-foreground font-bold tracking-widest uppercase text-[10px]">{t('subscription.pricing.perMonth')}</span>
                 </div>
               </div>
-              
+
               <ul className="space-y-5 mb-12 flex-1">
-                <li className="flex items-center gap-4 text-sm font-bold text-primary-dim italic">
-                   <Sparkles className="w-4 h-4 fill-current flex-shrink-0" /> Everything in Free, plus:
-                </li>
-                <li className="flex items-center gap-4 text-sm font-medium">
-                  <Check className="w-4 h-4 text-primary flex-shrink-0" /> {t('landing.plans.unlimitedReminders')}
-                </li>
-                <li className="flex items-center gap-4 text-sm font-medium">
-                  <Bot className="w-4 h-4 text-primary flex-shrink-0" /> {t('landing.plans.aiBotFeature')}
-                </li>
-                <li className="flex items-center gap-4 text-sm font-medium">
-                  <Users className="w-4 h-4 text-primary flex-shrink-0" /> {t('landing.plans.professionalMgmt')}
-                </li>
-                <li className="flex items-center gap-4 text-sm font-medium">
-                  <Check className="w-4 h-4 text-primary flex-shrink-0" /> {t('landing.plans.multiCompany')}
-                </li>
-                <li className="flex items-center gap-4 text-sm font-medium">
-                  <Check className="w-4 h-4 text-primary flex-shrink-0" /> {t('landing.plans.prioritySupport')}
-                </li>
+                {proFeatures.length > 0 ? proFeatures.map((feature, i) => (
+                  <li key={i} className="flex items-center gap-4 text-sm font-medium">
+                    <Check className="w-4 h-4 text-primary flex-shrink-0" /> {feature}
+                  </li>
+                )) : (
+                  <>
+                    <li className="flex items-center gap-4 text-sm font-bold text-primary-dim italic">
+                      <Sparkles className="w-4 h-4 fill-current flex-shrink-0" /> Everything in Free, plus:
+                    </li>
+                    <li className="flex items-center gap-4 text-sm font-medium">
+                      <Check className="w-4 h-4 text-primary flex-shrink-0" /> {t('landing.plans.unlimitedReminders')}
+                    </li>
+                    <li className="flex items-center gap-4 text-sm font-medium">
+                      <Check className="w-4 h-4 text-primary flex-shrink-0" /> {t('landing.plans.aiBotFeature')}
+                    </li>
+                    <li className="flex items-center gap-4 text-sm font-medium">
+                      <Check className="w-4 h-4 text-primary flex-shrink-0" /> {t('landing.plans.professionalMgmt')}
+                    </li>
+                  </>
+                )}
               </ul>
 
               <Button className="w-full h-14 font-bold tracking-widest uppercase text-xs shadow-2xl shadow-primary-dim/30" onClick={() => navigate('/login')}>

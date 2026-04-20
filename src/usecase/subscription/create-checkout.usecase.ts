@@ -7,6 +7,7 @@ import { ICompanyRepository } from "../repositories/icompany-repository";
 import { SubscriptionStatus } from "../../infra/database/entities/subscription.entity";
 import { ISubscriptionPaymentRepository } from "../repositories/isubscription-payment-repository";
 import { SubscriptionPaymentStatus } from "../../infra/database/entities/subscription-payment.entity";
+import { IPlanRepository } from "../repositories/iplan-repository";
 
 export class CreateSubscriptionCheckoutUseCase {
     constructor(
@@ -15,40 +16,41 @@ export class CreateSubscriptionCheckoutUseCase {
         private readonly companyConfigRepository: CompanyConfigRepository,
         private readonly companyRepository: ICompanyRepository,
         private readonly paymentGateway: IPaymentGateway,
-        private readonly paymentRepository: ISubscriptionPaymentRepository
+        private readonly paymentRepository: ISubscriptionPaymentRepository,
+        private readonly planRepository: IPlanRepository
     ) { }
+
     async execute(userId: string) {
         const user = await this.userRepository.findById(userId);
         if (!user) throw new Error("User not found");
 
-        const baseUrl = env.domain;
+        const purchasablePlan = await this.planRepository.findPurchasable();
+        if (!purchasablePlan) throw new Error("No purchasable plan available.");
 
+        const baseUrl = env.domain;
         const subscription = await this.subscriptionRepository.findByUserId(userId);
 
         if (subscription?.status === SubscriptionStatus.ACTIVE) {
-            return { 
+            return {
                 url: subscription.checkoutUrl || `${baseUrl}/dashboard`,
-                planName: env.abacatePay.planName,
-                amount: env.abacatePay.planPrice
+                planName: purchasablePlan.name,
+                amount: purchasablePlan.priceInCents
             };
         }
 
         if (subscription) {
             const pendingPayment = await this.paymentRepository.findPendingByUser(subscription.id);
             if (pendingPayment && pendingPayment.checkoutUrl) {
-                return { 
+                return {
                     url: pendingPayment.checkoutUrl,
-                    planName: env.abacatePay.planName,
-                    amount: env.abacatePay.planPrice
+                    planName: purchasablePlan.name,
+                    amount: purchasablePlan.priceInCents
                 };
             }
         }
 
-        // Resolve user's company to get taxId/whatsappNumber
         const companies = await this.companyRepository.findByOwnerId(userId);
-        if (companies.length === 0) {
-            throw new Error("User has no company configured.");
-        }
+        if (companies.length === 0) throw new Error("User has no company configured.");
         const primaryCompany = companies[0]!;
 
         const companyConfig = await this.companyConfigRepository.findByCompanyId(primaryCompany.id);
@@ -60,12 +62,9 @@ export class CreateSubscriptionCheckoutUseCase {
         let customerExists = false;
 
         if (customerId) {
-            // Validar se o cliente ainda existe no AbacatePay (evita IDs obsoletos)
             const existingCustomer = await this.paymentGateway.getCustomer(customerId);
             if (existingCustomer) {
                 customerExists = true;
-            } else {
-                console.warn(`[Checkout] Customer ID ${customerId} found in DB but not in AbacatePay. Re-creating...`);
             }
         }
 
@@ -77,45 +76,38 @@ export class CreateSubscriptionCheckoutUseCase {
                 taxId: companyConfig.taxId
             });
             customerId = customer.id;
-            
-            // Salvar ID do cliente para futuras cobranças
             await this.companyConfigRepository.updateByCompanyId(primaryCompany.id, { billingCustomerId: customerId });
         }
 
-        // 2. Criar Assinatura (Recorrência) diretamente via Billing (V1)
         const subscriptionCheckout = await this.paymentGateway.createSubscription(
             customerId,
-            env.abacatePay.planName,
-            env.abacatePay.planPrice,
+            purchasablePlan.name,
+            purchasablePlan.priceInCents,
             `${baseUrl}/subscription`,
             { userId }
         );
 
-        // Criar NOVO registro de assinatura PRO como PENDING
-        const newSubscriptionData: any = {
+        const newSubscription = await this.subscriptionRepository.save({
             userId,
             abacateBillingId: subscriptionCheckout.id,
             abacateCustomerId: customerId,
             checkoutUrl: subscriptionCheckout.url,
-            plan: "PRO",
+            plan: purchasablePlan.slug,
             status: SubscriptionStatus.PENDING
-        };
+        } as any);
 
-        const newSubscription = await this.subscriptionRepository.save(newSubscriptionData);
-
-        // Criar registro de pagamento histórico (PENDENTE)
         await this.paymentRepository.create({
             subscriptionId: newSubscription.id,
             billingId: subscriptionCheckout.id,
-            amount: env.abacatePay.planPrice,
+            amount: purchasablePlan.priceInCents,
             status: SubscriptionPaymentStatus.PENDING,
             checkoutUrl: subscriptionCheckout.url
         });
 
-        return { 
+        return {
             url: subscriptionCheckout.url,
-            planName: env.abacatePay.planName,
-            amount: env.abacatePay.planPrice
+            planName: purchasablePlan.name,
+            amount: purchasablePlan.priceInCents
         };
     }
 }

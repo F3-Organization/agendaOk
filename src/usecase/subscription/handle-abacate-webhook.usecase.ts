@@ -61,11 +61,11 @@ export class HandleAbacatePayWebhookUseCase {
                 periodEnd.setDate(periodEnd.getDate() + 30);
 
                 await this.subscriptionRepository.updateStatus(
-                    subscription.id, 
+                    subscription.id,
                     subscription.userId,
                     SubscriptionStatus.ACTIVE,
                     periodEnd,
-                    "PRO"
+                    subscription.plan
                 );
 
                 await this.subscriptionRepository.deactivateOthers(subscription.userId, subscription.id);
@@ -74,9 +74,9 @@ export class HandleAbacatePayWebhookUseCase {
                 const user = await this.userRepository.findById(subscription.userId);
                 // Para NF, buscar config da primeira company do user (taxId)
                 const userConfig = await this.companyConfigRepository.findByCompanyId(subscription.userId);
-                
+
                 if (user) {
-                    await this.notificationService.notifyPaymentSuccess(user.email, user.name, "PRO");
+                    await this.notificationService.notifyPaymentSuccess(user.email, user.name, subscription.plan);
                     
                     // 5. Emitir Nota Fiscal via Focus NFe (se houver CPF/CNPJ)
                     if (userConfig?.taxId) {

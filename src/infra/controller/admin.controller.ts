@@ -7,8 +7,10 @@ import { Company } from "../database/entities/company.entity";
 import { Subscription } from "../database/entities/subscription.entity";
 import { Professional } from "../database/entities/professional.entity";
 import { Schedule } from "../database/entities/schedule.entity";
+import { Plan } from "../database/entities/plan.entity";
 import { ILike } from "typeorm";
 import { env } from "../config/configs";
+import { z } from "zod";
 
 export class AdminController {
     constructor(
@@ -48,14 +50,14 @@ export class AdminController {
                 const thirtyDaysAgo = new Date();
                 thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-                const recentUsers = await userRepo
-                    .createQueryBuilder("u")
-                    .select("DATE(u.created_at)", "date")
-                    .addSelect("COUNT(*)", "count")
-                    .where("u.created_at >= :since", { since: thirtyDaysAgo })
-                    .groupBy("DATE(u.created_at)")
-                    .orderBy("DATE(u.created_at)", "ASC")
-                    .getRawMany();
+                const recentUsers: Array<{ date: string; count: string }> = await AppDataSource.query(
+                    `SELECT DATE(created_at)::text AS date, COUNT(*) AS count
+                     FROM users
+                     WHERE created_at >= $1
+                     GROUP BY DATE(created_at)
+                     ORDER BY DATE(created_at) ASC`,
+                    [thirtyDaysAgo]
+                );
 
                 const activeProSubs = await subRepo.count({
                     where: { plan: "PRO", status: "ACTIVE" as any }
@@ -284,6 +286,90 @@ export class AdminController {
                 });
             },
             { tags: ["Admin"], summary: "List all companies" },
+            adminMiddleware
+        );
+
+        // ── Plans CRUD ──────────────────────────────────────────────────────
+
+        const PlanBodySchema = z.object({
+            slug: z.string().min(1).max(50).optional(),
+            name: z.string().min(1).max(255),
+            description: z.string().max(500).optional().nullable(),
+            priceInCents: z.number().int().min(0),
+            messageLimit: z.number().int().positive().nullable(),
+            maxDevices: z.number().int().positive(),
+            features: z.array(z.string()),
+            isActive: z.boolean(),
+            isPurchasable: z.boolean(),
+            sortOrder: z.number().int().min(0),
+        });
+
+        this.fastify.addAdminRoute(
+            "GET",
+            "/admin/plans",
+            async (_request: FastifyRequest, reply: FastifyReply) => {
+                const planRepo = AppDataSource.getRepository(Plan);
+                const plans = await planRepo.find({ order: { sortOrder: "ASC" } });
+                return reply.send(plans);
+            },
+            { tags: ["Admin"], summary: "List all plans" },
+            adminMiddleware
+        );
+
+        this.fastify.addAdminRoute(
+            "POST",
+            "/admin/plans",
+            async (request: FastifyRequest, reply: FastifyReply) => {
+                const parseResult = PlanBodySchema.required({ slug: true }).safeParse(request.body);
+                if (!parseResult.success) {
+                    return reply.code(400).send({ error: "Validation failed", details: parseResult.error.format() });
+                }
+
+                const planRepo = AppDataSource.getRepository(Plan);
+                const existing = await planRepo.findOne({ where: { slug: parseResult.data.slug } });
+                if (existing) return reply.code(409).send({ error: "Plan with this slug already exists" });
+
+                const plan = await planRepo.save(planRepo.create(parseResult.data as any));
+                return reply.code(201).send(plan);
+            },
+            { tags: ["Admin"], summary: "Create a new plan" },
+            adminMiddleware
+        );
+
+        this.fastify.addAdminRoute(
+            "PATCH",
+            "/admin/plans/:id",
+            async (request: FastifyRequest, reply: FastifyReply) => {
+                const { id } = request.params as { id: string };
+                const parseResult = PlanBodySchema.partial().safeParse(request.body);
+                if (!parseResult.success) {
+                    return reply.code(400).send({ error: "Validation failed", details: parseResult.error.format() });
+                }
+
+                const planRepo = AppDataSource.getRepository(Plan);
+                const plan = await planRepo.findOneBy({ id });
+                if (!plan) return reply.code(404).send({ error: "Plan not found" });
+
+                await planRepo.save({ ...plan, ...(parseResult.data as any) });
+                return reply.send(await planRepo.findOneBy({ id }));
+            },
+            { tags: ["Admin"], summary: "Update a plan" },
+            adminMiddleware
+        );
+
+        this.fastify.addAdminRoute(
+            "DELETE",
+            "/admin/plans/:id",
+            async (request: FastifyRequest, reply: FastifyReply) => {
+                const { id } = request.params as { id: string };
+                const planRepo = AppDataSource.getRepository(Plan);
+                const plan = await planRepo.findOneBy({ id });
+                if (!plan) return reply.code(404).send({ error: "Plan not found" });
+
+                await planRepo.remove(plan);
+                return reply.code(204).send();
+            },
+            { tags: ["Admin"], summary: "Delete a plan" },
             adminMiddleware
         );
     }

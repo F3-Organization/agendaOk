@@ -1,4 +1,5 @@
 import { apiClient } from '../../shared/api/api-client';
+import type { Plan } from '../subscription/subscription.service';
 
 export interface AdminStats {
   totalUsers: number;
@@ -68,5 +69,24 @@ export const adminService = {
   listCompanies: async (params?: { search?: string; page?: number; limit?: number }) => {
     const { data } = await apiClient.get<{ companies: AdminCompany[]; pagination: PaginatedResponse<AdminCompany>['pagination'] }>('/admin/companies', { params });
     return data;
+  },
+
+  listPlans: async (): Promise<Plan[]> => {
+    const { data } = await apiClient.get<Plan[]>('/admin/plans');
+    return data;
+  },
+
+  createPlan: async (plan: Omit<Plan, 'id' | 'isActive' | 'sortOrder'> & { isActive?: boolean; sortOrder?: number }): Promise<Plan> => {
+    const { data } = await apiClient.post<Plan>('/admin/plans', plan);
+    return data;
+  },
+
+  updatePlan: async (id: string, updates: Partial<Omit<Plan, 'id'>>): Promise<Plan> => {
+    const { data } = await apiClient.patch<Plan>(`/admin/plans/${id}`, updates);
+    return data;
+  },
+
+  deletePlan: async (id: string): Promise<void> => {
+    await apiClient.delete(`/admin/plans/${id}`);
   },
 };

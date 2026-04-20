@@ -1,11 +1,12 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Building2, ArrowLeft, Shield } from 'lucide-react';
+import { LayoutDashboard, Users, Building2, ArrowLeft, Shield, CreditCard } from 'lucide-react';
 
 const NAV_ITEMS = [
   { path: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
   { path: '/admin/users', icon: Users, label: 'Usuários' },
   { path: '/admin/companies', icon: Building2, label: 'Empresas' },
+  { path: '/admin/plans', icon: CreditCard, label: 'Planos' },
 ];
 
 export const AdminLayout = ({ children }: { children: ReactNode }) => {

@@ -21,6 +21,7 @@ import { TermsOfServicePage } from '../pages/TermsOfServicePage';
 import { AdminDashboardPage } from '../pages/admin/AdminDashboardPage';
 import { AdminUsersPage } from '../pages/admin/AdminUsersPage';
 import { AdminCompaniesPage } from '../pages/admin/AdminCompaniesPage';
+import { AdminPlansPage } from '../pages/admin/AdminPlansPage';
 
 export const AppRouter = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -148,6 +149,10 @@ export const AppRouter = () => {
       <Route
         path="/admin/companies"
         element={isAdmin ? <AdminCompaniesPage /> : <Navigate to="/" />}
+      />
+      <Route
+        path="/admin/plans"
+        element={isAdmin ? <AdminPlansPage /> : <Navigate to="/" />}
       />
 
       <Route path="*" element={<Navigate to="/" />} />

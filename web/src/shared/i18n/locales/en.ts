@@ -235,7 +235,7 @@ export const en = {
     usage: {
       title: 'Plan Usage',
       messageLimit: 'Message Limit',
-      sent: 'sent of 50',
+      sent: 'sent',
       limitReached: 'Limit reached!',
       limitReachedTitle: 'Message Limit Reached',
       limitReachedDesc: 'Your monthly quota of 50 messages has been reached. Upgrade to PRO to continue confirming appointments.',

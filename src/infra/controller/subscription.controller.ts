@@ -5,6 +5,7 @@ import { HandleAbacatePayWebhookUseCase } from "../../usecase/subscription/handl
 import { GetSubscriptionStatusUseCase } from "../../usecase/subscription/get-subscription-status.usecase";
 import { GetSubscriptionPaymentHistoryUseCase } from "../../usecase/subscription/get-payment-history.usecase";
 import { GenerateInvoicePdfUseCase } from "../../usecase/subscription/generate-invoice-pdf.usecase";
+import { IPlanRepository } from "../../usecase/repositories/iplan-repository";
 import { AuthUserPayload } from "../types/auth.types";
 import { env } from "../config/configs";
 import { createHmac } from "crypto";
@@ -17,13 +18,47 @@ export class SubscriptionController {
         private readonly handleWebhook: HandleAbacatePayWebhookUseCase,
         private readonly getStatus: GetSubscriptionStatusUseCase,
         private readonly getHistory: GetSubscriptionPaymentHistoryUseCase,
-        private readonly generatePdf: GenerateInvoicePdfUseCase
+        private readonly generatePdf: GenerateInvoicePdfUseCase,
+        private readonly planRepository: IPlanRepository
     ) {
         this.fastify.logInfo("[SubscriptionController] Initializing...");
         this.registerRoutes();
     }
 
     private registerRoutes() {
+        // 0. Listar Planos (público)
+        this.fastify.addRoute("GET", "/subscription/plans", async (_request: FastifyRequest, reply: FastifyReply) => {
+            try {
+                const plans = await this.planRepository.findActive();
+                reply.send(plans);
+            } catch (error: any) {
+                reply.code(500).send({ error: "Failed to fetch plans" });
+            }
+        }, {
+            tags: ["Subscription"],
+            summary: "Lists all active plans",
+            response: {
+                200: {
+                    type: "array",
+                    items: {
+                        type: "object",
+                        properties: {
+                            id: { type: "string" },
+                            slug: { type: "string" },
+                            name: { type: "string" },
+                            description: { type: "string", nullable: true },
+                            priceInCents: { type: "number" },
+                            messageLimit: { type: "number", nullable: true },
+                            maxDevices: { type: "number" },
+                            features: { type: "array", items: { type: "string" } },
+                            isPurchasable: { type: "boolean" },
+                            sortOrder: { type: "number" }
+                        }
+                    }
+                }
+            }
+        });
+
         // 1. Criar Checkout de Assinatura
         this.fastify.addProtectedRoute("POST", "/subscription/checkout", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;

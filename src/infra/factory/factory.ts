@@ -31,6 +31,7 @@ import { SubscriptionRepository } from "../database/repositories/subscription.re
 import { SubscriptionPaymentRepository } from "../database/repositories/subscription-payment.repository";
 import { IntegrationRepository } from "../database/repositories/integration.repository";
 import { ProfessionalRepository } from "../database/repositories/professional.repository";
+import { PlanRepository } from "../database/repositories/plan.repository";
 import { GenerateGoogleAuthUrlUseCase } from "../../usecase/auth/generate-google-auth-url.usecase";
 import { ExchangeGoogleCodeUseCase } from "../../usecase/auth/exchange-google-code.usecase";
 import { SyncCalendarUseCase } from "../../usecase/calendar/sync-calendar.usecase";
@@ -105,6 +106,7 @@ let subscriptionRepository: SubscriptionRepository;
 let subscriptionPaymentRepository: SubscriptionPaymentRepository;
 let integrationRepository: IntegrationRepository;
 let professionalRepository: ProfessionalRepository;
+let planRepository: PlanRepository;
 
 let syncCalendarQueue: SyncCalendarQueue;
 let notifyQueue: NotifyQueue;
@@ -119,7 +121,8 @@ const getRepo = {
     subscription: () => subscriptionRepository || (subscriptionRepository = new SubscriptionRepository()),
     subscriptionPayment: () => subscriptionPaymentRepository || (subscriptionPaymentRepository = new SubscriptionPaymentRepository()),
     integration: () => integrationRepository || (integrationRepository = new IntegrationRepository()),
-    professional: () => professionalRepository || (professionalRepository = new ProfessionalRepository())
+    professional: () => professionalRepository || (professionalRepository = new ProfessionalRepository()),
+    plan: () => planRepository || (planRepository = new PlanRepository())
 };
 
 const getUseCase = {
@@ -144,7 +147,8 @@ const getUseCase = {
     checkUsageLimit: () => new CheckUsageLimitUseCase(
         getRepo.subscription(),
         getRepo.schedule(),
-        getRepo.company()
+        getRepo.company(),
+        getRepo.plan()
     ),
 
     notifyUpcomingAppointments: () => new NotifyUpcomingAppointmentsUseCase(
@@ -186,7 +190,8 @@ const getUseCase = {
         getRepo.companyConfig(),
         getRepo.company(),
         abacatePayAdapter,
-        getRepo.subscriptionPayment()
+        getRepo.subscriptionPayment(),
+        getRepo.plan()
     ),
     handleAbacatePayWebhook: () => new HandleAbacatePayWebhookUseCase(
         getRepo.subscription(),
@@ -287,7 +292,8 @@ const getUseCase = {
         getRepo.subscription(),
         getRepo.schedule(),
         getRepo.company(),
-        getRepo.companyConfig()
+        getRepo.companyConfig(),
+        getRepo.plan()
     ),
     // Company use cases
     createCompany: () => new CreateCompanyUseCase(
@@ -384,7 +390,8 @@ export const factory = {
             getUseCase.handleAbacatePayWebhook(),
             getUseCase.getSubscriptionStatus(),
             getUseCase.getSubscriptionPaymentHistory(),
-            getUseCase.generateInvoicePdf()
+            getUseCase.generateInvoicePdf(),
+            getRepo.plan()
         ),
         whatsapp: () => new WhatsappController(
             adapterInstance,

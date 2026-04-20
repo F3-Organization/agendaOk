@@ -11,6 +11,7 @@ import { Subscription } from "../database/entities/subscription.entity";
 import { SubscriptionPayment } from "../database/entities/subscription-payment.entity";
 import { Integration } from "../database/entities/integration.entity";
 import { Professional } from "../database/entities/professional.entity";
+import { Plan } from "../database/entities/plan.entity";
 
 export const AppDataSource = new DataSource({
     type: "postgres",
@@ -21,7 +22,7 @@ export const AppDataSource = new DataSource({
     database: env.database.database,
     synchronize: false,
     logging: env.debug(),
-    entities: [User, Company, CompanyConfig, Client, Schedule, UserConfig, Subscription, SubscriptionPayment, Integration, Professional],
+    entities: [User, Company, CompanyConfig, Client, Schedule, UserConfig, Subscription, SubscriptionPayment, Integration, Professional, Plan],
     subscribers: [],
     migrations: [],
     extra: {

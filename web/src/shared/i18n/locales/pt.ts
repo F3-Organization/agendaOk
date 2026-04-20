@@ -245,7 +245,7 @@ export const pt = {
     usage: {
       title: 'Uso do Plano',
       messageLimit: 'Limite de Mensagens',
-      sent: 'enviadas de 50',
+      sent: 'enviadas',
       limitReached: 'Limite atingido!',
       limitReachedTitle: 'Limite de Mensagens Atingido',
       limitReachedDesc: 'Sua cota mensal de 50 mensagens foi atingida. Faça o upgrade para PRO para continuar confirmando agendamentos.',

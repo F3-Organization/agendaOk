@@ -15,19 +15,47 @@ export const SelectCompanyPage = () => {
   const setCompanies = useAuthStore((state) => state.setCompanies);
   const selectCompany = useAuthStore((state) => state.selectCompany);
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [isLoadingCompanies, setIsLoadingCompanies] = useState(true);
 
   useEffect(() => {
-    // Fetch companies from API to get the latest maxCompanies
+    console.log('[SelectCompanyPage] Mounting, fetching companies...');
+    console.log('[SelectCompanyPage] Token in localStorage:', !!localStorage.getItem('auth_token'));
+    
+    // Fetch companies from API to get the latest list and maxCompanies
     companyService.list().then(({ data }) => {
+      console.log('[SelectCompanyPage] Companies fetched:', data.companies.length, data);
       setCompanies(data.companies, data.maxCompanies);
-    }).catch(() => {});
-  }, []);
 
-  useEffect(() => {
-    if (companies.length === 0) {
-      navigate('/create-company');
-    }
-  }, [companies, navigate]);
+      // Auto-select if only one company
+      if (data.companies.length === 1) {
+        setLoadingId(data.companies[0].id);
+        selectCompany(data.companies[0].id)
+          .then(() => navigate('/dashboard'))
+          .catch((err) => {
+            console.error('[SelectCompanyPage] Auto-select failed:', err);
+            setLoadingId(null);
+          });
+        return;
+      }
+
+      // Redirect to create if no companies exist
+      if (data.companies.length === 0) {
+        console.log('[SelectCompanyPage] No companies, redirecting to /create-company');
+        navigate('/create-company');
+        return;
+      }
+
+      setIsLoadingCompanies(false);
+    }).catch((err) => {
+      console.error('[SelectCompanyPage] Failed to fetch companies:', err?.response?.status, err?.response?.data);
+      // If API fails, use whatever is in the store
+      if (companies.length === 0) {
+        navigate('/create-company');
+      } else {
+        setIsLoadingCompanies(false);
+      }
+    });
+  }, []);
 
   const handleSelect = async (id: string) => {
     setLoadingId(id);
@@ -42,6 +70,17 @@ export const SelectCompanyPage = () => {
   };
 
   const canCreateMore = companies.length < maxCompanies;
+
+  if (isLoadingCompanies) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
+        <div className="w-14 h-14 rounded-2xl bg-pulse-gradient flex items-center justify-center shadow-2xl shadow-primary-dim/40 mb-8 animate-bounce">
+          <Zap className="w-7 h-7 text-primary-foreground fill-current" />
+        </div>
+        <p className="text-muted-foreground animate-pulse text-sm font-medium">{t('common.loading')}...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 selection:bg-primary/20 selection:text-primary relative overflow-hidden">
@@ -125,3 +164,4 @@ export const SelectCompanyPage = () => {
     </div>
   );
 };
+

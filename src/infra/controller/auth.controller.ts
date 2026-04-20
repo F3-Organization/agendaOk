@@ -430,12 +430,15 @@ export class AuthController {
 
             try {
                 const user = await this.loginVerify2FA.execute(tempToken, code);
+                const companies = await this.companyRepo.findByOwnerId(user.id);
+                const resolvedCompanyId = companies[0]?.id;
 
                 const token = this.fastify.sign({
                     id: user.id,
                     email: user.email,
                     name: user.name,
-                    role: user.role
+                    role: user.role,
+                    companyId: resolvedCompanyId || undefined
                 });
 
                 reply.send({
@@ -447,7 +450,11 @@ export class AuthController {
                         email: user.email,
                         role: user.role,
                         hasPassword: !!user.password
-                    }
+                    },
+                    companies: companies.map(c => ({
+                        id: c.id,
+                        name: c.name,
+                    }))
                 });
             } catch (error: any) {
                 this.fastify.logInfo("[AuthController] 2FA verification failed:", { error: error.message });
@@ -468,7 +475,7 @@ export class AuthController {
         });
     }
 
-    private sendAuthResponse(reply: FastifyReply, user: User, message: string, companyId?: string) {
+    private async sendAuthResponse(reply: FastifyReply, user: User, message: string, companyId?: string) {
         if (user.twoFactorEnabled) {
             const tempToken = this.fastify.sign({
                 id: user.id,
@@ -482,12 +489,16 @@ export class AuthController {
             });
         }
 
+        // Fetch user's companies to send in the response
+        const companies = await this.companyRepo.findByOwnerId(user.id);
+        const resolvedCompanyId = companyId || companies[0]?.id;
+
         const token = this.fastify.sign({
             id: user.id,
             email: user.email,
             name: user.name,
             role: user.role,
-            companyId: companyId || undefined
+            companyId: resolvedCompanyId || undefined
         });
 
         return reply.send({
@@ -499,8 +510,12 @@ export class AuthController {
                 email: user.email, 
                 role: user.role,
                 hasPassword: !!user.password,
-                companyId: companyId || undefined
-            }
+                companyId: resolvedCompanyId || undefined
+            },
+            companies: companies.map(c => ({
+                id: c.id,
+                name: c.name,
+            }))
         });
     }
 }

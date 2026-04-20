@@ -22,7 +22,7 @@ export const TwoFactorLoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const setAuth = useAuthStore((state) => state.setAuth);
-  const setCompanies = useAuthStore((state) => state.setCompanies);
+  
   
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -51,8 +51,7 @@ export const TwoFactorLoginPage = () => {
       const response = await authService.verify2FA(tempToken, data.code);
       
       setAuth(response.user!, response.token!);
-      if (response.companies) setCompanies(response.companies);
-      navigate(response.companies && response.companies.length > 0 ? '/select-company' : '/create-company');
+      navigate('/select-company');
     } catch (err: any) {
       setError(err.response?.data?.error || t('settings.twoFactorLogin.invalidCode'));
     } finally {

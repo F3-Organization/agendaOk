@@ -42,8 +42,7 @@ export const GoogleCallbackPage = () => {
               return;
             }
             setAuth(data.user!, data.token!);
-            if (data.companies) setCompanies(data.companies);
-            navigate(data.companies && data.companies.length > 0 ? '/select-company' : '/create-company');
+            navigate('/select-company');
           }
         })
         .catch((err) => {

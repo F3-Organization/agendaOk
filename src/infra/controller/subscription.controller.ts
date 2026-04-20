@@ -162,11 +162,16 @@ export class SubscriptionController {
             const payload = parseResult.data;
             const rawBody = JSON.stringify(request.body);
 
-            if (!signature && env.isProduction()) {
-                return reply.code(401).send({ error: "Missing signature" });
+            if (env.isProduction() && !env.abacatePay.webhookSecret) {
+                this.fastify.logInfo("[SubscriptionController] ABACATE_WEBHOOK_SECRET not configured in production");
+                return reply.code(503).send({ error: "Webhook not configured" });
             }
 
-            if (env.isProduction() || env.abacatePay.webhookSecret) {
+            if (env.abacatePay.webhookSecret) {
+                if (!signature) {
+                    return reply.code(401).send({ error: "Missing signature" });
+                }
+
                 const hmac = createHmac("sha256", env.abacatePay.webhookSecret);
                 const digest = hmac.update(rawBody).digest("hex");
 

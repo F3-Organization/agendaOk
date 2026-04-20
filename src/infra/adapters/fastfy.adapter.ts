@@ -20,7 +20,8 @@ export class FastifyAdapter implements ITokenService {
                 customOptions: {
                     keywords: ['example']
                 }
-            }
+            },
+            bodyLimit: 1048576 // 1MB
         })
     }
 
@@ -43,9 +44,9 @@ export class FastifyAdapter implements ITokenService {
         }
 
         await this.app.register(fastifyRateLimit, {
-            max: 100,
+            max: 60,
             timeWindow: '1 minute',
-            allowList: ['127.0.0.1'] // Localhost para health checks
+            allowList: ['127.0.0.1']
         });
 
         await this.app.register(fastifyJwt, {

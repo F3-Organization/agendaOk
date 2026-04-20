@@ -24,6 +24,12 @@ export const AppDataSource = new DataSource({
     entities: [User, Company, CompanyConfig, Client, Schedule, UserConfig, Subscription, SubscriptionPayment, Integration, Professional],
     subscribers: [],
     migrations: [],
+    extra: {
+        max: 20,
+        min: 2,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 5000,
+    }
 })
 
 

@@ -8,6 +8,7 @@ import { Subscription } from "../database/entities/subscription.entity";
 import { Professional } from "../database/entities/professional.entity";
 import { Schedule } from "../database/entities/schedule.entity";
 import { ILike } from "typeorm";
+import { env } from "../config/configs";
 
 export class AdminController {
     constructor(
@@ -68,7 +69,7 @@ export class AdminController {
                     subscriptionsByPlan,
                     recentUsers,
                     activeProSubscriptions: activeProSubs,
-                    estimatedMRR: activeProSubs * 49.90,
+                    estimatedMRR: activeProSubs * (env.abacatePay.planPrice / 100),
                 });
             },
             { tags: ["Admin"], summary: "Get admin dashboard statistics" },
@@ -81,9 +82,9 @@ export class AdminController {
             "/admin/users",
             async (request: FastifyRequest, reply: FastifyReply) => {
                 const query = request.query as any;
-                const search = query.search || "";
-                const page = parseInt(query.page || "1");
-                const limit = Math.min(parseInt(query.limit || "20"), 100);
+                const search = (query.search as string) || "";
+                const page = Math.max(1, parseInt(query.page || "1"));
+                const limit = Math.min(Math.max(1, parseInt(query.limit || "20")), 50);
                 const skip = (page - 1) * limit;
 
                 const userRepo = AppDataSource.getRepository(User);
@@ -242,9 +243,9 @@ export class AdminController {
             "/admin/companies",
             async (request: FastifyRequest, reply: FastifyReply) => {
                 const query = request.query as any;
-                const search = query.search || "";
-                const page = parseInt(query.page || "1");
-                const limit = Math.min(parseInt(query.limit || "20"), 100);
+                const search = (query.search as string) || "";
+                const page = Math.max(1, parseInt(query.page || "1"));
+                const limit = Math.min(Math.max(1, parseInt(query.limit || "20")), 50);
                 const skip = (page - 1) * limit;
 
                 const companyRepo = AppDataSource.getRepository(Company);

@@ -1,13 +1,39 @@
 import { AppDataSource } from "./infra/config/data-source";
 import { factory } from "./infra/factory/factory";
+import { env } from "./infra/config/configs";
+
+function validateEnv() {
+    const required: Array<[string, unknown]> = [
+        ["JWT_SECRET", env.jwt.secret],
+        ["DB_PASSWORD", env.database.password],
+        ["EVO_API_KEY", env.evolution.apiKey],
+    ];
+
+    if (env.isProduction()) {
+        required.push(
+            ["ENCRYPTION_KEY", env.security.encryptionKey],
+            ["ABACATE_WEBHOOK_SECRET", env.abacatePay.webhookSecret],
+            ["GOOGLE_CLIENT_ID", env.google.clientId],
+            ["GOOGLE_CLIENT_SECRET", env.google.clientSecret],
+        );
+    }
+
+    const missing = required.filter(([, v]) => !v).map(([k]) => k);
+    if (missing.length > 0) {
+        throw new Error(`Missing required environment variables: ${missing.join(", ")}`);
+    }
+}
 
 async function bootstrap() {
     try {
-        // 1. Initialize Database
+        // 1. Validate required env vars before doing anything
+        validateEnv();
+
+        // 2. Initialize Database
         await AppDataSource.initialize();
         console.log("[Bootstrap] Data Source has been initialized!");
 
-        // 2. Setup API Adapter (Swagger, etc.)
+        // 3. Setup API Adapter (Swagger, etc.)
         const adapter = factory.adapters.fastify();
         await adapter.setup();
         console.log("[Bootstrap] Fastify Adapter setup complete.");

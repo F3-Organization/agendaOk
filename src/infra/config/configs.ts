@@ -7,6 +7,7 @@ export const env = {
     logLevel: (process.env.LOG_LEVEL || 'info') as 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace',
     port: parseInt(process.env.PORT || '3000'),
     domain: process.env.DOMAIN || 'localhost',
+    frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
     appInternalUrl: process.env.APP_INTERNAL_URL || 'http://api:3000',
     jwt: {
         secret: process.env.JWT_SECRET!,

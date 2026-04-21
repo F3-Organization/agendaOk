@@ -27,7 +27,7 @@ export class CreateSubscriptionCheckoutUseCase {
         const purchasablePlan = await this.planRepository.findPurchasable();
         if (!purchasablePlan) throw new Error("No purchasable plan available.");
 
-        const baseUrl = env.domain;
+        const baseUrl = env.frontendUrl;
         const subscription = await this.subscriptionRepository.findByUserId(userId);
 
         if (subscription?.status === SubscriptionStatus.ACTIVE) {

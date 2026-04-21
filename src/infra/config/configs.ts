@@ -45,8 +45,16 @@ export const env = {
         webhookSecret: process.env.ABACATE_WEBHOOK_SECRET || '',
     },
     brasilNfe: {
-        token: process.env.BRASIL_NFE_TOKEN || '',
-        baseUrl: process.env.BRASIL_NFE_URL || 'https://api.brasilnfe.com.br/v1',
+        token: process.env.BRASIL_NFE_TOKEN,
+        baseUrl: process.env.BRASIL_NFE_URL,
+        inscricaoMunicipal: process.env.COMPANY_INSCRICAO_MUNICIPAL,
+        codigoMunicipio: process.env.COMPANY_CODIGO_MUNICIPIO,
+    },
+    fiscal: {
+        aliquotaIss: parseFloat(process.env.FISCAL_ALIQUOTA_ISS || '5'),
+        itemListaServico: process.env.FISCAL_ITEM_LISTA_SERVICO || '010501', // 01.05 - Licenciamento/cessão de uso de software
+        codigoCnae: process.env.FISCAL_CODIGO_CNAE || '6311900',            // Tratamento de dados, hosting e atividades relacionadas
+        naturezaOperacao: parseInt(process.env.FISCAL_NATUREZA_OPERACAO || '1'),
     },
     smtp: {
         host: process.env.SMTP_HOST || 'localhost',

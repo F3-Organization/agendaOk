@@ -5,7 +5,7 @@ import { SubscriptionPaymentStatus } from "../../infra/database/entities/subscri
 import { UserRepository } from "../../infra/database/repositories/user.repository";
 import { CompanyConfigRepository } from "../../infra/database/repositories/company-config.repository";
 import { SubscriptionNotificationService } from "./subscription-notification.service";
-import { BrasilNFeAdapter } from "../../infra/adapters/brasil-nfe.adapter";
+import { FiscalService } from "./fiscal.service";
 import { WebhookAuditLog } from "../../infra/database/entities/webhook-audit-log.entity";
 import { WebhookAuditLogRepository } from "../../infra/database/repositories/webhook-audit-log.repository";
 import { PaymentMethodRepository } from "../../infra/database/repositories/payment-method.repository";
@@ -18,7 +18,7 @@ export class HandleAbacatePayWebhookUseCase {
         private readonly userRepository: UserRepository,
         private readonly companyConfigRepository: CompanyConfigRepository,
         private readonly notificationService: SubscriptionNotificationService,
-        private readonly fiscalAdapter: BrasilNFeAdapter,
+        private readonly fiscalService: FiscalService,
         private readonly auditLogRepository: WebhookAuditLogRepository,
         private readonly paymentMethodRepository: PaymentMethodRepository,
         private readonly planRepository: PlanRepository
@@ -196,29 +196,10 @@ export class HandleAbacatePayWebhookUseCase {
         const user = await this.userRepository.findById(subscription.userId);
         const userConfig = await this.companyConfigRepository.findByCompanyId(subscription.userId);
 
-        let invoiceUrl: string | undefined;
+        let nfseEmitted = false;
 
         if (user && userConfig?.taxId) {
             try {
-                const isCpf = userConfig.taxId.length <= 11;
-
-                // Build address from company config or use fallback
-                const addressText = userConfig.address || "Não informado";
-                const tomador: any = {
-                    nome_completo: user.name,
-                    email: user.email,
-                    endereco: {
-                        logradouro: addressText,
-                        numero: "S/N",
-                        bairro: "Não informado",
-                        cep: "00000-000",
-                        codigo_municipio: "3550308",
-                        uf: "SP",
-                    },
-                };
-                if (isCpf) tomador.cpf = userConfig.taxId;
-                else tomador.cnpj = userConfig.taxId;
-
                 // Use actual payment amount; fallback to plan price from DB
                 const paidAmountCents = data.paidAmount ?? data.amount ?? data.payment?.amount;
                 let valorServicos: number;
@@ -229,26 +210,24 @@ export class HandleAbacatePayWebhookUseCase {
                     valorServicos = plan ? plan.priceInCents / 100 : 0;
                 }
 
-                const nfseResult = await this.fiscalAdapter.emitirNfse(billingId, {
-                    tomador,
-                    servico: {
-                        aliquota: 2,
-                        discriminacao: `Assinatura Mensal ConfirmaZap - Plano ${subscription.plan}`,
-                        iss_retido: false,
-                        item_lista_servico: "01.07",
-                        valor_servicos: valorServicos,
-                    },
+                const nfseResult = await this.fiscalService.emitirNfseAssinatura({
+                    referenceId: billingId,
+                    tomadorCpfCnpj: userConfig.taxId,
+                    tomadorNome: user.name,
+                    tomadorEmail: user.email,
+                    tomadorEndereco: userConfig.address,
+                    valorServicos,
+                    planName: subscription.plan,
                 });
 
-                invoiceUrl = nfseResult?.url || nfseResult?.link_nfse || nfseResult?.link || undefined;
-                console.log(`[Fiscal] Invoice issued for billing ${billingId}`, invoiceUrl ? `URL: ${invoiceUrl}` : '(no URL returned)');
+                nfseEmitted = nfseResult.emitted;
             } catch (error) {
-                console.error(`[Fiscal] Failed to issue invoice for billing ${billingId}:`, error);
+                console.error(`[Fiscal] Failed to issue NFS-e for billing ${billingId}:`, error);
             }
         }
 
         if (user) {
-            await this.notificationService.notifyPaymentSuccess(user.email, user.name, subscription.plan, invoiceUrl);
+            await this.notificationService.notifyPaymentSuccess(user.email, user.name, subscription.plan, nfseEmitted);
         }
 
         console.log(`[Subscription] User ${subscription.userId} activated via Abacate Pay.`);

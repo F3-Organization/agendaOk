@@ -10,7 +10,10 @@ describe("HandleAbacatePayWebhookUseCase", () => {
     let userRepository: any;
     let companyConfigRepository: any;
     let notificationService: any;
-    let fiscalAdapter: any;
+    let fiscalService: any;
+    let auditLogRepository: any;
+    let paymentMethodRepository: any;
+    let planRepository: any;
 
     beforeEach(() => {
         subscriptionRepository = {
@@ -42,8 +45,22 @@ describe("HandleAbacatePayWebhookUseCase", () => {
             notifySubscriptionRefunded: vi.fn()
         };
 
-        fiscalAdapter = {
-            emitirNfse: vi.fn()
+        fiscalService = {
+            emitirNfseAssinatura: vi.fn().mockResolvedValue({ emitted: true, codLote: 'L1', numeroNfse: '123' }),
+        };
+
+        auditLogRepository = {
+            save: vi.fn(),
+            create: vi.fn().mockResolvedValue({ id: 'audit-1' }),
+            update: vi.fn()
+        };
+
+        paymentMethodRepository = {
+            findByCode: vi.fn()
+        };
+
+        planRepository = {
+            findBySlug: vi.fn()
         };
 
         sut = new HandleAbacatePayWebhookUseCase(
@@ -52,19 +69,24 @@ describe("HandleAbacatePayWebhookUseCase", () => {
             userRepository,
             companyConfigRepository,
             notificationService,
-            fiscalAdapter
+            fiscalService,
+            auditLogRepository,
+            paymentMethodRepository,
+            planRepository
         );
     });
 
-    it("deve ativar a assinatura quando o evento for billing.paid", async () => {
+    it("deve ativar a assinatura quando o evento for subscription.completed", async () => {
         const payload = {
-            event: "billing.paid",
+            event: "subscription.completed",
             data: { id: "billing-123" }
         };
 
-        const mockSubscription = { id: "sub-1", userId: "user-1" };
+        const mockSubscription = { id: "sub-1", userId: "user-1", plan: "PRO" };
         vi.mocked(subscriptionRepository.findByBillingId).mockResolvedValueOnce(mockSubscription as any);
         paymentRepository.findByBillingId.mockResolvedValueOnce({ id: "pay-1" });
+        userRepository.findById.mockResolvedValueOnce({ id: "user-1", name: "Test", email: "test@test.com" });
+        companyConfigRepository.findByCompanyId.mockResolvedValueOnce(null);
 
         const result = await sut.execute(payload);
 
@@ -80,7 +102,7 @@ describe("HandleAbacatePayWebhookUseCase", () => {
 
     it("não deve fazer nada se a assinatura não for encontrada", async () => {
         const payload = {
-            event: "billing.paid",
+            event: "subscription.completed",
             data: { id: "billing-not-found" }
         };
 

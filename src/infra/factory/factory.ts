@@ -84,6 +84,7 @@ import { SendEmailVerificationUseCase } from "../../usecase/auth/send-email-veri
 import { VerifyEmailSetPasswordUseCase } from "../../usecase/auth/verify-email-set-password.usecase";
 import { GetHealthStatusUseCase } from "../../usecase/system/get-health-status.usecase";
 import { SubscriptionNotificationService } from "../../usecase/subscription/subscription-notification.service";
+import { FiscalService } from "../../usecase/subscription/fiscal.service";
 import { AppDataSource } from "../config/data-source";
 
 // Singletons (non-TypeORM dependent)
@@ -92,6 +93,7 @@ const evolutionAdapter = new EvolutionApiAdapter();
 const googleCalendarAdapter = new GoogleCalendarAdapter();
 const abacatePayAdapter = new AbacatePayAdapter();
 const brasilNFeAdapter = new BrasilNFeAdapter();
+const fiscalService = new FiscalService(brasilNFeAdapter);
 const geminiAdapter = new GeminiAdapter();
 const mailAdapter = new NodemailerAdapter();
 const redisService = new RedisService();
@@ -205,7 +207,7 @@ const getUseCase = {
         getRepo.user(),
         getRepo.companyConfig(),
         new SubscriptionNotificationService(mailAdapter),
-        brasilNFeAdapter,
+        fiscalService,
         getRepo.webhookAuditLog(),
         getRepo.paymentMethod(),
         getRepo.plan()

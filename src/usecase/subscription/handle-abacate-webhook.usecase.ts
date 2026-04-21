@@ -24,18 +24,26 @@ export class HandleAbacatePayWebhookUseCase {
         private readonly planRepository: PlanRepository
     ) {}
 
-    private extractPaymentMethodCode(data: any): string | undefined {
-        // AbacatePay v2 webhook: data.payment.method or data.method
+    private extractPaymentMethodCode(event: string, data: any): string {
+        // v2 webhook doesn't expose the chosen payment method in the payload.
+        // Infer from event type and the methods we configure per product type.
+        if (
+            event === "subscription.completed" ||
+            event === "subscription.renewed"
+        ) {
+            // Subscriptions are created with methods: ["CARD"] only
+            return "CREDIT_CARD";
+        }
+
+        // For checkout events try to read from payload (v1 compat or future v2 field)
         const raw: string | undefined =
             data?.payment?.method ??
             data?.method ??
             data?.paymentMethod ??
-            undefined;
+            data?.methods?.[0];
 
-        if (!raw) return undefined;
+        if (!raw) return "CREDIT_CARD"; // safe default
 
-        // Normalize to our known codes
-        const upper = raw.toUpperCase();
         const MAP: Record<string, string> = {
             PIX: "PIX",
             CREDIT_CARD: "CREDIT_CARD",
@@ -47,14 +55,14 @@ export class HandleAbacatePayWebhookUseCase {
             CARD: "CREDIT_CARD",
             BOLETO: "BOLETO",
         };
-        return MAP[upper] ?? upper;
+        return MAP[raw.toUpperCase()] ?? raw.toUpperCase();
     }
 
     async execute(payload: any) {
         const { event, data } = payload;
 
         // ── Always persist raw event for auditing ────────────────────────
-        const methodCode = this.extractPaymentMethodCode(data);
+        const methodCode = this.extractPaymentMethodCode(event, data);
         const auditData: Partial<WebhookAuditLog> = {
             eventType: event,
             rawPayload: payload,
@@ -83,32 +91,36 @@ export class HandleAbacatePayWebhookUseCase {
 
     private async processEvent(event: string, data: any, methodCode: string | undefined) {
         switch (event) {
-            // v2 subscription events
-            case "subscription.completed":  // first payment confirmed
-            case "subscription.renewed":    // recurring payment confirmed
-            case "checkout.completed":      // one-time checkout paid
+            // ── Subscription events ──────────────────────────────────────
+            case "subscription.completed":   // first payment confirmed
+            case "subscription.renewed":     // recurring payment confirmed
                 await this.handleBillingPaid(data, methodCode);
                 break;
 
-            case "subscription.cancelled":
-                await this.handleBillingExpiredOrAbandoned("subscription.cancelled", data);
+            case "subscription.trial_started":
+                await this.handleTrialStarted(data);
                 break;
 
-            case "checkout.refunded":
+            case "subscription.cancelled":
+                await this.handleSubscriptionCancelled(data);
+                break;
+
             case "subscription.refunded":
                 await this.handleBillingRefunded(data);
                 break;
 
-            // v1 event names kept for backward compatibility
-            case "billing.paid":
+            // ── Checkout events (one-time) ───────────────────────────────
+            case "checkout.completed":
                 await this.handleBillingPaid(data, methodCode);
                 break;
-            case "billing.expired":
-            case "billing.abandoned":
-                await this.handleBillingExpiredOrAbandoned(event, data);
-                break;
-            case "billing.refunded":
+
+            case "checkout.refunded":
                 await this.handleBillingRefunded(data);
+                break;
+
+            case "checkout.disputed":
+            case "checkout.lost":
+                await this.handleBillingDisputed(event, data);
                 break;
 
             default:
@@ -130,15 +142,18 @@ export class HandleAbacatePayWebhookUseCase {
 
         if (!subscription) return;
 
-        // Validate payment method against our reference table
+        // Resolve PaymentMethod FK from code
+        let paymentMethodId: string | undefined;
         if (methodCode) {
             const knownMethod = await this.paymentMethodRepository.findByCode(methodCode);
-            if (!knownMethod) {
-                console.warn(`[Webhook] Unknown payment method code received: ${methodCode}. Storing as-is.`);
+            if (knownMethod) {
+                paymentMethodId = knownMethod.id;
+            } else {
+                console.warn(`[Webhook] Unknown payment method code received: ${methodCode}. Skipping FK assignment.`);
             }
         }
 
-        const methodPatch = methodCode ? { paymentMethod: methodCode } : {};
+        const methodPatch = paymentMethodId ? { paymentMethodId } : {};
 
         // v2: paidAmount is the settled value; amount is the total billed
         const paidAmountCents: number | undefined =
@@ -235,7 +250,32 @@ export class HandleAbacatePayWebhookUseCase {
         console.log(`[Subscription] User ${subscription.userId} activated via Abacate Pay.`);
     }
 
-    private async handleBillingExpiredOrAbandoned(event: string, data: any) {
+    private async handleTrialStarted(data: any) {
+        const billingId = data.id;
+        const subscription = await this.subscriptionRepository.findByBillingId(billingId);
+
+        if (!subscription) return;
+
+        const periodEnd = new Date();
+        periodEnd.setDate(periodEnd.getDate() + 7); // trial = 7 days default
+
+        await this.subscriptionRepository.updateStatus(
+            subscription.id,
+            subscription.userId,
+            SubscriptionStatus.ACTIVE,
+            periodEnd,
+            subscription.plan
+        );
+
+        const user = await this.userRepository.findById(subscription.userId);
+        if (user) {
+            await this.notificationService.notifyPaymentSuccess(user.email, user.name, subscription.plan);
+        }
+
+        console.log(`[Subscription] Trial started for user ${subscription.userId}.`);
+    }
+
+    private async handleSubscriptionCancelled(data: any) {
         const billingId = data.id;
         const subscription = await this.subscriptionRepository.findByBillingId(billingId);
 
@@ -243,26 +283,51 @@ export class HandleAbacatePayWebhookUseCase {
 
         const payment = await this.paymentRepository.findByBillingId(billingId);
         if (payment) {
-            const isExpired = event === "billing.expired";
             await this.paymentRepository.update(payment.id, {
-                status: isExpired
-                    ? SubscriptionPaymentStatus.EXPIRED
-                    : SubscriptionPaymentStatus.CANCELLED,
+                status: SubscriptionPaymentStatus.CANCELLED,
             });
         }
 
-        if (subscription.status === SubscriptionStatus.PENDING) {
-            await this.subscriptionRepository.updateStatus(
-                subscription.id,
-                subscription.userId,
-                SubscriptionStatus.INACTIVE
-            );
+        await this.subscriptionRepository.updateStatus(
+            subscription.id,
+            subscription.userId,
+            SubscriptionStatus.CANCELLED
+        );
 
-            const user = await this.userRepository.findById(subscription.userId);
-            if (user) {
-                await this.notificationService.notifySubscriptionExpired(user.email, user.name);
-            }
+        const user = await this.userRepository.findById(subscription.userId);
+        if (user) {
+            await this.notificationService.notifySubscriptionExpired(user.email, user.name);
         }
+
+        console.log(`[Subscription] Subscription cancelled for user ${subscription.userId}.`);
+    }
+
+    private async handleBillingDisputed(event: string, data: any) {
+        const billingId = data.id;
+        const subscription = await this.subscriptionRepository.findByBillingId(billingId);
+
+        if (!subscription) return;
+
+        const payment = await this.paymentRepository.findByBillingId(billingId);
+        if (payment) {
+            // Disputed/lost payments are effectively refunded
+            await this.paymentRepository.update(payment.id, {
+                status: SubscriptionPaymentStatus.REFUNDED,
+            });
+        }
+
+        await this.subscriptionRepository.updateStatus(
+            subscription.id,
+            subscription.userId,
+            SubscriptionStatus.CANCELLED
+        );
+
+        const user = await this.userRepository.findById(subscription.userId);
+        if (user) {
+            await this.notificationService.notifySubscriptionRefunded(user.email, user.name);
+        }
+
+        console.log(`[Subscription] ${event} for user ${subscription.userId}. Subscription cancelled.`);
     }
 
     private async handleBillingRefunded(data: any) {

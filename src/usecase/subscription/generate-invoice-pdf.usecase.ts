@@ -83,7 +83,7 @@ export class GenerateInvoicePdfUseCase {
         const paymentShortId = payment.id.split('-')[0]?.toUpperCase() || 'INVALID';
         const issueDate = new Date(payment.paidAt || payment.createdAt);
         const amountInBrl = payment.amount / 100;
-        const paymentMethodLabel = this.formatPaymentMethod((payment as any).paymentMethod);
+        const paymentMethodLabel = this.formatPaymentMethod(payment.paymentMethod?.code);
 
         return new Promise((resolve, reject) => {
             // @ts-ignore

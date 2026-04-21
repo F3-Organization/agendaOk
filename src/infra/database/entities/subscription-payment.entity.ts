@@ -1,5 +1,6 @@
 import { Entity, Column, ManyToOne, JoinColumn, Index } from "typeorm";
 import { Subscription } from "./subscription.entity";
+import { PaymentMethod } from "./payment-method.entity";
 import { BaseEntity } from "./base.entity";
 
 export enum SubscriptionPaymentStatus {
@@ -40,6 +41,10 @@ export class SubscriptionPayment extends BaseEntity {
     @Column({ name: "paid_at", type: "timestamp", nullable: true })
     paidAt?: Date;
 
-    @Column({ name: "payment_method", type: "varchar", length: 50, nullable: true })
-    paymentMethod?: string;
+    @Column({ name: "payment_method_id", type: "uuid", nullable: true })
+    paymentMethodId?: string;
+
+    @ManyToOne(() => PaymentMethod, { nullable: true, eager: true })
+    @JoinColumn({ name: "payment_method_id" })
+    paymentMethod?: PaymentMethod;
 }

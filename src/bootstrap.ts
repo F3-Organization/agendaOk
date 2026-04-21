@@ -3,6 +3,8 @@ import { factory } from "./infra/factory/factory";
 import { env } from "./infra/config/configs";
 import { Plan } from "./infra/database/entities/plan.entity";
 import { PaymentMethod } from "./infra/database/entities/payment-method.entity";
+import { seedPaymentMethods } from "./infra/database/seeders/payment-methods.seed";
+import { seedPlansIfEmpty } from "./infra/database/seeders/plans.seed";
 
 function validateEnv() {
     const required: Array<[string, unknown]> = [
@@ -24,58 +26,6 @@ function validateEnv() {
     if (missing.length > 0) {
         throw new Error(`Missing required environment variables: ${missing.join(", ")}`);
     }
-}
-
-async function seedPlansIfEmpty() {
-    const planRepo = AppDataSource.getRepository(Plan);
-    const count = await planRepo.count();
-    if (count > 0) return;
-
-    await planRepo.save([
-        {
-            slug: "FREE",
-            name: "ConfirmaZap Free",
-            description: "Plano gratuito para começar a usar o ConfirmaZap.",
-            priceInCents: 0,
-            messageLimit: 50,
-            maxDevices: 1,
-            features: ["50 confirmações/mês", "1 dispositivo WhatsApp", "Suporte por email", "Relatórios básicos"],
-            isActive: true,
-            isPurchasable: false,
-            sortOrder: 0,
-        },
-        {
-            slug: "PRO",
-            name: "ConfirmaZap Pro",
-            description: "Plano profissional com confirmações ilimitadas e recursos avançados.",
-            priceInCents: 4990,
-            messageLimit: null,
-            maxDevices: 3,
-            features: ["Confirmações ilimitadas", "3 dispositivos WhatsApp", "Suporte prioritário", "Acesso à API", "Sem marca d'água"],
-            isActive: true,
-            isPurchasable: true,
-            sortOrder: 1,
-        },
-    ]);
-    console.log("[Bootstrap] Plans seeded successfully.");
-}
-
-async function seedPaymentMethods(): Promise<void> {
-    const repo = AppDataSource.getRepository(PaymentMethod);
-    const METHODS = [
-        { code: "PIX", name: "PIX", description: "Pagamento instantâneo via PIX" },
-        { code: "CREDIT_CARD", name: "Cartão de Crédito", description: "Cartão de crédito" },
-        { code: "DEBIT_CARD", name: "Cartão de Débito", description: "Cartão de débito" },
-        { code: "BOLETO", name: "Boleto Bancário", description: "Boleto bancário" },
-    ];
-    await repo
-        .createQueryBuilder()
-        .insert()
-        .into(PaymentMethod)
-        .values(METHODS)
-        .orUpdate(['name', 'description'], ['code'])
-        .execute();
-    console.log("[Bootstrap] Payment methods seeded.");
 }
 
 async function bootstrap() {

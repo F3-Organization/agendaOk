@@ -71,8 +71,8 @@ export class AdminController {
                     subscriptionsByPlan,
                     recentUsers,
                     activeProSubscriptions: activeProSubs,
-                    estimatedMRR: activeProSubs * (env.abacatePay.planPrice / 100),
-                });
+                    estimatedMRR: activeProSubs * 10,
+                });``
             },
             { tags: ["Admin"], summary: "Get admin dashboard statistics" },
             adminMiddleware

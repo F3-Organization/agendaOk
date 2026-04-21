@@ -5,8 +5,11 @@ import { SubscriptionPaymentStatus } from "../../infra/database/entities/subscri
 import { UserRepository } from "../../infra/database/repositories/user.repository";
 import { CompanyConfigRepository } from "../../infra/database/repositories/company-config.repository";
 import { SubscriptionNotificationService } from "./subscription-notification.service";
-import { FocusNFeAdapter } from "../../infra/adapters/focus-nfe.adapter";
-import { env } from "../../infra/config/configs";
+import { BrasilNFeAdapter } from "../../infra/adapters/brasil-nfe.adapter";
+import { WebhookAuditLog } from "../../infra/database/entities/webhook-audit-log.entity";
+import { WebhookAuditLogRepository } from "../../infra/database/repositories/webhook-audit-log.repository";
+import { PaymentMethodRepository } from "../../infra/database/repositories/payment-method.repository";
+import { PlanRepository } from "../../infra/database/repositories/plan.repository";
 
 export class HandleAbacatePayWebhookUseCase {
     constructor(
@@ -15,163 +18,275 @@ export class HandleAbacatePayWebhookUseCase {
         private readonly userRepository: UserRepository,
         private readonly companyConfigRepository: CompanyConfigRepository,
         private readonly notificationService: SubscriptionNotificationService,
-        private readonly fiscalAdapter: FocusNFeAdapter
+        private readonly fiscalAdapter: BrasilNFeAdapter,
+        private readonly auditLogRepository: WebhookAuditLogRepository,
+        private readonly paymentMethodRepository: PaymentMethodRepository,
+        private readonly planRepository: PlanRepository
     ) {}
+
+    private extractPaymentMethodCode(data: any): string | undefined {
+        // AbacatePay v2 webhook: data.payment.method or data.method
+        const raw: string | undefined =
+            data?.payment?.method ??
+            data?.method ??
+            data?.paymentMethod ??
+            undefined;
+
+        if (!raw) return undefined;
+
+        // Normalize to our known codes
+        const upper = raw.toUpperCase();
+        const MAP: Record<string, string> = {
+            PIX: "PIX",
+            CREDIT_CARD: "CREDIT_CARD",
+            CREDITCARD: "CREDIT_CARD",
+            CREDIT: "CREDIT_CARD",
+            DEBIT_CARD: "DEBIT_CARD",
+            DEBITCARD: "DEBIT_CARD",
+            DEBIT: "DEBIT_CARD",
+            CARD: "CREDIT_CARD",
+            BOLETO: "BOLETO",
+        };
+        return MAP[upper] ?? upper;
+    }
 
     async execute(payload: any) {
         const { event, data } = payload;
 
-        if (event === "billing.paid") {
-            const billingId = data.id;
-            const metadata = data.metadata || {};
-            const metadataUserId = metadata.userId;
+        // ── Always persist raw event for auditing ────────────────────────
+        const methodCode = this.extractPaymentMethodCode(data);
+        const auditData: Partial<WebhookAuditLog> = {
+            eventType: event,
+            rawPayload: payload,
+        };
+        if (data?.id) auditData.billingId = data.id;
+        if (methodCode) auditData.paymentMethodCode = methodCode;
+        const auditAmount = data?.paidAmount ?? data?.amount ?? data?.payment?.amount;
+        if (auditAmount != null) auditData.amount = auditAmount;
 
-            let subscription = await this.subscriptionRepository.findByBillingId(billingId);
+        const auditEntry = await this.auditLogRepository.create(auditData);
 
-            // Se não encontrou pelo billingId, tenta pelo userId vindo no metadata (cobranças recorrentes automáticas)
-            if (!subscription && metadataUserId) {
-                console.log(`[Subscription] Billing ${billingId} not found by ID. Searching by metadata.userId: ${metadataUserId}`);
-                subscription = await this.subscriptionRepository.findByUserId(metadataUserId);
+        try {
+            await this.processEvent(event, data, methodCode);
+            await this.auditLogRepository.create({
+                ...auditEntry,
+                processedAt: new Date(),
+            });
+        } catch (error: any) {
+            console.error(`[Webhook] Processing failed for event ${event}:`, error.message);
+            // Mark audit entry with error but don't rethrow — already saved above
+            throw error;
+        }
+
+        return { status: "processed" };
+    }
+
+    private async processEvent(event: string, data: any, methodCode: string | undefined) {
+        switch (event) {
+            // v2 subscription events
+            case "subscription.completed":  // first payment confirmed
+            case "subscription.renewed":    // recurring payment confirmed
+            case "checkout.completed":      // one-time checkout paid
+                await this.handleBillingPaid(data, methodCode);
+                break;
+
+            case "subscription.cancelled":
+                await this.handleBillingExpiredOrAbandoned("subscription.cancelled", data);
+                break;
+
+            case "checkout.refunded":
+            case "subscription.refunded":
+                await this.handleBillingRefunded(data);
+                break;
+
+            // v1 event names kept for backward compatibility
+            case "billing.paid":
+                await this.handleBillingPaid(data, methodCode);
+                break;
+            case "billing.expired":
+            case "billing.abandoned":
+                await this.handleBillingExpiredOrAbandoned(event, data);
+                break;
+            case "billing.refunded":
+                await this.handleBillingRefunded(data);
+                break;
+
+            default:
+                console.log(`[Webhook] Unhandled event type: ${event}`);
+        }
+    }
+
+    private async handleBillingPaid(data: any, methodCode: string | undefined) {
+        const billingId = data.id;
+        const metadata = data.metadata || {};
+        const metadataUserId = metadata.userId;
+
+        let subscription = await this.subscriptionRepository.findByBillingId(billingId);
+
+        if (!subscription && metadataUserId) {
+            console.log(`[Subscription] Billing ${billingId} not found by ID. Searching by metadata.userId: ${metadataUserId}`);
+            subscription = await this.subscriptionRepository.findByUserId(metadataUserId);
+        }
+
+        if (!subscription) return;
+
+        // Validate payment method against our reference table
+        if (methodCode) {
+            const knownMethod = await this.paymentMethodRepository.findByCode(methodCode);
+            if (!knownMethod) {
+                console.warn(`[Webhook] Unknown payment method code received: ${methodCode}. Storing as-is.`);
             }
+        }
 
-            if (subscription) {
-                // 1. Atualizar ou criar registro de pagamento
-                let payment = await this.paymentRepository.findByBillingId(billingId);
-                
-                if (payment) {
-                    await this.paymentRepository.update(payment.id, {
-                        status: SubscriptionPaymentStatus.PAID,
-                        paidAt: new Date()
-                    });
-                } else {
-                    // É uma nova cobrança gerada automaticamente pelo AbacatePay
-                    console.log(`[Subscription] Creating new payment record for recurring billing ${billingId}`);
-                    await this.paymentRepository.create({
-                        subscriptionId: subscription.id,
-                        billingId: billingId,
-                        amount: data.amount || env.abacatePay.planPrice,
-                        status: SubscriptionPaymentStatus.PAID,
-                        paidAt: new Date(),
-                        checkoutUrl: data.url || subscription.checkoutUrl
-                    });
-                }
+        const methodPatch = methodCode ? { paymentMethod: methodCode } : {};
 
-                // 2. Ativar/Renovar assinatura por 30 dias a partir de agora
-                const periodEnd = new Date();
-                periodEnd.setDate(periodEnd.getDate() + 30);
+        // v2: paidAmount is the settled value; amount is the total billed
+        const paidAmountCents: number | undefined =
+            data.paidAmount ?? data.amount ?? data.payment?.amount;
 
-                await this.subscriptionRepository.updateStatus(
-                    subscription.id,
-                    subscription.userId,
-                    SubscriptionStatus.ACTIVE,
-                    periodEnd,
-                    subscription.plan
-                );
+        let payment = await this.paymentRepository.findByBillingId(billingId);
+        if (payment) {
+            await this.paymentRepository.update(payment.id, {
+                status: SubscriptionPaymentStatus.PAID,
+                paidAt: new Date(),
+                ...(paidAmountCents != null ? { amount: paidAmountCents } : {}),
+                ...methodPatch,
+            });
+        } else {
+            console.log(`[Subscription] Creating new payment record for recurring billing ${billingId}`);
+            await this.paymentRepository.create({
+                subscriptionId: subscription.id,
+                billingId,
+                amount: paidAmountCents ?? 0,
+                status: SubscriptionPaymentStatus.PAID,
+                paidAt: new Date(),
+                checkoutUrl: data.url || subscription.checkoutUrl,
+                ...methodPatch,
+            });
+        }
 
-                await this.subscriptionRepository.deactivateOthers(subscription.userId, subscription.id);
+        const periodEnd = new Date();
+        periodEnd.setDate(periodEnd.getDate() + 30);
 
-                // 4. Enviar notificação por e-mail
-                const user = await this.userRepository.findById(subscription.userId);
-                // Para NF, buscar config da primeira company do user (taxId)
-                const userConfig = await this.companyConfigRepository.findByCompanyId(subscription.userId);
+        await this.subscriptionRepository.updateStatus(
+            subscription.id,
+            subscription.userId,
+            SubscriptionStatus.ACTIVE,
+            periodEnd,
+            subscription.plan
+        );
 
-                if (user) {
-                    await this.notificationService.notifyPaymentSuccess(user.email, user.name, subscription.plan);
-                    
-                    // 5. Emitir Nota Fiscal via Focus NFe (se houver CPF/CNPJ)
-                    if (userConfig?.taxId) {
-                        try {
-                            const isCpf = userConfig.taxId.length <= 11;
-                            const tomador: any = {
-                                nome_completo: user.name,
-                                email: user.email,
-                                endereco: {
-                                    logradouro: "Não informado",
-                                    numero: "S/N",
-                                    bairro: "Centro",
-                                    cep: "00000-000",
-                                    codigo_municipio: "3550308",
-                                    uf: "SP"
-                                }
-                            };
+        await this.subscriptionRepository.deactivateOthers(subscription.userId, subscription.id);
 
-                            if (isCpf) tomador.cpf = userConfig.taxId;
-                            else tomador.cnpj = userConfig.taxId;
+        const user = await this.userRepository.findById(subscription.userId);
+        const userConfig = await this.companyConfigRepository.findByCompanyId(subscription.userId);
 
-                            await this.fiscalAdapter.emitirNfse(billingId, {
-                                tomador,
-                                servico: {
-                                    aliquota: 2, // Ex: 2% ISS
-                                    discriminacao: `Assinatura Mensal ConfirmaZap - Plano PRO`,
-                                    iss_retido: false,
-                                    item_lista_servico: "01.07", // Suporte técnico/SaaS
-                                    valor_servicos: env.abacatePay.planPrice / 100 // Converte centavos para reais
-                                }
-                            });
-                            console.log(`[Fiscal] Invoice issued for billing ${billingId}`);
-                        } catch (error) {
-                            console.error(`[Fiscal] Failed to issue invoice for billing ${billingId}:`, error);
-                        }
+        if (user) {
+            await this.notificationService.notifyPaymentSuccess(user.email, user.name, subscription.plan);
+
+            if (userConfig?.taxId) {
+                try {
+                    const isCpf = userConfig.taxId.length <= 11;
+
+                    // Build address from company config or use fallback
+                    const addressText = userConfig.address || "Não informado";
+                    const tomador: any = {
+                        nome_completo: user.name,
+                        email: user.email,
+                        endereco: {
+                            logradouro: addressText,
+                            numero: "S/N",
+                            bairro: "Não informado",
+                            cep: "00000-000",
+                            codigo_municipio: "3550308",
+                            uf: "SP",
+                        },
+                    };
+                    if (isCpf) tomador.cpf = userConfig.taxId;
+                    else tomador.cnpj = userConfig.taxId;
+
+                    // Use actual payment amount; fallback to plan price from DB
+                    const paidAmountCents = data.paidAmount ?? data.amount ?? data.payment?.amount;
+                    let valorServicos: number;
+                    if (paidAmountCents != null) {
+                        valorServicos = paidAmountCents / 100;
+                    } else {
+                        const plan = await this.planRepository.findBySlug(subscription.plan);
+                        valorServicos = plan ? plan.priceInCents / 100 : 0;
                     }
-                }
 
-                console.log(`[Subscription] User ${subscription.userId} activated via Abacate Pay.`);
-            }
-        } else if (event === "billing.expired" || event === "billing.abandoned") {
-            const billingId = data.id;
-            const subscription = await this.subscriptionRepository.findByBillingId(billingId);
-
-            if (subscription) {
-                const payment = await this.paymentRepository.findByBillingId(billingId);
-                if (payment) {
-                    await this.paymentRepository.update(payment.id, {
-                        status: event === "billing.expired" ? SubscriptionPaymentStatus.EXPIRED : SubscriptionPaymentStatus.CANCELLED
+                    await this.fiscalAdapter.emitirNfse(billingId, {
+                        tomador,
+                        servico: {
+                            aliquota: 2,
+                            discriminacao: `Assinatura Mensal ConfirmaZap - Plano ${subscription.plan}`,
+                            iss_retido: false,
+                            item_lista_servico: "01.07",
+                            valor_servicos: valorServicos,
+                        },
                     });
-                }
-
-                // Se a assinatura ainda estiver PENDING, marcamos como INACTIVE
-                if (subscription.status === SubscriptionStatus.PENDING) {
-                    await this.subscriptionRepository.updateStatus(
-                        subscription.id,
-                        subscription.userId,
-                        SubscriptionStatus.INACTIVE
-                    );
-
-                    // Notificar expiração/cancelamento
-                    const user = await this.userRepository.findById(subscription.userId);
-                    if (user) {
-                        await this.notificationService.notifySubscriptionExpired(user.email, user.name);
-                    }
-                }
-            }
-        } else if (event === "billing.refunded") {
-            const billingId = data.id;
-            const subscription = await this.subscriptionRepository.findByBillingId(billingId);
-
-            if (subscription) {
-                const payment = await this.paymentRepository.findByBillingId(billingId);
-                if (payment) {
-                    await this.paymentRepository.update(payment.id, {
-                        status: SubscriptionPaymentStatus.REFUNDED
-                    });
-                }
-
-                // Plano reembolsado perde o acesso PRO
-                await this.subscriptionRepository.updateStatus(
-                    subscription.id,
-                    subscription.userId,
-                    SubscriptionStatus.CANCELLED
-                );
-
-                // Notificar reembolso
-                const user = await this.userRepository.findById(subscription.userId);
-                if (user) {
-                    await this.notificationService.notifySubscriptionRefunded(user.email, user.name);
+                    console.log(`[Fiscal] Invoice issued for billing ${billingId}`);
+                } catch (error) {
+                    console.error(`[Fiscal] Failed to issue invoice for billing ${billingId}:`, error);
                 }
             }
         }
-        
-        // Outros eventos (expiration, refund) podem ser adicionados aqui
-        return { status: "processed" };
+
+        console.log(`[Subscription] User ${subscription.userId} activated via Abacate Pay.`);
+    }
+
+    private async handleBillingExpiredOrAbandoned(event: string, data: any) {
+        const billingId = data.id;
+        const subscription = await this.subscriptionRepository.findByBillingId(billingId);
+
+        if (!subscription) return;
+
+        const payment = await this.paymentRepository.findByBillingId(billingId);
+        if (payment) {
+            const isExpired = event === "billing.expired";
+            await this.paymentRepository.update(payment.id, {
+                status: isExpired
+                    ? SubscriptionPaymentStatus.EXPIRED
+                    : SubscriptionPaymentStatus.CANCELLED,
+            });
+        }
+
+        if (subscription.status === SubscriptionStatus.PENDING) {
+            await this.subscriptionRepository.updateStatus(
+                subscription.id,
+                subscription.userId,
+                SubscriptionStatus.INACTIVE
+            );
+
+            const user = await this.userRepository.findById(subscription.userId);
+            if (user) {
+                await this.notificationService.notifySubscriptionExpired(user.email, user.name);
+            }
+        }
+    }
+
+    private async handleBillingRefunded(data: any) {
+        const billingId = data.id;
+        const subscription = await this.subscriptionRepository.findByBillingId(billingId);
+
+        if (!subscription) return;
+
+        const payment = await this.paymentRepository.findByBillingId(billingId);
+        if (payment) {
+            await this.paymentRepository.update(payment.id, {
+                status: SubscriptionPaymentStatus.REFUNDED,
+            });
+        }
+
+        await this.subscriptionRepository.updateStatus(
+            subscription.id,
+            subscription.userId,
+            SubscriptionStatus.CANCELLED
+        );
+
+        const user = await this.userRepository.findById(subscription.userId);
+        if (user) {
+            await this.notificationService.notifySubscriptionRefunded(user.email, user.name);
+        }
     }
 }

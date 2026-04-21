@@ -12,6 +12,8 @@ import { SubscriptionPayment } from "../database/entities/subscription-payment.e
 import { Integration } from "../database/entities/integration.entity";
 import { Professional } from "../database/entities/professional.entity";
 import { Plan } from "../database/entities/plan.entity";
+import { PaymentMethod } from "../database/entities/payment-method.entity";
+import { WebhookAuditLog } from "../database/entities/webhook-audit-log.entity";
 
 export const AppDataSource = new DataSource({
     type: "postgres",
@@ -20,9 +22,9 @@ export const AppDataSource = new DataSource({
     username: env.database.user,
     password: env.database.password,
     database: env.database.database,
-    synchronize: false,
+    synchronize: env.debug(),
     logging: env.debug(),
-    entities: [User, Company, CompanyConfig, Client, Schedule, UserConfig, Subscription, SubscriptionPayment, Integration, Professional, Plan],
+    entities: [User, Company, CompanyConfig, Client, Schedule, UserConfig, Subscription, SubscriptionPayment, Integration, Professional, Plan, PaymentMethod, WebhookAuditLog],
     subscribers: [],
     migrations: [],
     extra: {

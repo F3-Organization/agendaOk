@@ -10,7 +10,10 @@ import {
   Star,
   ShieldEllipsis,
   Loader2,
-  FileX
+  FileX,
+  Banknote,
+  Smartphone,
+  QrCode,
 } from 'lucide-react';
 import { PageLayout } from '../shared/ui/PageLayout';
 import { Card } from '../shared/ui/Card';
@@ -18,12 +21,30 @@ import { Button } from '../shared/ui/Button';
 import { useSubscription } from '../features/subscription/hooks/useSubscription';
 import { BillingInfoModal } from '../features/subscription/components/BillingInfoModal';
 import { formatCurrency, formatDate } from '../shared/utils/formatters';
+import type { PaymentMethod } from '../features/subscription/subscription.service';
+
+function PaymentMethodBadge({ method, methods }: { method?: string | null; methods: PaymentMethod[] }) {
+  if (!method) return <span className="text-muted-foreground/40 text-xs">—</span>;
+  const found = methods.find(m => m.code === method);
+  const label = found?.name ?? method;
+  const code = method.toUpperCase();
+  const isPix = code.includes('PIX');
+  const isBoleto = code.includes('BOLETO');
+  const Icon = isPix ? QrCode : isBoleto ? Banknote : Smartphone;
+  return (
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase bg-surface-high/60 border border-outline-variant/30 text-muted-foreground">
+      <Icon className="w-3 h-3 shrink-0" />
+      {label}
+    </span>
+  );
+}
 
 export const SubscriptionPage = () => {
   const { t } = useTranslation();
   const {
     subStatus,
     paymentHistory,
+    paymentMethods,
     isStatusLoading,
     isHistoryLoading,
     showSuccessBanner,
@@ -237,6 +258,7 @@ export const SubscriptionPage = () => {
                   <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('subscription.billing.invoiceId')}</th>
                   <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('subscription.billing.date')}</th>
                   <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('subscription.billing.amount')}</th>
+                  <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hidden sm:table-cell">Método</th>
                   <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('subscription.billing.status')}</th>
                   <th className="px-8 py-4 text-right"></th>
                 </tr>
@@ -261,6 +283,9 @@ export const SubscriptionPage = () => {
                       </span>
                     </td>
                     <td className="px-8 py-6 font-bold text-sm">{formatCurrency(payment.amount)}</td>
+                    <td className="px-8 py-6 hidden sm:table-cell">
+                      <PaymentMethodBadge method={payment.paymentMethod} methods={paymentMethods} />
+                    </td>
                     <td className="px-8 py-6">
                       <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase border ${payment.status === 'PAID'
                           ? 'bg-green-500/10 border-green-500/20 text-green-400'

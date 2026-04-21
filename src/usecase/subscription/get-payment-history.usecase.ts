@@ -20,7 +20,8 @@ export class GetSubscriptionPaymentHistoryUseCase {
             amount: payment.amount,
             paidAt: payment.paidAt,
             createdAt: payment.createdAt,
-            checkoutUrl: payment.checkoutUrl
+            checkoutUrl: payment.checkoutUrl,
+            paymentMethod: payment.paymentMethod ?? null
         }));
     }
 }

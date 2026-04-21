@@ -2,7 +2,7 @@ import { FastifyAdapter } from "../adapters/fastfy.adapter";
 import { EvolutionApiAdapter } from "../adapters/evolution-api.adapter";
 import { GoogleCalendarAdapter } from "../adapters/google-calendar.adapter";
 import { AbacatePayAdapter } from "../adapters/abacatepay.adapter";
-import { FocusNFeAdapter } from "../adapters/focus-nfe.adapter";
+import { BrasilNFeAdapter } from "../adapters/brasil-nfe.adapter";
 import { GeminiAdapter } from "../adapters/gemini.adapter";
 import { adminMiddleware } from "../middleware/auth.middleware";
 import { AppController } from "../controller/app.controller";
@@ -32,6 +32,8 @@ import { SubscriptionPaymentRepository } from "../database/repositories/subscrip
 import { IntegrationRepository } from "../database/repositories/integration.repository";
 import { ProfessionalRepository } from "../database/repositories/professional.repository";
 import { PlanRepository } from "../database/repositories/plan.repository";
+import { PaymentMethodRepository } from "../database/repositories/payment-method.repository";
+import { WebhookAuditLogRepository } from "../database/repositories/webhook-audit-log.repository";
 import { GenerateGoogleAuthUrlUseCase } from "../../usecase/auth/generate-google-auth-url.usecase";
 import { ExchangeGoogleCodeUseCase } from "../../usecase/auth/exchange-google-code.usecase";
 import { SyncCalendarUseCase } from "../../usecase/calendar/sync-calendar.usecase";
@@ -89,7 +91,7 @@ const adapterInstance = new FastifyAdapter();
 const evolutionAdapter = new EvolutionApiAdapter();
 const googleCalendarAdapter = new GoogleCalendarAdapter();
 const abacatePayAdapter = new AbacatePayAdapter();
-const focusNFeAdapter = new FocusNFeAdapter();
+const brasilNFeAdapter = new BrasilNFeAdapter();
 const geminiAdapter = new GeminiAdapter();
 const mailAdapter = new NodemailerAdapter();
 const redisService = new RedisService();
@@ -107,6 +109,8 @@ let subscriptionPaymentRepository: SubscriptionPaymentRepository;
 let integrationRepository: IntegrationRepository;
 let professionalRepository: ProfessionalRepository;
 let planRepository: PlanRepository;
+let paymentMethodRepository: PaymentMethodRepository;
+let webhookAuditLogRepository: WebhookAuditLogRepository;
 
 let syncCalendarQueue: SyncCalendarQueue;
 let notifyQueue: NotifyQueue;
@@ -122,7 +126,9 @@ const getRepo = {
     subscriptionPayment: () => subscriptionPaymentRepository || (subscriptionPaymentRepository = new SubscriptionPaymentRepository()),
     integration: () => integrationRepository || (integrationRepository = new IntegrationRepository()),
     professional: () => professionalRepository || (professionalRepository = new ProfessionalRepository()),
-    plan: () => planRepository || (planRepository = new PlanRepository())
+    plan: () => planRepository || (planRepository = new PlanRepository()),
+    paymentMethod: () => paymentMethodRepository || (paymentMethodRepository = new PaymentMethodRepository()),
+    webhookAuditLog: () => webhookAuditLogRepository || (webhookAuditLogRepository = new WebhookAuditLogRepository())
 };
 
 const getUseCase = {
@@ -199,7 +205,10 @@ const getUseCase = {
         getRepo.user(),
         getRepo.companyConfig(),
         new SubscriptionNotificationService(mailAdapter),
-        focusNFeAdapter
+        brasilNFeAdapter,
+        getRepo.webhookAuditLog(),
+        getRepo.paymentMethod(),
+        getRepo.plan()
     ),
     getSubscriptionPaymentHistory: () => new GetSubscriptionPaymentHistoryUseCase(
         getRepo.subscription(),
@@ -392,7 +401,8 @@ export const factory = {
             getUseCase.getSubscriptionStatus(),
             getUseCase.getSubscriptionPaymentHistory(),
             getUseCase.generateInvoicePdf(),
-            getRepo.plan()
+            getRepo.plan(),
+            getRepo.paymentMethod()
         ),
         whatsapp: () => new WhatsappController(
             adapterInstance,

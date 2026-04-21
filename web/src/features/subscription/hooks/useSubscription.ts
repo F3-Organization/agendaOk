@@ -40,6 +40,12 @@ export const useSubscription = () => {
     refetchInterval: subStatus?.status === 'PENDING' ? 10000 : false,
   });
 
+  const { data: paymentMethods = [] } = useQuery({
+    queryKey: ['payment-methods'],
+    queryFn: subscriptionService.getPaymentMethods,
+    staleTime: 60 * 60 * 1000, // Methods rarely change
+  });
+
   useEffect(() => {
     // Detectar transição de PENDING para ACTIVE
     if (prevStatusRef.current === 'PENDING' && subStatus?.status === 'ACTIVE') {
@@ -165,6 +171,7 @@ export const useSubscription = () => {
   return {
     subStatus,
     paymentHistory,
+    paymentMethods,
     isStatusLoading: isStatusLoading || isPlansLoading,
     isHistoryLoading,
     showSuccessBanner,

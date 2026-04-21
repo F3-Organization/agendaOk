@@ -33,6 +33,15 @@ export interface SubscriptionPayment {
   amount: number;
   paidAt?: string;
   createdAt: string;
+  paymentMethod?: string | null;
+}
+
+export interface PaymentMethod {
+  id: string;
+  code: string;
+  name: string;
+  description?: string | null;
+  isActive: boolean;
 }
 
 export const subscriptionService = {
@@ -53,6 +62,11 @@ export const subscriptionService = {
 
   getPaymentHistory: async (): Promise<SubscriptionPayment[]> => {
     const response = await apiClient.get('/subscription/payments');
+    return response.data;
+  },
+
+  getPaymentMethods: async (): Promise<PaymentMethod[]> => {
+    const response = await apiClient.get('/subscription/payment-methods');
     return response.data;
   },
 

@@ -2,6 +2,7 @@ import { AppDataSource } from "./infra/config/data-source";
 import { factory } from "./infra/factory/factory";
 import { env } from "./infra/config/configs";
 import { Plan } from "./infra/database/entities/plan.entity";
+import { PaymentMethod } from "./infra/database/entities/payment-method.entity";
 
 function validateEnv() {
     const required: Array<[string, unknown]> = [
@@ -59,6 +60,24 @@ async function seedPlansIfEmpty() {
     console.log("[Bootstrap] Plans seeded successfully.");
 }
 
+async function seedPaymentMethods(): Promise<void> {
+    const repo = AppDataSource.getRepository(PaymentMethod);
+    const METHODS = [
+        { code: "PIX", name: "PIX", description: "Pagamento instantâneo via PIX" },
+        { code: "CREDIT_CARD", name: "Cartão de Crédito", description: "Cartão de crédito" },
+        { code: "DEBIT_CARD", name: "Cartão de Débito", description: "Cartão de débito" },
+        { code: "BOLETO", name: "Boleto Bancário", description: "Boleto bancário" },
+    ];
+    await repo
+        .createQueryBuilder()
+        .insert()
+        .into(PaymentMethod)
+        .values(METHODS)
+        .orUpdate(['name', 'description'], ['code'])
+        .execute();
+    console.log("[Bootstrap] Payment methods seeded.");
+}
+
 async function bootstrap() {
     try {
         // 1. Validate required env vars before doing anything
@@ -68,6 +87,7 @@ async function bootstrap() {
         await AppDataSource.initialize();
         console.log("[Bootstrap] Data Source has been initialized!");
         await seedPlansIfEmpty();
+        await seedPaymentMethods();
 
         // 3. Setup API Adapter (Swagger, etc.)
         const adapter = factory.adapters.fastify();

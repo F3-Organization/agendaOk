@@ -39,4 +39,7 @@ export class SubscriptionPayment extends BaseEntity {
 
     @Column({ name: "paid_at", type: "timestamp", nullable: true })
     paidAt?: Date;
+
+    @Column({ name: "payment_method", type: "varchar", length: 50, nullable: true })
+    paymentMethod?: string;
 }

@@ -1,3 +1,4 @@
+import { env } from "../config/configs";
 
 export interface NfseRequest {
   data_emissao?: string;
@@ -32,23 +33,22 @@ export interface NfseRequest {
   };
 }
 
-export class FocusNFeAdapter {
+export class BrasilNFeAdapter {
   private readonly baseUrl: string;
   private readonly token: string;
 
   constructor() {
-    this.token = process.env.FOCUS_NFE_TOKEN || '';
-    this.baseUrl = process.env.FOCUS_NFE_URL || 'https://sandbox.focusnfe.com.br/v2';
+    this.token = env.brasilNfe.token;
+    this.baseUrl = env.brasilNfe.baseUrl;
   }
 
   async emitirNfse(reference: string, data: Partial<NfseRequest>): Promise<any> {
     const url = `${this.baseUrl}/nfse?ref=${reference}`;
-    const auth = Buffer.from(`${this.token}:`).toString('base64');
 
     const response = await fetch(url, {
       method: 'POST',
       headers: {
-        'Authorization': `Basic ${auth}`,
+        'Authorization': `Bearer ${this.token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(data),
@@ -57,8 +57,8 @@ export class FocusNFeAdapter {
     const result = await response.json();
 
     if (!response.ok) {
-      console.error(`[FocusNFe] Error emitting invoice:`, result);
-      throw new Error(`FocusNFe API Error: ${result.mensagem || JSON.stringify(result)}`);
+      console.error(`[BrasilNFe] Error emitting invoice:`, result);
+      throw new Error(`BrasilNFe API Error: ${result.message || JSON.stringify(result)}`);
     }
 
     return result;
@@ -66,12 +66,11 @@ export class FocusNFeAdapter {
 
   async consultarNfse(reference: string): Promise<any> {
     const url = `${this.baseUrl}/nfse/${reference}`;
-    const auth = Buffer.from(`${this.token}:`).toString('base64');
 
     const response = await fetch(url, {
       method: 'GET',
       headers: {
-        'Authorization': `Basic ${auth}`,
+        'Authorization': `Bearer ${this.token}`,
       },
     });
 

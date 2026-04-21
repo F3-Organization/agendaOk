@@ -6,6 +6,7 @@ import { GetSubscriptionStatusUseCase } from "../../usecase/subscription/get-sub
 import { GetSubscriptionPaymentHistoryUseCase } from "../../usecase/subscription/get-payment-history.usecase";
 import { GenerateInvoicePdfUseCase } from "../../usecase/subscription/generate-invoice-pdf.usecase";
 import { IPlanRepository } from "../../usecase/repositories/iplan-repository";
+import { PaymentMethodRepository } from "../database/repositories/payment-method.repository";
 import { AuthUserPayload } from "../types/auth.types";
 import { env } from "../config/configs";
 import { createHmac } from "crypto";
@@ -19,7 +20,8 @@ export class SubscriptionController {
         private readonly getStatus: GetSubscriptionStatusUseCase,
         private readonly getHistory: GetSubscriptionPaymentHistoryUseCase,
         private readonly generatePdf: GenerateInvoicePdfUseCase,
-        private readonly planRepository: IPlanRepository
+        private readonly planRepository: IPlanRepository,
+        private readonly paymentMethodRepository: PaymentMethodRepository
     ) {
         this.fastify.logInfo("[SubscriptionController] Initializing...");
         this.registerRoutes();
@@ -59,7 +61,35 @@ export class SubscriptionController {
             }
         });
 
-        // 1. Criar Checkout de Assinatura
+        // 1. Listar Métodos de Pagamento (público)
+        this.fastify.addRoute("GET", "/subscription/payment-methods", async (_request: FastifyRequest, reply: FastifyReply) => {
+            try {
+                const methods = await this.paymentMethodRepository.findAll();
+                reply.send(methods);
+            } catch (error: any) {
+                reply.code(500).send({ error: "Failed to fetch payment methods" });
+            }
+        }, {
+            tags: ["Subscription"],
+            summary: "Lists all active payment methods",
+            response: {
+                200: {
+                    type: "array",
+                    items: {
+                        type: "object",
+                        properties: {
+                            id: { type: "string" },
+                            code: { type: "string" },
+                            name: { type: "string" },
+                            description: { type: "string", nullable: true },
+                            isActive: { type: "boolean" }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 3. Criar Checkout de Assinatura
         this.fastify.addProtectedRoute("POST", "/subscription/checkout", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
             const userId = user.id;
@@ -146,7 +176,8 @@ export class SubscriptionController {
                             amount: { type: "number" },
                             paidAt: { type: "string", format: "date-time", nullable: true },
                             createdAt: { type: "string", format: "date-time" },
-                            checkoutUrl: { type: "string" }
+                            checkoutUrl: { type: "string" },
+                            paymentMethod: { type: "string", nullable: true }
                         }
                     }
                 },

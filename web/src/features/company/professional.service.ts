@@ -31,6 +31,11 @@ export const professionalService = {
   create: (data: Partial<Professional>) => apiClient.post<Professional>('/company/professionals', data),
   update: (id: string, data: Partial<Professional>) => apiClient.put<void>(`/company/professionals/${id}`, data),
   delete: (id: string) => apiClient.delete(`/company/professionals/${id}`),
-  getBotConfig: () => apiClient.get<BotConfig>('/company/bot-config'),
-  updateBotConfig: (data: Partial<BotConfig>) => apiClient.put<void>('/company/bot-config', data),
+  getBotConfig: async () => {
+    const { data } = await apiClient.get<BotConfig>('/company/bot-config');
+    return data;
+  },
+  updateBotConfig: async (data: Partial<BotConfig>) => {
+    await apiClient.put<void>('/company/bot-config', data);
+  },
 };

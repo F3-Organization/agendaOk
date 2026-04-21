@@ -22,10 +22,7 @@ export class ConnectWhatsappUseCase {
         } catch (error) {
         }
 
-        const protocol = env.isProduction() ? "https" : "http";
-        const host = env.domain;
-        const port = env.isProduction() ? "" : `:${env.port}`;
-        const webhookUrl = `${protocol}://${host}${port}/api/webhook/evolution`;
+        const webhookUrl = env.evolution.webhookUrl;
 
         await this.evolutionService.setWebhook(instanceName, webhookUrl);
 

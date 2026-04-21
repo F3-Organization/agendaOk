@@ -54,7 +54,7 @@ export class EvolutionApiAdapter implements IEvolutionService {
     async createInstance(instanceName: string): Promise<EvolutionInstanceResponse> {
         return await this.request<EvolutionInstanceResponse>("/instance/create", "POST", {
             instanceName,
-            token: "",
+            token: this.apiKey,
             qrcode: true,
             integration: "WHATSAPP-BAILEYS"
         });

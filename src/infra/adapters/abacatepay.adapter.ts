@@ -123,10 +123,18 @@ export class AbacatePayAdapter implements IPaymentGateway {
         name: string,
         price: number,
         returnUrl: string,
-        metadata?: Record<string, any>
-    ): Promise<{ id: string; url: string }> {
-        const productExternalId = `plan-${name.toLowerCase().replace(/\s+/g, "-")}`;
-        const productId = await this.getOrCreateProduct(productExternalId, name, price, "MONTHLY");
+        metadata?: Record<string, any>,
+        gatewayProductId?: string | null
+    ): Promise<{ id: string; url: string; productId: string }> {
+        let productId: string;
+
+        if (gatewayProductId) {
+            productId = gatewayProductId;
+            console.log(`[AbacatePay] Reusing persisted product ${productId}`);
+        } else {
+            const productExternalId = `plan-${name.toLowerCase().replace(/\s+/g, "-")}`;
+            productId = await this.getOrCreateProduct(productExternalId, name, price, "MONTHLY");
+        }
 
         const result = await this.request("/subscriptions/create", "POST", {
             items: [{ id: productId, quantity: 1 }],
@@ -137,7 +145,7 @@ export class AbacatePayAdapter implements IPaymentGateway {
             ...(metadata ? { metadata } : {}),
         });
 
-        return { id: result.data.id, url: result.data.url };
+        return { id: result.data.id, url: result.data.url, productId };
     }
 
     // ── One-time billing (checkouts) ──────────────────────────────────────

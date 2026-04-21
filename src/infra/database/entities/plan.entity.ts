@@ -32,4 +32,7 @@ export class Plan extends BaseEntity {
 
     @Column({ type: "integer", name: "sort_order", default: 0 })
     sortOrder!: number;
+
+    @Column({ type: "varchar", name: "gateway_product_id", nullable: true })
+    gatewayProductId?: string | null;
 }

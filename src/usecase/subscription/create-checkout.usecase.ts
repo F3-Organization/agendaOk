@@ -84,8 +84,16 @@ export class CreateSubscriptionCheckoutUseCase {
             purchasablePlan.name,
             purchasablePlan.priceInCents,
             `${baseUrl}/subscription`,
-            { userId }
+            { userId },
+            purchasablePlan.gatewayProductId
         );
+
+        if (!purchasablePlan.gatewayProductId && subscriptionCheckout.productId) {
+            await this.planRepository.save({
+                id: purchasablePlan.id,
+                gatewayProductId: subscriptionCheckout.productId
+            });
+        }
 
         const newSubscription = await this.subscriptionRepository.save({
             userId,

@@ -22,6 +22,6 @@ export interface IPaymentGateway {
     createCustomer(request: CreateCustomerRequest): Promise<{ id: string }>;
     getCustomer(id: string): Promise<any | null>;
     createBilling(request: CreateBillingRequest): Promise<{ id: string, url: string }>;
-    createSubscription(customerId: string, name: string, price: number, returnUrl: string, metadata?: Record<string, any>): Promise<{ id: string, url: string }>;
+    createSubscription(customerId: string, name: string, price: number, returnUrl: string, metadata?: Record<string, any>, gatewayProductId?: string | null): Promise<{ id: string, url: string, productId: string }>;
     getBilling(id: string): Promise<any>;
 }

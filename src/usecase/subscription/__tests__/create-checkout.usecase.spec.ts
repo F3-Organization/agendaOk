@@ -16,6 +16,7 @@ describe("CreateSubscriptionCheckoutUseCase", () => {
     let companyRepository: ICompanyRepository;
     let paymentGateway: IPaymentGateway;
     let paymentRepository: ISubscriptionPaymentRepository;
+    let planRepository: any;
 
     beforeEach(() => {
         userRepository = {
@@ -57,13 +58,24 @@ describe("CreateSubscriptionCheckoutUseCase", () => {
             update: vi.fn()
         } as any;
 
+        planRepository = {
+            findPurchasable: vi.fn().mockResolvedValue({
+                slug: "PRO",
+                name: "ConfirmaZap Pro",
+                priceInCents: 4990,
+                messageLimit: null
+            }),
+            findBySlug: vi.fn()
+        };
+
         sut = new CreateSubscriptionCheckoutUseCase(
             userRepository,
             subscriptionRepository,
             companyConfigRepository,
             companyRepository,
             paymentGateway,
-            paymentRepository
+            paymentRepository,
+            planRepository
         );
     });
 

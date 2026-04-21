@@ -1,6 +1,6 @@
 import { ICompanyRepository } from "../repositories/icompany-repository";
 import { ISubscriptionRepository } from "../repositories/isubscription-repository";
-import { SubscriptionStatus } from "../../infra/database/entities/subscription.entity";
+import { isProAccess } from "../subscription/subscription.helpers";
 
 const PLAN_LIMITS = {
     FREE: 1,
@@ -28,14 +28,12 @@ export class ListCompaniesUseCase {
     async execute(userId: string): Promise<ListCompaniesResult> {
         const companies = await this.companyRepository.findByOwnerId(userId);
 
-        // Subscription belongs to the user, not the company — fetch once
         const subscription = await this.subscriptionRepository.findByUserId(userId);
         const subscriptionData = subscription
             ? { plan: subscription.plan, status: subscription.status }
             : null;
 
-        const isProActive = subscription?.status === SubscriptionStatus.ACTIVE && subscription?.plan === "PRO";
-        const maxCompanies = isProActive ? PLAN_LIMITS.PRO : PLAN_LIMITS.FREE;
+        const maxCompanies = isProAccess(subscription) ? PLAN_LIMITS.PRO : PLAN_LIMITS.FREE;
 
         return {
             companies: companies.map(company => ({

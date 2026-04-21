@@ -1,5 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { SubscriptionStatus } from "../database/entities/subscription.entity";
+import { isSubscriptionActive } from "../../usecase/subscription/subscription.helpers";
 
 declare module 'fastify' {
     interface FastifyRequest {
@@ -14,7 +15,7 @@ export const subscriptionMiddleware = (repository: any) => async (request: Fasti
     const userId = (request.user as any).id;
     const subscription = await repository.findByUserId(userId);
 
-    if (!subscription || subscription.status !== SubscriptionStatus.ACTIVE) {
+    if (!isSubscriptionActive(subscription)) {
         return reply.code(403).send({ 
             error: "Subscription required", 
             message: "Essa funcionalidade exige uma assinatura PRO ativa.",
@@ -23,7 +24,7 @@ export const subscriptionMiddleware = (repository: any) => async (request: Fasti
     }
 
     request.subscription = {
-        status: subscription.status,
-        plan: subscription.plan
+        status: subscription!.status,
+        plan: subscription!.plan
     };
 };

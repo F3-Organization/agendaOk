@@ -76,6 +76,8 @@ import { SyncCalendarQueue } from "../queue/sync-calendar.queue";
 import { SyncCalendarWorker } from "../queue/sync-calendar.worker";
 import { NotifyQueue } from "../queue/notify.queue";
 import { NotifyWorker } from "../queue/notify.worker";
+import { SubscriptionQueue } from "../queue/subscription.queue";
+import { SubscriptionWorker } from "../queue/subscription.worker";
 import { subscriptionMiddleware } from "../middleware/subscription.middleware";
 import { usageLimitMiddleware } from "../middleware/usage-limit.middleware";
 import { NodemailerAdapter } from "../adapters/nodemailer.adapter";
@@ -85,6 +87,7 @@ import { VerifyEmailSetPasswordUseCase } from "../../usecase/auth/verify-email-s
 import { GetHealthStatusUseCase } from "../../usecase/system/get-health-status.usecase";
 import { SubscriptionNotificationService } from "../../usecase/subscription/subscription-notification.service";
 import { FiscalService } from "../../usecase/subscription/fiscal.service";
+import { CheckExpiredSubscriptionsUseCase } from "../../usecase/subscription/check-expired-subscriptions.usecase";
 import { AppDataSource } from "../config/data-source";
 
 // Singletons (non-TypeORM dependent)
@@ -116,6 +119,7 @@ let webhookAuditLogRepository: WebhookAuditLogRepository;
 
 let syncCalendarQueue: SyncCalendarQueue;
 let notifyQueue: NotifyQueue;
+let subscriptionQueue: SubscriptionQueue;
 
 const getRepo = {
     user: () => userRepository || (userRepository = new UserRepository()),
@@ -334,6 +338,11 @@ const getUseCase = {
     ),
     manageBotConfig: () => new ManageBotConfigUseCase(
         getRepo.companyConfig()
+    ),
+    checkExpiredSubscriptions: () => new CheckExpiredSubscriptionsUseCase(
+        getRepo.subscription(),
+        getRepo.user(),
+        new SubscriptionNotificationService(mailAdapter)
     )
 };
 
@@ -437,10 +446,12 @@ export const factory = {
     },
     queues: {
         sync: () => syncCalendarQueue || (syncCalendarQueue = new SyncCalendarQueue()),
-        notify: () => notifyQueue || (notifyQueue = new NotifyQueue())
+        notify: () => notifyQueue || (notifyQueue = new NotifyQueue()),
+        subscription: () => subscriptionQueue || (subscriptionQueue = new SubscriptionQueue())
     },
     workers: {
         sync: () => new SyncCalendarWorker(getUseCase.syncCalendar()),
-        notify: () => new NotifyWorker(getUseCase.notifyUpcomingAppointments(), getRepo.companyConfig())
+        notify: () => new NotifyWorker(getUseCase.notifyUpcomingAppointments(), getRepo.companyConfig()),
+        subscription: () => new SubscriptionWorker(getUseCase.checkExpiredSubscriptions())
     }
 };

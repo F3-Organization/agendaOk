@@ -3,7 +3,7 @@ import { ICompanyConfigRepository } from "../repositories/icompany-config-reposi
 import { ISubscriptionRepository } from "../repositories/isubscription-repository";
 import { Company } from "../../infra/database/entities/company.entity";
 import { CompanyConfig } from "../../infra/database/entities/company-config.entity";
-import { SubscriptionStatus } from "../../infra/database/entities/subscription.entity";
+import { isProAccess } from "../subscription/subscription.helpers";
 
 const PLAN_LIMITS = {
     FREE: 1,
@@ -23,15 +23,14 @@ export class CreateCompanyUseCase {
     ) {}
 
     async execute(input: CreateCompanyInput): Promise<Company> {
-        // Check company limit based on user's plan
         const existingCompanies = await this.companyRepository.findByOwnerId(input.ownerId);
         const subscription = await this.subscriptionRepository.findByUserId(input.ownerId);
 
-        const isProActive = subscription?.status === SubscriptionStatus.ACTIVE && subscription?.plan === "PRO";
-        const maxCompanies = isProActive ? PLAN_LIMITS.PRO : PLAN_LIMITS.FREE;
+        const hasPro = isProAccess(subscription);
+        const maxCompanies = hasPro ? PLAN_LIMITS.PRO : PLAN_LIMITS.FREE;
 
         if (existingCompanies.length >= maxCompanies) {
-            const planName = isProActive ? "PRO" : "FREE";
+            const planName = hasPro ? "PRO" : "FREE";
             throw new Error(`Company limit reached. ${planName} plan allows up to ${maxCompanies} company(ies). Please upgrade your plan.`);
         }
 

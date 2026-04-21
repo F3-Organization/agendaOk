@@ -2,7 +2,7 @@ import { ISubscriptionRepository } from "../repositories/isubscription-repositor
 import { IScheduleRepository } from "../repositories/ischedule-repository";
 import { ICompanyRepository } from "../repositories/icompany-repository";
 import { IPlanRepository } from "../repositories/iplan-repository";
-import { SubscriptionStatus } from "../../infra/database/entities/subscription.entity";
+import { isSubscriptionActive } from "./subscription.helpers";
 
 const FREE_FALLBACK_LIMIT = 50;
 
@@ -22,13 +22,12 @@ export class CheckUsageLimitUseCase {
 
         const subscription = await this.subscriptionRepository.findByUserId(company.ownerId);
         const planSlug = subscription?.plan || "FREE";
-        const status = subscription?.status || SubscriptionStatus.INACTIVE;
+        const active = isSubscriptionActive(subscription);
 
         const planDef = await this.planRepository.findBySlug(planSlug);
         const messageLimit = planDef?.messageLimit ?? FREE_FALLBACK_LIMIT;
 
-        // null messageLimit means unlimited
-        if (status === SubscriptionStatus.ACTIVE && planDef?.messageLimit === null) {
+        if (active && planDef?.messageLimit === null) {
             return { canSend: true, plan: planSlug, count: 0, limit: -1 };
         }
 

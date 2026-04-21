@@ -56,4 +56,15 @@ export class SubscriptionRepository implements ISubscriptionRepository {
             .where("user_id = :userId AND id != :activeId", { userId, activeId })
             .execute();
     }
+
+    async findExpired(): Promise<Subscription[]> {
+        return await this.repository
+            .createQueryBuilder("s")
+            .where("s.status IN (:...statuses)", {
+                statuses: [SubscriptionStatus.ACTIVE, SubscriptionStatus.TRIAL]
+            })
+            .andWhere("s.current_period_end IS NOT NULL")
+            .andWhere("s.current_period_end < NOW()")
+            .getMany();
+    }
 }

@@ -56,6 +56,7 @@ async function bootstrap() {
 
         factory.workers.sync();
         factory.workers.notify();
+        factory.workers.subscription();
         console.log("[Bootstrap] Background workers started.");
 
         await adapter.listen();

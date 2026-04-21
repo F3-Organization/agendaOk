@@ -4,8 +4,17 @@ import { env } from "../../infra/config/configs";
 export class SubscriptionNotificationService {
     constructor(private readonly mailService: IMailService) {}
 
-    async notifyPaymentSuccess(userEmail: string, userName: string, planName: string): Promise<void> {
+    async notifyPaymentSuccess(userEmail: string, userName: string, planName: string, invoiceUrl?: string): Promise<void> {
         const subject = `Assinatura ${planName} Ativada com Sucesso!`;
+
+        const invoiceBlock = invoiceUrl
+            ? `<div style="margin: 20px 0; padding: 15px; background: #dcfce7; border-radius: 8px; border-left: 4px solid #16a34a;">
+                    <strong>📄 Nota Fiscal de Serviço (NFS-e)</strong><br>
+                    <p style="margin: 8px 0 0 0;">Sua NFS-e foi emitida e está disponível para download:</p>
+                    <a href="${invoiceUrl}" style="display: inline-block; margin-top: 8px; padding: 8px 16px; background: #16a34a; color: #fff; border-radius: 6px; text-decoration: none; font-weight: bold;">Visualizar NFS-e</a>
+                </div>`
+            : `<p style="color: #6b7280; font-size: 13px;">📄 Sua Nota Fiscal de Serviço (NFS-e) será processada pela prefeitura e enviada ao seu email em breve.</p>`;
+
         const body = `
             <div style="font-family: sans-serif; line-height: 1.6; color: #333;">
                 <h2>Olá, ${userName}!</h2>
@@ -15,6 +24,7 @@ export class SubscriptionNotificationService {
                     <strong>Plano:</strong> ${planName}<br>
                     <strong>Status:</strong> Ativo
                 </div>
+                ${invoiceBlock}
                 <p>Aproveite ao máximo suas notificações automáticas!</p>
                 <p>Equipe ${env.company.name}</p>
             </div>

@@ -196,55 +196,59 @@ export class HandleAbacatePayWebhookUseCase {
         const user = await this.userRepository.findById(subscription.userId);
         const userConfig = await this.companyConfigRepository.findByCompanyId(subscription.userId);
 
-        if (user) {
-            await this.notificationService.notifyPaymentSuccess(user.email, user.name, subscription.plan);
+        let invoiceUrl: string | undefined;
 
-            if (userConfig?.taxId) {
-                try {
-                    const isCpf = userConfig.taxId.length <= 11;
+        if (user && userConfig?.taxId) {
+            try {
+                const isCpf = userConfig.taxId.length <= 11;
 
-                    // Build address from company config or use fallback
-                    const addressText = userConfig.address || "Não informado";
-                    const tomador: any = {
-                        nome_completo: user.name,
-                        email: user.email,
-                        endereco: {
-                            logradouro: addressText,
-                            numero: "S/N",
-                            bairro: "Não informado",
-                            cep: "00000-000",
-                            codigo_municipio: "3550308",
-                            uf: "SP",
-                        },
-                    };
-                    if (isCpf) tomador.cpf = userConfig.taxId;
-                    else tomador.cnpj = userConfig.taxId;
+                // Build address from company config or use fallback
+                const addressText = userConfig.address || "Não informado";
+                const tomador: any = {
+                    nome_completo: user.name,
+                    email: user.email,
+                    endereco: {
+                        logradouro: addressText,
+                        numero: "S/N",
+                        bairro: "Não informado",
+                        cep: "00000-000",
+                        codigo_municipio: "3550308",
+                        uf: "SP",
+                    },
+                };
+                if (isCpf) tomador.cpf = userConfig.taxId;
+                else tomador.cnpj = userConfig.taxId;
 
-                    // Use actual payment amount; fallback to plan price from DB
-                    const paidAmountCents = data.paidAmount ?? data.amount ?? data.payment?.amount;
-                    let valorServicos: number;
-                    if (paidAmountCents != null) {
-                        valorServicos = paidAmountCents / 100;
-                    } else {
-                        const plan = await this.planRepository.findBySlug(subscription.plan);
-                        valorServicos = plan ? plan.priceInCents / 100 : 0;
-                    }
-
-                    await this.fiscalAdapter.emitirNfse(billingId, {
-                        tomador,
-                        servico: {
-                            aliquota: 2,
-                            discriminacao: `Assinatura Mensal ConfirmaZap - Plano ${subscription.plan}`,
-                            iss_retido: false,
-                            item_lista_servico: "01.07",
-                            valor_servicos: valorServicos,
-                        },
-                    });
-                    console.log(`[Fiscal] Invoice issued for billing ${billingId}`);
-                } catch (error) {
-                    console.error(`[Fiscal] Failed to issue invoice for billing ${billingId}:`, error);
+                // Use actual payment amount; fallback to plan price from DB
+                const paidAmountCents = data.paidAmount ?? data.amount ?? data.payment?.amount;
+                let valorServicos: number;
+                if (paidAmountCents != null) {
+                    valorServicos = paidAmountCents / 100;
+                } else {
+                    const plan = await this.planRepository.findBySlug(subscription.plan);
+                    valorServicos = plan ? plan.priceInCents / 100 : 0;
                 }
+
+                const nfseResult = await this.fiscalAdapter.emitirNfse(billingId, {
+                    tomador,
+                    servico: {
+                        aliquota: 2,
+                        discriminacao: `Assinatura Mensal ConfirmaZap - Plano ${subscription.plan}`,
+                        iss_retido: false,
+                        item_lista_servico: "01.07",
+                        valor_servicos: valorServicos,
+                    },
+                });
+
+                invoiceUrl = nfseResult?.url || nfseResult?.link_nfse || nfseResult?.link || undefined;
+                console.log(`[Fiscal] Invoice issued for billing ${billingId}`, invoiceUrl ? `URL: ${invoiceUrl}` : '(no URL returned)');
+            } catch (error) {
+                console.error(`[Fiscal] Failed to issue invoice for billing ${billingId}:`, error);
             }
+        }
+
+        if (user) {
+            await this.notificationService.notifyPaymentSuccess(user.email, user.name, subscription.plan, invoiceUrl);
         }
 
         console.log(`[Subscription] User ${subscription.userId} activated via Abacate Pay.`);

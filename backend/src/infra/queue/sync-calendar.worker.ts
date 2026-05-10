@@ -22,11 +22,17 @@ export class SyncCalendarWorker {
         );
 
         this.worker.on("completed", (job: Job) => {
-            console.log(`[Worker] Sync completed for job ${job.id}`);
+            console.log(`[SyncCalendarWorker] Sync completed for job ${job.id}`);
         });
 
         this.worker.on("failed", (job: Job | undefined, err: Error) => {
-            console.error(`[Worker] Sync failed for job ${job?.id}: ${err.message}`);
+            console.error(`[SyncCalendarWorker] FAILED job=${job?.id} attempt=${job?.attemptsMade} companyId=${job?.data?.companyId} err=${err.message}`, {
+                stack: err.stack
+            });
+        });
+
+        this.worker.on("stalled", (jobId: string) => {
+            console.error(`[SyncCalendarWorker] STALLED job id=${jobId} — worker may have crashed`);
         });
     }
 }

@@ -67,7 +67,7 @@ export const TwoFactorLoginPage = () => {
       <div className="absolute bottom-[-5%] right-[-5%] w-[40%] h-[40%] bg-secondary/5 rounded-full blur-[100px] -z-10 pointer-events-none" />
 
       {/* Hero Section */}
-      <div className="hidden lg:flex flex-col justify-center p-16 xl:p-24 relative overflow-hidden bg-surface-dim/30 border-r border-outline-variant/30">
+      <div className="hidden lg:flex flex-col justify-center p-16 xl:p-24 relative overflow-hidden bg-white border-r border-outline-variant">
         <div className="max-w-xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary-dim text-xs font-bold tracking-widest uppercase mb-8">
             <ShieldCheck className="w-3 h-3 fill-current" />

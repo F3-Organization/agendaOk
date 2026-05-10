@@ -35,7 +35,14 @@ export class NotifyWorker {
         });
 
         this.worker.on("failed", (job: Job | undefined, err: Error) => {
-            console.error(`[NotifyWorker] Job ${job?.name} (${job?.id}) failed: ${err.message}`);
+            console.error(`[NotifyWorker] FAILED job=${job?.name} id=${job?.id} attempt=${job?.attemptsMade} err=${err.message}`, {
+                jobData: job?.data,
+                stack: err.stack
+            });
+        });
+
+        this.worker.on("stalled", (jobId: string) => {
+            console.error(`[NotifyWorker] STALLED job id=${jobId} — worker may have crashed`);
         });
     }
 

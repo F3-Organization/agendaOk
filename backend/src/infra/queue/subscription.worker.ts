@@ -30,7 +30,13 @@ export class SubscriptionWorker {
         });
 
         this.worker.on("failed", (job: Job | undefined, err: Error) => {
-            console.error(`[SubscriptionWorker] Job ${job?.name} (${job?.id}) failed: ${err.message}`);
+            console.error(`[SubscriptionWorker] FAILED job=${job?.name} id=${job?.id} attempt=${job?.attemptsMade} err=${err.message}`, {
+                stack: err.stack
+            });
+        });
+
+        this.worker.on("stalled", (jobId: string) => {
+            console.error(`[SubscriptionWorker] STALLED job id=${jobId} — worker may have crashed`);
         });
     }
 }

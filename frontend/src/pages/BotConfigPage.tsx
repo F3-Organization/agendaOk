@@ -109,7 +109,7 @@ export const BotConfigPage = () => {
       <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-16 pb-32">
         {/* Enable Toggle */}
         <section className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <Card variant="glass" className="p-8 border-white/5">
+          <Card variant="glass" className="p-8">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-5">
                 <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
@@ -163,7 +163,7 @@ export const BotConfigPage = () => {
             </p>
           </div>
 
-          <Card variant="glass" className="p-8 space-y-8 border-white/5">
+          <Card variant="glass" className="p-8 space-y-8">
             {/* Business Type */}
             <div className="space-y-3">
               <label className="text-[10px] font-black text-muted-foreground/50 uppercase tracking-[0.3em] ml-1">
@@ -181,7 +181,7 @@ export const BotConfigPage = () => {
                       className={`flex items-center gap-3 px-4 py-3.5 rounded-xl border text-left text-sm font-medium transition-all duration-200 ${
                         isSelected
                           ? 'bg-primary/15 border-primary/40 text-primary shadow-lg shadow-primary/5'
-                          : 'bg-black/30 border-white/5 text-muted-foreground hover:border-white/15 hover:bg-black/50'
+                          : 'bg-surface-container border-outline-variant text-muted-foreground hover:border-outline-variant hover:bg-surface-container'
                       }`}
                     >
                       <Icon className={`w-4.5 h-4.5 shrink-0 ${isSelected ? 'text-primary' : 'text-muted-foreground/50'}`} />
@@ -202,7 +202,7 @@ export const BotConfigPage = () => {
                 onChange={(e) => setForm({ ...form, businessDescription: e.target.value })}
                 rows={4}
                 placeholder="Ex: Clínica especializada em cardiologia e clínica geral, atendendo pacientes há mais de 10 anos com equipe multidisciplinar..."
-                className="w-full px-4 py-3 bg-black/40 border border-white/5 rounded-lg text-sm focus:outline-none focus:border-primary/30 transition-colors resize-none"
+                className="w-full px-4 py-3 bg-white border border-outline-variant rounded-lg text-sm focus:outline-none focus:border-primary/30 transition-colors resize-none"
               />
             </div>
 
@@ -215,7 +215,7 @@ export const BotConfigPage = () => {
                 value={form.address || ''}
                 onChange={(e) => setForm({ ...form, address: e.target.value })}
                 placeholder="Rua Exemplo, 123 — Centro, São Paulo/SP"
-                className="w-full px-4 py-3 bg-black/40 border border-white/5 rounded-lg text-sm focus:outline-none focus:border-primary/30 transition-colors"
+                className="w-full px-4 py-3 bg-white border border-outline-variant rounded-lg text-sm focus:outline-none focus:border-primary/30 transition-colors"
               />
             </div>
           </Card>
@@ -237,14 +237,14 @@ export const BotConfigPage = () => {
             </p>
           </div>
 
-          <Card variant="glass" className="p-8 space-y-6 border-white/5">
+          <Card variant="glass" className="p-8 space-y-6">
             <div className="flex gap-3">
               <input
                 value={newService}
                 onChange={(e) => setNewService(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addService())}
                 placeholder="Ex: Consulta cardiológica, Limpeza dental, Corte de cabelo..."
-                className="flex-1 px-4 py-3 bg-black/40 border border-white/5 rounded-lg text-sm focus:outline-none focus:border-primary/30 transition-colors"
+                className="flex-1 px-4 py-3 bg-white border border-outline-variant rounded-lg text-sm focus:outline-none focus:border-primary/30 transition-colors"
               />
               <Button type="button" onClick={addService} disabled={!newService.trim()} className="gap-2 px-6">
                 <Plus className="w-4 h-4" />
@@ -292,7 +292,7 @@ export const BotConfigPage = () => {
             </p>
           </div>
 
-          <Card variant="glass" className="p-8 space-y-8 border-white/5">
+          <Card variant="glass" className="p-8 space-y-8">
             {/* Greeting */}
             <div className="space-y-3">
               <label className="text-[10px] font-black text-muted-foreground/50 uppercase tracking-[0.3em] ml-1 flex items-center gap-2">
@@ -303,7 +303,7 @@ export const BotConfigPage = () => {
                 onChange={(e) => setForm({ ...form, botGreeting: e.target.value })}
                 rows={3}
                 placeholder="Ex: Olá! 😊 Bem-vindo à Clínica Saúde Total! Posso ajudá-lo a agendar uma consulta, verificar horários disponíveis ou tirar dúvidas."
-                className="w-full px-4 py-3 bg-black/40 border border-white/5 rounded-lg text-sm focus:outline-none focus:border-primary/30 transition-colors resize-none"
+                className="w-full px-4 py-3 bg-white border border-outline-variant rounded-lg text-sm focus:outline-none focus:border-primary/30 transition-colors resize-none"
               />
               <p className="text-[10px] text-muted-foreground/40 ml-1">
                 Esta mensagem será enviada quando um novo cliente entrar em contato.
@@ -320,7 +320,7 @@ export const BotConfigPage = () => {
                 onChange={(e) => setForm({ ...form, botInstructions: e.target.value })}
                 rows={4}
                 placeholder="Ex: Sempre pergunte se é a primeira consulta do paciente. Informe que estacionamento é gratuito. Não agende consultas para sábado à tarde..."
-                className="w-full px-4 py-3 bg-black/40 border border-white/5 rounded-lg text-sm focus:outline-none focus:border-primary/30 transition-colors resize-none"
+                className="w-full px-4 py-3 bg-white border border-outline-variant rounded-lg text-sm focus:outline-none focus:border-primary/30 transition-colors resize-none"
               />
               <p className="text-[10px] text-muted-foreground/40 ml-1">
                 Regras especiais que o bot deve seguir nas conversas. Use linguagem natural.
@@ -351,7 +351,7 @@ export const BotConfigPage = () => {
       {/* Toast */}
       {toast && (
         <div className="fixed bottom-12 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-10 duration-500">
-          <div className={`flex items-center gap-4 px-8 py-5 rounded-2xl border shadow-2xl backdrop-blur-xl ${
+          <div className={`flex items-center gap-4 px-8 py-5 rounded-2xl border shadow-2xl ${
             toast.type === 'success'
               ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
               : 'bg-red-500/10 border-red-500/20 text-red-400'

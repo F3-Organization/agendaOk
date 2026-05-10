@@ -44,9 +44,19 @@ export class FastifyAdapter implements ITokenService {
         }
 
         await this.app.register(fastifyRateLimit, {
-            max: 60,
+            max: 120,
             timeWindow: '1 minute',
-            allowList: ['127.0.0.1']
+            allowList: ['127.0.0.1'],
+            keyGenerator: (request: FastifyRequest) => {
+                try {
+                    const auth = request.headers.authorization;
+                    if (auth?.startsWith('Bearer ')) {
+                        const decoded = (request.server as any).jwt.decode(auth.slice(7));
+                        if (decoded?.id) return `user:${decoded.id}`;
+                    }
+                } catch {}
+                return request.ip;
+            }
         });
 
         await this.app.register(fastifyJwt, {

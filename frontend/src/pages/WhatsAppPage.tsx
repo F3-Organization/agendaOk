@@ -182,7 +182,7 @@ export const WhatsAppPage = () => {
               {/* Pulsing Back Glow */}
               <div className="absolute inset-0 bg-radial-gradient from-primary/5 to-transparent blur-3xl rounded-full scale-150 -z-10" />
               
-              <div className="w-full aspect-square bg-white p-6 rounded-2xl shadow-2xl shadow-black mb-10 flex items-center justify-center relative group">
+              <div className="w-full aspect-square bg-white p-6 rounded-2xl shadow-card-lg mb-10 flex items-center justify-center relative group">
                 {connectMutation.isPending ? (
                   <div className="flex flex-col items-center gap-4 text-slate-900">
                     <Loader2 className="w-12 h-12 animate-spin text-primary" />

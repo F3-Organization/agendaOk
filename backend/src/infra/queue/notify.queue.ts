@@ -10,10 +10,13 @@ export class NotifyQueue {
                 host: env.redis.host,
                 port: env.redis.port,
                 password: env.redis.password
+            },
+            defaultJobOptions: {
+                removeOnComplete: { count: 20 },
+                removeOnFail: { count: 100 }
             }
         });
 
-        // Configura o job recorrente para rodar a cada 30 minutos
         this.setupRecurringJobs();
     }
 
@@ -22,9 +25,11 @@ export class NotifyQueue {
             "check-upcoming-appointments",
             {},
             {
-                repeat: { pattern: "*/15 * * * *" }, // Cron para a cada 15min
-                removeOnComplete: true,
-                attempts: 1
+                repeat: { pattern: "*/15 * * * *" },
+                removeOnComplete: { count: 5 },
+                removeOnFail: { count: 50 },
+                attempts: 2,
+                backoff: { type: "exponential", delay: 5000 }
             }
         );
     }
@@ -34,7 +39,8 @@ export class NotifyQueue {
             `notify-${companyId}`,
             { companyId },
             {
-                removeOnComplete: true,
+                removeOnComplete: { count: 20 },
+                removeOnFail: { count: 100 },
                 attempts: 3,
                 backoff: { type: "exponential", delay: 1000 }
             }

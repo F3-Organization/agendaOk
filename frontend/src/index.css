@@ -4,20 +4,20 @@
 
 @layer base {
   :root {
-    --background: #060e20;
-    --foreground: #dee5ff;
-    
-    --primary: #be9dff;
-    --primary-dim: #8b4ef7;
-    
-    --surface: #060e20;
-    --surface-low: #091328;
-    --surface-container: #0f1930;
-    --surface-high: #141f38;
-    --surface-highest: #192540;
-    --surface-bright: #1f2b49;
-    
-    --outline-variant: rgba(64, 72, 93, 0.15);
+    --background: #ffffff;
+    --foreground: #0f172a;
+
+    --primary: #1d4ed8;
+    --primary-dim: #1e3a8a;
+
+    --surface: #ffffff;
+    --surface-low: #f8fafc;
+    --surface-container: #f1f5f9;
+    --surface-high: #e2e8f0;
+    --surface-highest: #cbd5e1;
+    --surface-bright: #f8fafc;
+
+    --outline-variant: rgba(148, 163, 184, 0.25);
   }
 
   * {
@@ -36,7 +36,6 @@
     @apply font-display tracking-tight;
   }
 
-  /* Custom Scrollbar Styling */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -47,29 +46,29 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-white/10 rounded-full transition-colors hover:bg-white/20;
+    @apply bg-slate-300 rounded-full transition-colors hover:bg-slate-400;
   }
 
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+    scrollbar-color: #cbd5e1 transparent;
   }
 }
 
 @layer components {
   .glass {
-    @apply bg-surface-bright/40 backdrop-blur-xl border border-outline-variant;
-    box-shadow: 0 40px 40px -10px rgba(0, 0, 0, 0.15);
+    @apply bg-white/80 backdrop-blur-sm border border-outline-variant;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
   }
-  
+
   .glass-card {
-    @apply bg-surface-container/40 backdrop-blur-2xl border border-white/10 rounded-[2rem] shadow-2xl;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+    @apply bg-white border border-outline-variant rounded-xl;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
   }
 
   .glass-island {
-    @apply bg-black/40 backdrop-blur-3xl border border-white/10 rounded-full;
-    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+    @apply bg-white border border-outline-variant rounded-full;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   }
 
   .pulse-glow {
@@ -84,8 +83,8 @@
     transform: translate(-50%, -50%);
     width: 200px;
     height: 200px;
-    background: radial-gradient(circle, #b28cff 0%, transparent 70%);
-    opacity: 0.1;
+    background: radial-gradient(circle, #1d4ed8 0%, transparent 70%);
+    opacity: 0.05;
     filter: blur(40px);
     z-index: -1;
     pointer-events: none;
@@ -96,35 +95,32 @@
   .text-balance {
     text-wrap: balance;
   }
-  
+
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
-  
+
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
 
-  /* Fix Autofill Background with Dark Theme */
   input:-webkit-autofill,
-  input:-webkit-autofill:hover, 
-  input:-webkit-autofill:focus, 
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
   input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 30px #091328 inset !important; /* matches --surface-low */
-    -webkit-text-fill-color: #dee5ff !important; /* matches --foreground */
+    -webkit-box-shadow: 0 0 0 30px #f8fafc inset !important;
+    -webkit-text-fill-color: #0f172a !important;
     transition: background-color 5000s ease-in-out 0s;
   }
 
-  /* Fix Calendar Icon Visibility in Dark Mode */
   ::-webkit-calendar-picker-indicator {
-    filter: invert(1);
     cursor: pointer;
-    opacity: 0.6;
+    opacity: 0.5;
     transition: opacity 0.2s;
   }
 
   ::-webkit-calendar-picker-indicator:hover {
-    opacity: 1;
+    opacity: 0.9;
   }
 }

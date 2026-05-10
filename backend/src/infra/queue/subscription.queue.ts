@@ -10,6 +10,10 @@ export class SubscriptionQueue {
                 host: env.redis.host,
                 port: env.redis.port,
                 password: env.redis.password
+            },
+            defaultJobOptions: {
+                removeOnComplete: { count: 10 },
+                removeOnFail: { count: 50 }
             }
         });
 
@@ -22,7 +26,8 @@ export class SubscriptionQueue {
             {},
             {
                 repeat: { pattern: "0 * * * *" },
-                removeOnComplete: true,
+                removeOnComplete: { count: 5 },
+                removeOnFail: { count: 50 },
                 attempts: 2,
                 backoff: { type: "exponential", delay: 5000 }
             }

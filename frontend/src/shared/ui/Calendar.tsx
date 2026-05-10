@@ -88,17 +88,17 @@ export const Calendar = ({ selectedDate, onSelect, className, minDate }: Calenda
           {monthName} <span className="text-muted-foreground/30 font-normal">{year}</span>
         </h3>
         <div className="flex gap-2">
-          <button 
+          <button
             type="button"
             onClick={handlePrevMonth}
-            className="p-1.5 rounded-lg hover:bg-white/5 text-muted-foreground/60 transition-all border border-transparent hover:border-white/10 active:scale-95"
+            className="p-1.5 rounded-lg hover:bg-surface-container text-muted-foreground transition-all active:scale-95"
           >
             <ChevronLeft className="w-3.5 h-3.5" />
           </button>
-          <button 
+          <button
             type="button"
             onClick={handleNextMonth}
-            className="p-1.5 rounded-lg hover:bg-white/5 text-muted-foreground/60 transition-all border border-transparent hover:border-white/10 active:scale-95"
+            className="p-1.5 rounded-lg hover:bg-surface-container text-muted-foreground transition-all active:scale-95"
           >
             <ChevronRight className="w-3.5 h-3.5" />
           </button>
@@ -125,9 +125,9 @@ export const Calendar = ({ selectedDate, onSelect, className, minDate }: Calenda
               className={cn(
                 "relative h-8 w-8 flex items-center justify-center rounded-lg text-xs font-bold transition-all duration-300",
                 item.month === 'current' ? "text-foreground" : "text-muted-foreground/10",
-                isSelected(item.date) 
-                  ? "bg-primary text-primary-foreground shadow-[0_0_15px_rgba(190,157,255,0.4)] scale-110 z-10" 
-                  : "hover:bg-white/5 hover:scale-105 active:scale-95",
+                isSelected(item.date)
+                  ? "bg-primary text-white scale-105 z-10"
+                  : "hover:bg-surface-container hover:scale-105 active:scale-95",
                 isToday(item.date) && !isSelected(item.date) && "text-primary border border-primary/20 bg-primary/5",
                 past && "opacity-20 cursor-not-allowed hover:bg-transparent hover:scale-100"
               )}

@@ -7,6 +7,7 @@ RUN npm ci
 
 FROM dependencies AS dev
 ENV NODE_ENV=development
+ENV NODE_PATH=/usr/src/app/node_modules
 EXPOSE 3000
 CMD ["npm", "run", "dev"]
 
@@ -17,6 +18,7 @@ RUN npm run build
 
 FROM base AS prod
 ENV NODE_ENV=production
+ENV NODE_PATH=/usr/src/app/node_modules
 
 RUN npm ci --omit=dev
 

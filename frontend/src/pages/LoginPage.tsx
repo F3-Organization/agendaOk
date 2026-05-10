@@ -113,19 +113,16 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2 selection:bg-primary/20 selection:text-primary overflow-hidden relative">
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[120px] -z-10 pointer-events-none animate-pulse" />
-      <div className="absolute bottom-[-5%] right-[-5%] w-[40%] h-[40%] bg-secondary/5 rounded-full blur-[100px] -z-10 pointer-events-none" />
-
+    <div className="min-h-screen grid lg:grid-cols-2 selection:bg-primary/15 selection:text-primary overflow-hidden relative bg-surface-low">
       {/* Hero Section */}
-      <div className="hidden lg:flex flex-col justify-center p-16 xl:p-24 relative overflow-hidden bg-surface-dim/30 border-r border-outline-variant/30">
+      <div className="hidden lg:flex flex-col justify-center p-16 xl:p-24 relative overflow-hidden bg-white border-r border-outline-variant">
         <div className="max-w-xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary-dim text-xs font-bold tracking-widest uppercase mb-8">
-            < Zap className="w-3 h-3 fill-current" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/8 border border-primary/20 text-primary-dim text-xs font-bold tracking-widest uppercase mb-8">
+            <Zap className="w-3 h-3 fill-current" />
             {t('login.v2Live')}
           </div>
-          
-          <h1 className="text-6xl xl:text-7xl font-extrabold tracking-tighter leading-[0.9] mb-8 text-transparent bg-clip-text bg-gradient-to-br from-foreground to-foreground/50">
+
+          <h1 className="text-5xl xl:text-6xl font-extrabold tracking-tight leading-tight mb-8 text-foreground">
             {t('login.automateWhatsApp')} <br />
             {t('login.engagement')}
           </h1>
@@ -139,10 +136,10 @@ export const LoginPage = () => {
       </div>
 
       {/* Form Section */}
-      <div className="flex items-center justify-center p-8 lg:p-16">
-        <Card variant="glass" className="w-full max-w-md p-10 border-outline-variant/50 relative overflow-hidden">
+      <div className="flex items-center justify-center p-8 lg:p-16 bg-surface-low">
+        <Card variant="base" className="w-full max-w-md p-10 relative overflow-hidden">
           <div className="mb-10 flex flex-col items-center">
-            <div className="w-12 h-12 rounded-2xl bg-pulse-gradient flex items-center justify-center shadow-2xl shadow-primary-dim/40 mb-6">
+            <div className="w-12 h-12 rounded-xl bg-pulse-gradient flex items-center justify-center shadow-card-md mb-6">
               <Zap className="w-6 h-6 text-primary-foreground fill-current" />
             </div>
             <h2 className="text-3xl font-bold tracking-tight mb-2 text-center">
@@ -246,7 +243,7 @@ export const LoginPage = () => {
                 <span className="w-full border-t border-outline-variant/30"></span>
               </div>
               <div className="relative flex justify-center text-xs uppercase tracking-widest">
-                <span className="bg-[#0a0a0c] px-4 text-muted-foreground font-semibold">
+                <span className="bg-white px-4 text-muted-foreground font-semibold">
                     {t('common.orContinueWith')}
                 </span>
               </div>

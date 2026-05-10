@@ -10,6 +10,10 @@ export class SyncCalendarQueue {
                 host: env.redis.host,
                 port: env.redis.port,
                 password: env.redis.password
+            },
+            defaultJobOptions: {
+                removeOnComplete: { count: 20 },
+                removeOnFail: { count: 100 }
             }
         });
     }
@@ -19,7 +23,8 @@ export class SyncCalendarQueue {
             `sync-${companyId}`,
             { companyId },
             {
-                removeOnComplete: true,
+                removeOnComplete: { count: 20 },
+                removeOnFail: { count: 100 },
                 attempts: 3,
                 backoff: { type: "exponential", delay: 1000 }
             }

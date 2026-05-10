@@ -80,7 +80,7 @@ export const CreateCompanyPage = () => {
                   name="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="pl-12 h-12 bg-black/40 border-white/5 focus:bg-black/60 focus:border-primary/30 transition-all rounded-lg font-medium"
+                  className="pl-12 h-12 bg-white border-outline-variant focus:bg-white focus:border-primary/30 transition-all rounded-lg font-medium"
                   placeholder={t('company.create.namePlaceholder', 'Ex: Clínica Dr. Silva')}
                   disabled={isLoading}
                   autoFocus

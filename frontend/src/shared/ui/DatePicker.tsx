@@ -128,22 +128,22 @@ export const DatePicker = ({ value, onChange, label, error, required, placeholde
 
       {isOpen && (
         <div className={cn(
-          "absolute top-full z-[100] mt-1.5 p-1 bg-[#141f38]/95 backdrop-blur-2xl border border-white/10 rounded-[1.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] animate-in fade-in slide-in-from-top-2 duration-300 flex flex-col md:flex-row overflow-hidden",
+          "absolute top-full z-[100] mt-1.5 p-1 bg-white border border-outline-variant rounded-xl shadow-card-lg animate-in fade-in slide-in-from-top-2 duration-200 flex flex-col md:flex-row overflow-hidden",
           align === 'left' ? "left-0" : "right-0"
         )}>
           <div className="flex flex-col">
-             <Calendar 
-              selectedDate={selectedDate || undefined} 
+             <Calendar
+              selectedDate={selectedDate || undefined}
               onSelect={handleSelectDate}
               minDate={minDate}
-              className="border-none bg-transparent shadow-none w-[260px]" 
+              className="border-none bg-transparent shadow-none w-[260px]"
             />
           </div>
-          
-          <div className="w-full md:w-[130px] border-t md:border-t-0 md:border-l border-white/5 flex">
+
+          <div className="w-full md:w-[130px] border-t md:border-t-0 md:border-l border-outline-variant flex">
             {/* Hours */}
             <div className="flex-1 flex flex-col pt-4 px-1">
-              <span className="text-[8px] font-black uppercase text-center mb-3 text-primary/40">H</span>
+              <span className="text-[8px] font-black uppercase text-center mb-3 text-muted-foreground">H</span>
               <div className="flex-1 overflow-y-auto no-scrollbar max-h-[220px] space-y-0.5 px-1 py-1">
                 {hours.map(h => {
                   const disabled = isTimeDisabled(h, selectedMinute);
@@ -155,10 +155,10 @@ export const DatePicker = ({ value, onChange, label, error, required, placeholde
                       onClick={() => updateTime(h, selectedMinute)}
                       className={cn(
                         "w-full py-1.5 rounded-lg text-[11px] font-bold transition-all",
-                        selectedHour === h 
-                          ? "bg-primary text-primary-foreground shadow-[0_0_10px_rgba(190,157,255,0.3)]" 
-                          : "text-muted-foreground hover:bg-white/5 hover:text-foreground",
-                        disabled && "opacity-20 cursor-not-allowed hover:bg-transparent"
+                        selectedHour === h
+                          ? "bg-primary text-white"
+                          : "text-muted-foreground hover:bg-surface-container hover:text-foreground",
+                        disabled && "opacity-30 cursor-not-allowed hover:bg-transparent"
                       )}
                     >
                       {h.toString().padStart(2, '0')}
@@ -169,8 +169,8 @@ export const DatePicker = ({ value, onChange, label, error, required, placeholde
             </div>
 
             {/* Minutes */}
-            <div className="flex-1 flex flex-col pt-4 px-1 border-l border-white/5">
-              <span className="text-[8px] font-black uppercase text-center mb-3 text-primary/40">M</span>
+            <div className="flex-1 flex flex-col pt-4 px-1 border-l border-outline-variant">
+              <span className="text-[8px] font-black uppercase text-center mb-3 text-muted-foreground">M</span>
               <div className="flex-1 overflow-y-auto no-scrollbar max-h-[220px] space-y-0.5 px-1 py-1">
                 {minutes.map(m => {
                   const disabled = isTimeDisabled(selectedHour, m);
@@ -182,10 +182,10 @@ export const DatePicker = ({ value, onChange, label, error, required, placeholde
                       onClick={() => updateTime(selectedHour, m)}
                       className={cn(
                         "w-full py-1.5 rounded-lg text-[11px] font-bold transition-all",
-                        selectedMinute === m 
-                          ? "bg-primary text-primary-foreground shadow-[0_0_10px_rgba(190,157,255,0.3)]" 
-                          : "text-muted-foreground hover:bg-white/5 hover:text-foreground",
-                        disabled && "opacity-20 cursor-not-allowed hover:bg-transparent"
+                        selectedMinute === m
+                          ? "bg-primary text-white"
+                          : "text-muted-foreground hover:bg-surface-container hover:text-foreground",
+                        disabled && "opacity-30 cursor-not-allowed hover:bg-transparent"
                       )}
                     >
                       {m.toString().padStart(2, '0')}

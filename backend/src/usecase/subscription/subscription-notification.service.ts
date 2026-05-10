@@ -1,84 +1,104 @@
 import { IMailService } from "../ports/imail-service";
 import { env } from "../../infra/config/configs";
+import {
+    buildEmailTemplate,
+    emailHeading,
+    emailText,
+    emailInfoBox,
+    emailHighlightBox,
+    emailButton,
+    emailDivider,
+} from "../../shared/utils/email-template";
 
 export class SubscriptionNotificationService {
     constructor(private readonly mailService: IMailService) {}
 
-    async notifyPaymentSuccess(userEmail: string, userName: string, planName: string, nfseEmitted?: boolean): Promise<void> {
-        const subject = `Assinatura ${planName} Ativada com Sucesso!`;
+    async notifyPaymentSuccess(
+        userEmail: string,
+        userName: string,
+        planName: string,
+        nfseEmitted?: boolean
+    ): Promise<void> {
+        const subject = `✅ Assinatura ${planName} ativada com sucesso!`;
 
-        const invoiceBlock = nfseEmitted
-            ? `<div style="margin: 20px 0; padding: 15px; background: #dcfce7; border-radius: 8px; border-left: 4px solid #16a34a;">
-                    <strong>📄 Nota Fiscal de Serviço (NFS-e)</strong><br>
-                    <p style="margin: 8px 0 0 0;">Sua NFS-e foi emitida com sucesso e será enviada ao seu email pela prefeitura.</p>
-                </div>`
-            : `<p style="color: #6b7280; font-size: 13px;">📄 Sua Nota Fiscal de Serviço (NFS-e) está sendo processada pela prefeitura e será enviada ao seu email em breve.</p>`;
+        const invoiceNote = nfseEmitted
+            ? emailHighlightBox("Sua Nota Fiscal de Serviço (NFS-e) foi emitida com sucesso e será enviada ao seu e-mail pela prefeitura.", "success")
+            : emailHighlightBox("Sua Nota Fiscal de Serviço (NFS-e) está sendo processada pela prefeitura e será enviada ao seu e-mail em breve.", "info");
 
-        const body = `
-            <div style="font-family: sans-serif; line-height: 1.6; color: #333;">
-                <h2>Olá, ${userName}!</h2>
-                <p>Boas notícias! Recebemos a confirmação do seu pagamento para o plano <strong>${planName}</strong>.</p>
-                <p>Sua conta agora possui acesso ilimitado a todas as ferramentas do ${env.company.name}.</p>
-                <div style="margin: 20px 0; padding: 15px; background: #f4f4f4; border-radius: 8px;">
-                    <strong>Plano:</strong> ${planName}<br>
-                    <strong>Status:</strong> Ativo
-                </div>
-                ${invoiceBlock}
-                <p>Aproveite ao máximo suas notificações automáticas!</p>
-                <p>Equipe ${env.company.name}</p>
-            </div>
+        const content = `
+            ${emailHeading(`Bem-vindo ao ${planName}, ${userName}!`)}
+            ${emailText("Seu pagamento foi confirmado. Sua conta agora tem acesso completo a todos os recursos do plano.")}
+            ${emailInfoBox([
+                ["Plano", planName],
+                ["Status", "Ativo ✓"],
+            ])}
+            ${emailHighlightBox("Você já pode configurar seu bot de atendimento WhatsApp, adicionar empresas e começar a automatizar seu atendimento.", "success")}
+            ${invoiceNote}
+            ${emailButton("Acessar o painel", `https://${env.domain}/dashboard`)}
+            ${emailDivider()}
+            ${emailText(`Obrigado por escolher o ${env.company.name}. Qualquer dúvida, estamos à disposição.`)}
         `;
-        await this.mailService.sendMail(userEmail, subject, body);
+
+        await this.mailService.sendMail(userEmail, subject, buildEmailTemplate(content));
     }
 
     async notifySubscriptionExpired(userEmail: string, userName: string): Promise<void> {
-        const subject = "Sua assinatura expirou";
-        const body = `
-            <div style="font-family: sans-serif; line-height: 1.6; color: #333;">
-                <h2>Olá, ${userName},</h2>
-                <p>Identificamos que o prazo de pagamento da sua assinatura expirou ou o checkout foi cancelado.</p>
-                <p>Para continuar aproveitando os benefícios do plano PRO, você pode iniciar um novo checkout diretamente no dashboard.</p>
-                <p>Se tiver alguma dúvida, entre em contato com nosso suporte via WhatsApp: ${env.company.supportWhatsapp}</p>
-                <p>Equipe ${env.company.name}</p>
-            </div>
+        const subject = "Sua assinatura expirou — renove para continuar";
+
+        const content = `
+            ${emailHeading(`Olá, ${userName}`)}
+            ${emailText("Identificamos que o prazo de pagamento da sua assinatura expirou ou o checkout foi cancelado.")}
+            ${emailHighlightBox("Seu acesso aos recursos do plano PRO foi <strong>suspenso</strong>. Seus dados estão preservados e podem ser recuperados ao renovar.", "warning")}
+            ${emailText("Para continuar automatizando seu atendimento, renove sua assinatura diretamente no painel.")}
+            ${emailButton("Renovar assinatura", `https://${env.domain}/subscription`)}
+            ${emailDivider()}
+            ${emailText(`Dúvidas? Fale com a gente pelo WhatsApp de suporte.`)}
         `;
-        await this.mailService.sendMail(userEmail, subject, body);
+
+        await this.mailService.sendMail(userEmail, subject, buildEmailTemplate(content));
     }
 
     async notifySubscriptionRefunded(userEmail: string, userName: string): Promise<void> {
-        const subject = "Confirmação de Reembolso";
-        const body = `
-            <div style="font-family: sans-serif; line-height: 1.6; color: #333;">
-                <h2>Olá, ${userName},</h2>
-                <p>Confirmamos que o reembolso da sua assinatura foi processado com sucesso.</p>
-                <p>Seu acesso ao plano pago foi revogado. Caso esta ação não tenha sido solicitada por você, entre em contato conosco imediatamente.</p>
-                <p>Suporte: ${env.company.supportWhatsapp}</p>
-                <p>Equipe ${env.company.name}</p>
-            </div>
+        const subject = "Reembolso processado — confirmação";
+
+        const content = `
+            ${emailHeading(`Olá, ${userName}`)}
+            ${emailText("Confirmamos que o reembolso da sua assinatura foi processado com sucesso.")}
+            ${emailInfoBox([
+                ["Status do reembolso", "Processado ✓"],
+                ["Acesso premium", "Encerrado"],
+            ])}
+            ${emailHighlightBox("Se esta ação <strong>não foi solicitada por você</strong>, entre em contato com nosso suporte imediatamente via WhatsApp.", "warning")}
+            ${emailDivider()}
+            ${emailText(`Agradecemos por ter utilizado o ${env.company.name}.`)}
         `;
-        await this.mailService.sendMail(userEmail, subject, body);
+
+        await this.mailService.sendMail(userEmail, subject, buildEmailTemplate(content));
     }
 
-    async notifyTrialStarted(userEmail: string, userName: string, planName: string, trialDays: number): Promise<void> {
-        const subject = `Período de teste ${planName} ativado – ${trialDays} dias grátis!`;
-        const body = `
-            <div style="font-family: sans-serif; line-height: 1.6; color: #333;">
-                <h2>Olá, ${userName}!</h2>
-                <p>Seu período de teste do plano <strong>${planName}</strong> foi ativado com sucesso!</p>
-                <div style="margin: 20px 0; padding: 15px; background: #ede9fe; border-radius: 8px; border-left: 4px solid #7c3aed;">
-                    <strong>🕐 Período de Teste</strong><br>
-                    <p style="margin: 8px 0 0 0;">Você tem <strong>${trialDays} dias</strong> para explorar todas as funcionalidades do plano ${planName} sem nenhum custo.</p>
-                </div>
-                <div style="margin: 20px 0; padding: 15px; background: #f4f4f4; border-radius: 8px;">
-                    <strong>Plano:</strong> ${planName}<br>
-                    <strong>Status:</strong> Período de Teste<br>
-                    <strong>Duração:</strong> ${trialDays} dias
-                </div>
-                <p style="color: #6b7280; font-size: 13px;">📄 Nenhuma cobrança foi realizada durante o período de teste. A NFS-e será emitida somente após a confirmação do primeiro pagamento.</p>
-                <p>Aproveite ao máximo suas notificações automáticas!</p>
-                <p>Equipe ${env.company.name}</p>
-            </div>
+    async notifyTrialStarted(
+        userEmail: string,
+        userName: string,
+        planName: string,
+        trialDays: number
+    ): Promise<void> {
+        const subject = `🎉 Seu período de teste do ${planName} foi ativado!`;
+
+        const content = `
+            ${emailHeading(`Olá, ${userName}!`)}
+            ${emailText(`Seu período de teste do plano <strong>${planName}</strong> foi ativado com sucesso!`)}
+            ${emailInfoBox([
+                ["Plano", planName],
+                ["Status", "Período de Teste"],
+                ["Duração", `${trialDays} dias`],
+                ["Cobrança", "Nenhuma durante o teste"],
+            ])}
+            ${emailHighlightBox(`Você tem <strong>${trialDays} dias</strong> para explorar todas as funcionalidades do plano ${planName} sem nenhum custo. Configure seu bot, conecte seu WhatsApp e comece agora.`, "info")}
+            ${emailButton("Começar agora", `https://${env.domain}/dashboard`)}
+            ${emailDivider()}
+            ${emailText("A NFS-e será emitida somente após a confirmação do primeiro pagamento ao final do período de teste.")}
         `;
-        await this.mailService.sendMail(userEmail, subject, body);
+
+        await this.mailService.sendMail(userEmail, subject, buildEmailTemplate(content));
     }
 }

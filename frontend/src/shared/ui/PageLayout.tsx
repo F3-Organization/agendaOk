@@ -19,16 +19,16 @@ export const PageLayout = ({ children, title, subtitle }: PageLayoutProps) => {
   });
 
   return (
-    <div className="flex h-screen overflow-hidden overflow-x-hidden bg-background text-foreground selection:bg-primary/20 selection:text-primary w-full">
+    <div className="flex h-screen overflow-hidden overflow-x-hidden bg-surface-low text-foreground selection:bg-primary/15 selection:text-primary w-full">
       <Sidebar isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
       <div className="flex-1 flex flex-col min-w-0 h-full">
         {/* Mobile Header */}
-        <header className="lg:hidden flex items-center justify-between p-4 border-b border-outline-variant bg-surface-dim/50 backdrop-blur-md z-30">
+        <header className="lg:hidden flex items-center justify-between p-4 border-b border-outline-variant bg-white z-30 shadow-card">
           <div className="flex items-center gap-3">
-             <div className="w-8 h-8 rounded-lg bg-pulse-gradient flex items-center justify-center">
-                <Zap className="w-5 h-5 text-primary-foreground fill-current" />
+             <div className="w-8 h-8 rounded-lg bg-pulse-gradient flex items-center justify-center shadow-card">
+                <Zap className="w-5 h-5 text-white fill-current" />
               </div>
-              <span className="font-bold tracking-tight text-transparent bg-clip-text bg-pulse-gradient">ConfirmaZap</span>
+              <span className="font-bold tracking-tight text-primary">ConfirmaZap</span>
           </div>
           <button 
             onClick={() => setIsMenuOpen(true)}
@@ -43,7 +43,7 @@ export const PageLayout = ({ children, title, subtitle }: PageLayoutProps) => {
           <header className="p-4 sm:p-10 pb-0">
             {title && (
               <div className="w-full">
-                <h1 className="text-4xl font-extrabold tracking-tighter sm:text-5xl lg:text-6xl text-transparent bg-clip-text bg-gradient-to-r from-foreground to-foreground/70">
+                <h1 className="text-3xl font-bold tracking-tight sm:text-4xl text-foreground">
                   {title}
                 </h1>
                 {subtitle && (

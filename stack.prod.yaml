@@ -5,6 +5,7 @@ services:
     image: confirmazap:latest
     build:
       context: .
+      dockerfile: backend/Dockerfile
       target: prod
     environment:
       - NODE_ENV=production

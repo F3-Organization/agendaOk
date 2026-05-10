@@ -2,9 +2,10 @@ services:
   api:
     build:
       context: .
+      dockerfile: backend/Dockerfile
       target: dev
     env_file:
-      - .env
+      - backend/.env
     ports:
       - '${PORT}:${PORT}'
     restart: always
@@ -12,7 +13,8 @@ services:
       - database
       - redis
     volumes:
-      - .:/usr/src/app
+      - ./backend:/usr/src/app
+      - ./shared:/usr/src/shared
       - /usr/src/app/node_modules
 
   database:
@@ -75,14 +77,14 @@ services:
   web:
     build:
       context: .
-      dockerfile: web/Dockerfile
+      dockerfile: frontend/Dockerfile
       target: dev
     ports:
       - '5173:5173'
     environment:
       - VITE_API_URL=http://localhost:3000/api
     volumes:
-      - ./web:/app
+      - ./frontend:/app
       - ./shared:/shared
       - /app/node_modules
     depends_on:

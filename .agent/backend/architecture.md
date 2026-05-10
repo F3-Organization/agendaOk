@@ -6,7 +6,7 @@ Este documento descreve a organização e os princípios arquiteturais seguidos 
 
 ## 1. Visão Geral das Camadas
 
-A estrutura é dividida entre lógica de aplicação (`usecase`) e detalhes técnicos de infraestrutura (`infra`).
+A estrutura é dividida entre lógica de aplicação (`usecase`) e detalhes técnicos de infraestrutura (`infra`). O código-fonte do backend reside em `/backend/src`.
 
 ```mermaid
 graph TD
@@ -22,12 +22,12 @@ graph TD
     end
 ```
 
-### 📂 `src/usecase` (Aplicação)
+### 📂 `backend/src/usecase` (Aplicação)
 - **Coração da Lógica**: Contém a lógica de negócio específica da aplicação (Interactors).
 - Orquestra como os dados são processados e manipulados através de interfaces (**Ports**).
 - Exemplo: `SyncCalendarUseCase`, `GenerateGoogleAuthUrlUseCase`.
 
-### 📂 `src/infra` (Infraestrutura)
+### 📂 `backend/src/infra` (Infraestrutura)
 - **O Mundo Externo e Dados**: Implementações técnicas e persistência.
     - **database/entities/**: Contém as entidades do TypeORM (Modelos do Banco).
         - `User`: Dados de autenticação e perfil do profissional.
@@ -77,7 +77,7 @@ erDiagram
 
 ## 3. Injeção de Dependências & Lazy Loading (Factory)
 
-Para evitar erros de inicialização (como o famoso "No metadata for [Entity] was found"), utilizamos um padrão de **Lazy Loading Factory** em `src/infra/factory/factory.ts`.
+Para evitar erros de inicialização (como o famoso "No metadata for [Entity] was found"), utilizamos um padrão de **Lazy Loading Factory** em `backend/src/infra/factory/factory.ts`.
 
 1. **Singleton Adapters**: Adaptadores que não dependem do banco (ex: Fastify, Google, Evolution) são instanciados imediatamente.
 2. **Lazy Accessors**: Repositórios e Use Cases que dependem do TypeORM são encapsulados em funções (getters). 
@@ -88,7 +88,7 @@ Para evitar erros de inicialização (como o famoso "No metadata for [Entity] wa
 
 ## 4. Fluxo de Inicialização (Bootstrap)
 
-O ciclo de vida da aplicação segue uma sequência rigorosa em `src/bootstrap.ts`:
+O ciclo de vida da aplicação segue uma sequência rigorosa em `backend/src/bootstrap.ts`:
 
 1. **Database Initialize**: `await AppDataSource.initialize()` é chamado primeiro.
 2. **Adapter Setup**: `await adapter.setup()` configura o Fastify, Swagger, JWT e CORS.

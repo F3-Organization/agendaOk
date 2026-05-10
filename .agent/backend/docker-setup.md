@@ -6,7 +6,7 @@ Este documento descreve como a aplicação está dockerizada, as etapas do build
 
 ## 1. Dockerfile (Multi-stage Build)
 
-O projeto utiliza um `Dockerfile` multi-estágio para otimizar o tamanho da imagem final e separar as dependências de desenvolvimento das de produção.
+O projeto utiliza um `Dockerfile` multi-estágio localizado em `backend/Dockerfile` para otimizar o tamanho da imagem final e separar as dependências de desenvolvimento das de produção. O **build context** é sempre a raiz do monorepo (`.`), permitindo o COPY de `backend/` e `shared/`.
 
 ### Estágios:
 1. **base**: Define o ambiente Node.js (Alpine) e copia o `package.json`.

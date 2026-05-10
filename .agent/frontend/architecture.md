@@ -6,10 +6,10 @@ Este documento descreve a organização e os princípios arquiteturais seguidos 
 
 ## 1. Estrutura de Diretórios
 
-O frontend está localizado no diretório `/web` e segue uma estrutura modular baseada em funcionalidades (features):
+O frontend está localizado no diretório `/frontend` e segue uma estrutura modular baseada em funcionalidades (features):
 
 ```plaintext
-/web
+/frontend
 ├── src/
 │   ├── app/              # Provedores (Providers), Rotas globais e Layout base.
 │   ├── features/         # Módulos isolados por domínio (ex: auth, calendar, dashboard).
@@ -28,7 +28,7 @@ Para detalhes sobre como esses recursos são compartilhados, consulte o guia [sh
 ## 3. Pilares do Desenvolvimento Frontend
 
 ### 🏗️ Feature Encapsulation
-Um módulo de funcionalidade (ex: `auth`) não deve importar diretamente de outro módulo (ex: `calendar`). Lógicas compartilhadas devem ser movidas para `web/src/shared` ou para o diretório raiz `shared/`.
+Um módulo de funcionalidade (ex: `auth`) não deve importar diretamente de outro módulo (ex: `calendar`). Lógicas compartilhadas devem ser movidas para `frontend/src/shared` ou para o diretório raiz `shared/`.
 
 ### 🛡️ Type Safety (Zod + TypeScript)
 Todos os contratos de API são definidos como schemas **Zod** no diretório compartilhado. Isso garante que o frontend esteja sempre em sincronia com os dados validados pelo backend.

@@ -6,6 +6,8 @@ services:
       target: dev
     env_file:
       - backend/.env
+    environment:
+      - TZ=America/Manaus
     ports:
       - '${PORT}:${PORT}'
     restart: always

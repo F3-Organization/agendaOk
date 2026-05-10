@@ -57,41 +57,43 @@ export class FastifyAdapter implements ITokenService {
             try {
                 await request.jwtVerify();
             } catch (err) {
-                reply.send(err);
+                return reply.code(401).send(err);
             }
         });
 
-        // ── Documentação ───────────────────────────────────────
-        await this.app.register(fastifySwagger, {
-            mode: 'dynamic',
-            openapi: {
-                openapi: '3.0.0',
-                info: {
-                    title: 'ConfirmaZap API',
-                    description: 'Solução SaaS pragmática para automação de agendamentos e notificações via WhatsApp integrando Google Calendar e Evolution API.',
-                    version: '1.0.0',
-                },
-                components: {
-                    securitySchemes: {
-                        bearerAuth: {
-                            type: 'http',
-                            scheme: 'bearer',
-                            bearerFormat: 'JWT'
+        // ── Documentação (desabilitada em produção) ────────────
+        if (!env.isProduction()) {
+            await this.app.register(fastifySwagger, {
+                mode: 'dynamic',
+                openapi: {
+                    openapi: '3.0.0',
+                    info: {
+                        title: 'ConfirmaZap API',
+                        description: 'Solução SaaS pragmática para automação de agendamentos e notificações via WhatsApp integrando Google Calendar e Evolution API.',
+                        version: '1.0.0',
+                    },
+                    components: {
+                        securitySchemes: {
+                            bearerAuth: {
+                                type: 'http',
+                                scheme: 'bearer',
+                                bearerFormat: 'JWT'
+                            }
                         }
                     }
                 }
-            }
-        })
+            })
 
-        await this.app.register(fastifySwaggerUi, {
-            routePrefix: '/api/swagger',
-            uiConfig: {
-                docExpansion: 'list',
-                deepLinking: false,
-                validatorUrl: null
-            },
-            staticCSP: false
-        })
+            await this.app.register(fastifySwaggerUi, {
+                routePrefix: '/api/swagger',
+                uiConfig: {
+                    docExpansion: 'list',
+                    deepLinking: false,
+                    validatorUrl: null
+                },
+                staticCSP: false
+            })
+        }
 
         // ── Error Handler Global ───────────────────────────────
         this.app.setErrorHandler((error: any, request, reply) => {

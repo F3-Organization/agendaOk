@@ -22,7 +22,7 @@ export class NotifyQueue {
             "check-upcoming-appointments",
             {},
             {
-                repeat: { pattern: "*/30 * * * *" }, // Cron para a cada 30min
+                repeat: { pattern: "*/15 * * * *" }, // Cron para a cada 15min
                 removeOnComplete: true,
                 attempts: 1
             }

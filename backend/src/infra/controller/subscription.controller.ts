@@ -159,7 +159,8 @@ export class SubscriptionController {
                 reply.send({ status: "processed" });
             } catch (error: any) {
                 this.fastify.logInfo("[SubscriptionController] Webhook processing failed", { error: error.message });
-                reply.code(400).send({ error: "Webhook processing error" });
+                // Return 200 — audit log already saved, gateway should not retry failed business logic
+                reply.send({ status: "received", warning: "processing_error" });
             }
         }, abacatePayWebhookSchema);
     }

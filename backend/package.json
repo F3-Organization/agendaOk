@@ -7,7 +7,7 @@
     "dev": "npm run schema:sync && nodemon --watch src --watch ../shared --ext ts --exec \"ts-node -T src/bootstrap.ts\"",
     "dev:no-sync": "nodemon --watch src --watch ../shared --ext ts --exec \"ts-node -T src/bootstrap.ts\"",
     "build": "tsc",
-    "start": "npm run migration:run && node dist/src/bootstrap.js",
+    "start": "node dist/src/bootstrap.js",
     "start:no-migrate": "node dist/src/bootstrap.js",
     "test": "vitest run",
     "test:watch": "vitest",

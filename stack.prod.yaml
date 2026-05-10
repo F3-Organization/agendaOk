@@ -12,6 +12,9 @@ services:
       - PORT=${PORT:-3000}
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - DOMAIN=${DOMAIN}
+      - FRONTEND_URL=https://${DOMAIN}
+      - APP_INTERNAL_URL=http://api:3000
+      - TZ=America/Manaus
       # Database (bare metal no host)
       - DB_HOST=host.docker.internal
       - DB_PORT=${DB_PORT:-5432}
@@ -22,6 +25,10 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      # JWT / Segurança
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-7d}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       # Google OAuth
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
@@ -30,6 +37,25 @@ services:
       - EVO_API_KEY=${EVO_API_KEY}
       - EVOLUTION_API_URL=http://evolution-api:8080
       - EVO_SERVER_URL=https://${EVO_DOMAIN:-evo.${DOMAIN}}
+      # Abacate Pay (Pagamentos)
+      - ABACATE_PAY_TOKEN=${ABACATE_PAY_TOKEN}
+      - ABACATE_PAY_URL=${ABACATE_PAY_URL:-https://api.abacatepay.com/v2}
+      - ABACATE_WEBHOOK_SECRET=${ABACATE_WEBHOOK_SECRET}
+      - TRIAL_DAYS=${TRIAL_DAYS:-7}
+      # SMTP (Emails)
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - SMTP_FROM=${SMTP_FROM:-no-reply@confirmazap.com.br}
+      # Gemini AI (Bot)
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.0-flash}
+      # Dados da Empresa (Fiscal / Recibos)
+      - COMPANY_NAME=${COMPANY_NAME:-ConfirmaZap}
+      - COMPANY_CNPJ=${COMPANY_CNPJ}
+      - COMPANY_ADDRESS=${COMPANY_ADDRESS}
+      - SUPPORT_WHATSAPP=${SUPPORT_WHATSAPP}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:

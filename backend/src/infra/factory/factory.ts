@@ -4,7 +4,7 @@ import { GoogleCalendarAdapter } from "../adapters/google-calendar.adapter";
 import { AbacatePayAdapter } from "../adapters/abacatepay.adapter";
 import { BrasilNFeAdapter } from "../adapters/brasil-nfe.adapter";
 import { GeminiAdapter } from "../adapters/gemini.adapter";
-import { adminMiddleware } from "../middleware/auth.middleware";
+import { adminMiddleware } from "../middleware/admin.middleware";
 import { AppController } from "../controller/app.controller";
 import { AdminController } from "../controller/admin.controller";
 import { AuthController } from "../controller/auth.controller";

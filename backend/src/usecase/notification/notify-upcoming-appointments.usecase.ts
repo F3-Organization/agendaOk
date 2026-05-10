@@ -4,6 +4,7 @@ import { ICompanyConfigRepository } from "../repositories/icompany-config-reposi
 import { IClientRepository } from "../repositories/iclient-repository";
 import { ISubscriptionRepository } from "../repositories/isubscription-repository";
 import { CheckUsageLimitUseCase } from "../subscription/check-usage-limit.usecase";
+import { isWithinSilentWindow } from "../../shared/utils/time.util";
 
 export class NotifyUpcomingAppointmentsUseCase {
     constructor(
@@ -34,8 +35,8 @@ export class NotifyUpcomingAppointmentsUseCase {
         const next24h = new Date();
         next24h.setHours(now.getHours() + 24);
 
-        if (this.isSilenceWindow()) {
-            console.log(`[NotifyUseCase] Still in silence window. Skipping notifications.`);
+        if (isWithinSilentWindow(config.silentWindowStart ?? "21:00", config.silentWindowEnd ?? "08:00")) {
+            console.log(`[NotifyUseCase] Still in silence window (${config.silentWindowStart}-${config.silentWindowEnd}). Skipping notifications.`);
             return;
         }
 
@@ -77,12 +78,7 @@ export class NotifyUpcomingAppointmentsUseCase {
         }
     }
 
-    private isSilenceWindow(): boolean {
-        const now = new Date();
-        const hour = now.getHours();
-        // 21h às 08h
-        return hour >= 21 || hour < 8;
-    }
+
 
     private extractPhoneNumber(text: string): string | null {
         const regex = /(?:(?:\+|00)55\s?)?(?:\(?([1-9][0-9])\)?\s?)?(?:((?:9\d|[2-9])\d{3})\-?(\d{4}))/g;

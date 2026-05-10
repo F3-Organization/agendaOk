@@ -22,6 +22,6 @@ export class SendEmailVerificationUseCase {
         `;
 
         await this.mailService.sendMail(email, subject, body);
-        console.log(`[SendEmailVerificationUseCase] Code ${code} sent to ${email}`);
+        console.log(`[SendEmailVerificationUseCase] Verification code sent to ${email}`);
     }
 }

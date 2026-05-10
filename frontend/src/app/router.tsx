@@ -6,6 +6,7 @@ import { AppointmentsPage } from '../pages/AppointmentsPage';
 import { WhatsAppPage } from '../pages/WhatsAppPage';
 import { SubscriptionPage } from '../pages/SubscriptionPage';
 import { SettingsPage } from '../pages/SettingsPage';
+import { GoogleCallbackPage } from '../pages/GoogleCallbackPage';
 import { EmailVerificationPage } from '../pages/EmailVerificationPage';
 import { LandingPage } from '../pages/LandingPage';
 import { TwoFactorLoginPage } from '../pages/TwoFactorLoginPage';
@@ -35,6 +36,7 @@ export const AppRouter = () => {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/auth/verify" element={<EmailVerificationPage />} />
       <Route path="/auth/2fa" element={<TwoFactorLoginPage />} />
+      <Route path="/auth/google/callback" element={<GoogleCallbackPage />} />
       <Route path="/privacy" element={<PrivacyPolicyPage />} />
       <Route path="/terms" element={<TermsOfServicePage />} />
 

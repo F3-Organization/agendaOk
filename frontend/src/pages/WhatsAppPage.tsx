@@ -238,9 +238,7 @@ export const WhatsAppPage = () => {
                     </p>
                     <h3 className="text-xl font-bold tracking-tight">{t('whatsapp.expiresIn')} <span className="text-primary-dim">45s</span></h3>
                     <p className="text-sm text-muted-foreground leading-relaxed max-w-[200px] mx-auto">
-                      {t('whatsapp.cantScan')}{' '}
-                      <span className="text-primary cursor-pointer hover:underline font-bold">{t('whatsapp.mobileAppLink')}</span>{' '}
-                      {t('whatsapp.instead')}
+                      {t('whatsapp.scanWithPhone')}
                     </p>
                     
                     <div className="pt-6">

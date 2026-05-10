@@ -3,12 +3,12 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../features/auth/auth.store';
 import { authService } from '../features/auth/auth.service';
 import { Zap } from 'lucide-react';
+import type { AuthUser } from '@shared/schemas/auth.schema';
 
 export const GoogleCallbackPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const setAuth = useAuthStore((state) => state.setAuth);
-  const setCompanies = useAuthStore((state) => state.setCompanies);
   const isExchanging = useRef(false);
 
   useEffect(() => {
@@ -18,7 +18,7 @@ export const GoogleCallbackPage = () => {
       isExchanging.current = true;
 
       authService.exchangeCode(code)
-        .then((data) => {
+        .then((data: any) => {
           if (window.opener) {
             window.opener.postMessage(
               {
@@ -39,7 +39,7 @@ export const GoogleCallbackPage = () => {
               navigate('/auth/2fa', { state: { tempToken: data.tempToken } });
               return;
             }
-            setAuth(data.user!, data.token!);
+            setAuth(data.user as AuthUser, data.token as string);
             navigate('/select-company');
           }
         })

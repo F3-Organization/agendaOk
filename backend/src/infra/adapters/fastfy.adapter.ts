@@ -96,7 +96,7 @@ export class FastifyAdapter implements ITokenService {
         }
 
         // ── Error Handler Global ───────────────────────────────
-        this.app.setErrorHandler((error: any, request, reply) => {
+        this.app.setErrorHandler((error: any, request: any, reply: any) => {
             const statusCode = error.statusCode || 500;
 
             request.log.error({

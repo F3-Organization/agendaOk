@@ -37,7 +37,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
 
   const navigation = [
     { name: t('common.dashboard'), href: '/dashboard', icon: LayoutDashboard },
-    { name: t('common.appointments'), href: '/appointments', icon: Calendar },
+    { name: t('common.appointments', 'Agendamentos'), href: '/appointments', icon: Calendar },
     { name: t('professionals.title', 'Profissionais'), href: '/professionals', icon: Users },
     { name: t('botConfig.nav', 'Bot IA'), href: '/bot-config', icon: Bot },
     { name: t('common.whatsapp'), href: '/whatsapp', icon: MessageCircle },

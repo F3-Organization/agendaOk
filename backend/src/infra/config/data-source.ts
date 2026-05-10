@@ -9,7 +9,6 @@ import { Schedule } from "../database/entities/schedule.entity";
 import { UserConfig } from "../database/entities/user-config.entity";
 import { Subscription } from "../database/entities/subscription.entity";
 import { SubscriptionPayment } from "../database/entities/subscription-payment.entity";
-import { Integration } from "../database/entities/integration.entity";
 import { Professional } from "../database/entities/professional.entity";
 import { Plan } from "../database/entities/plan.entity";
 import { PaymentMethod } from "../database/entities/payment-method.entity";
@@ -24,7 +23,7 @@ export const AppDataSource = new DataSource({
     database: env.database.database,
     synchronize: env.debug(),
     logging: env.debug(),
-    entities: [User, Company, CompanyConfig, Client, Schedule, UserConfig, Subscription, SubscriptionPayment, Integration, Professional, Plan, PaymentMethod, WebhookAuditLog],
+    entities: [User, Company, CompanyConfig, Client, Schedule, UserConfig, Subscription, SubscriptionPayment, Professional, Plan, PaymentMethod, WebhookAuditLog],
     subscribers: [],
     migrations: [],
     extra: {

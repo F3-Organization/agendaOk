@@ -6,7 +6,6 @@ import { User } from "../database/entities/user.entity";
 import { Company } from "../database/entities/company.entity";
 import { Subscription } from "../database/entities/subscription.entity";
 import { Professional } from "../database/entities/professional.entity";
-import { Schedule } from "../database/entities/schedule.entity";
 import { Plan } from "../database/entities/plan.entity";
 import { ILike } from "typeorm";
 import { env } from "../config/configs";
@@ -41,14 +40,13 @@ export class AdminController {
                 const companyRepo = AppDataSource.getRepository(Company);
                 const subRepo = AppDataSource.getRepository(Subscription);
                 const professionalRepo = AppDataSource.getRepository(Professional);
-                const scheduleRepo = AppDataSource.getRepository(Schedule);
 
-                const [totalUsers, totalCompanies, totalProfessionals, totalAppointments] = await Promise.all([
+                const [totalUsers, totalCompanies, totalProfessionals] = await Promise.all([
                     userRepo.count(),
                     companyRepo.count(),
                     professionalRepo.count(),
-                    scheduleRepo.count(),
                 ]);
+                const totalAppointments = 0;
 
                 const subscriptionsByPlan = await subRepo
                     .createQueryBuilder("s")

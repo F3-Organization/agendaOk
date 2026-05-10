@@ -38,9 +38,6 @@ export class CompanyConfig extends BaseEntity {
     @Column({ type: "varchar", name: "silent_window_end", default: "08:00" })
     silentWindowEnd?: string;
 
-    @Column({ type: "boolean", name: "sync_enabled", default: true })
-    syncEnabled?: boolean;
-
     // Bot AI Configuration
     @Column({ type: "varchar", name: "business_type", nullable: true })
     businessType?: string;

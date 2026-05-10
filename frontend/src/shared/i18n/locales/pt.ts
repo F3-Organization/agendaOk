@@ -117,14 +117,6 @@ export const pt = {
       error: 'Erro ao criar agendamento.',
       creating: 'Salvando...'
     },
-    syncCalendar: {
-      title: 'Sincronizar Calendário',
-      connectedTitle: 'Calendário Sincronizado',
-      description: 'Conecte seu Google Calendar para enviar automaticamente lembretes de WhatsApp para cada nova reserva criada.',
-      connectedDescription: 'Sua conta do Google está vinculada. Clique abaixo para forçar uma atualização manual dos seus compromissos.',
-      button: 'Conectar Google Calendar',
-      connectedButton: 'Sincronizar Agora'
-    },
     onboarding: {
       phoneTitle: 'Complete o perfil da Empresa',
       phoneDescription: 'Para a empresa receber notificações e alertas de agendamentos, precisamos do número de WhatsApp da empresa com DDD.',

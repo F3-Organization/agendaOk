@@ -117,11 +117,6 @@ export const en = {
       error: 'Error creating appointment.',
       creating: 'Saving...'
     },
-    syncCalendar: {
-      title: 'Sync Calendar',
-      description: 'Connect your Google Calendar to automatically send WhatsApp reminders for every new booking created.',
-      button: 'Connect Google Calendar',
-    }
   },
   whatsapp: {
     title: 'WhatsApp Connection',

@@ -12,7 +12,6 @@ export const getUserConfigSchema = {
                 email: { type: "string" as const },
                 whatsappNumber: { type: "string" as const, nullable: true },
                 taxId: { type: "string" as const, nullable: true },
-                syncEnabled: { type: "boolean" as const },
                 silentWindowStart: { type: "string" as const, nullable: true },
                 silentWindowEnd: { type: "string" as const, nullable: true },
                 twoFactorEnabled: { type: "boolean" as const },
@@ -33,7 +32,6 @@ export const updateUserConfigSwaggerSchema = {
             email: { type: "string" as const, format: "email" },
             whatsappNumber: { type: "string" as const },
             taxId: { type: "string" as const },
-            syncEnabled: { type: "boolean" as const },
             silentWindowStart: { type: "string" as const, pattern: "^([01]\\d|2[0-3]):([0-5]\\d)$" },
             silentWindowEnd: { type: "string" as const, pattern: "^([01]\\d|2[0-3]):([0-5]\\d)$" }
         }

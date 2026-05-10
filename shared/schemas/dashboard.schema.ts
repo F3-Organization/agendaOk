@@ -7,11 +7,6 @@ export const DashboardStatsSchema = z.object({
     confirmationsChange: z.string(),
     repliesChange: z.string(),
     conversionRateChange: z.string(),
-    appointmentStats: z.array(z.object({
-        status: z.string(),
-        count: z.number()
-    })),
-    calendarConnected: z.boolean(),
     whatsappNumberMissing: z.boolean()
 });
 

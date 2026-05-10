@@ -1,55 +1,36 @@
 import { Worker, Job } from "bullmq";
 import { env } from "../config/configs";
-import { NotifyUpcomingAppointmentsUseCase } from "../../usecase/notification/notify-upcoming-appointments.usecase";
-import { ICompanyConfigRepository } from "../../usecase/repositories/icompany-config-repository";
+import { NotifyUpcomingAppointmentsUseCase } from "../../usecase/appointment/notify-upcoming-appointments.usecase";
 
 export class NotifyWorker {
     private worker: Worker;
 
     constructor(
-        private readonly notifyUseCase: NotifyUpcomingAppointmentsUseCase,
-        private readonly companyConfigRepository: ICompanyConfigRepository
+        private readonly notifyUpcoming: NotifyUpcomingAppointmentsUseCase
     ) {
         this.worker = new Worker(
-            "notifications",
+            "appointment-notifications",
             async (job: Job) => {
-                if (job.name === "check-upcoming-appointments") {
-                    await this.handleGlobalCheck();
-                    return;
-                }
-
-                const { companyId } = job.data;
-                await this.notifyUseCase.execute(companyId);
+                await this.notifyUpcoming.execute();
             },
             {
                 connection: {
                     host: env.redis.host,
                     port: env.redis.port,
-                    password: env.redis.password
-                }
+                    password: env.redis.password,
+                },
             }
         );
 
-        this.worker.on("completed", (job: Job) => {
-            console.log(`[NotifyWorker] Job ${job.name} (${job.id}) completed`);
-        });
-
-        this.worker.on("failed", (job: Job | undefined, err: Error) => {
-            console.error(`[NotifyWorker] FAILED job=${job?.name} id=${job?.id} attempt=${job?.attemptsMade} err=${err.message}`, {
+        this.worker.on("failed", (job, err) => {
+            console.error(`[NotifyWorker] Job ${job?.id} failed (attempt ${job?.attemptsMade}):`, {
                 jobData: job?.data,
-                stack: err.stack
+                stack: err?.stack,
             });
         });
 
-        this.worker.on("stalled", (jobId: string) => {
-            console.error(`[NotifyWorker] STALLED job id=${jobId} — worker may have crashed`);
+        this.worker.on("stalled", (jobId) => {
+            console.warn(`[NotifyWorker] Job ${jobId} stalled`);
         });
-    }
-
-    private async handleGlobalCheck() {
-        const activeConfigs = await this.companyConfigRepository.findAllActive();
-        for (const config of activeConfigs) {
-            await this.notifyUseCase.execute(config.companyId);
-        }
     }
 }

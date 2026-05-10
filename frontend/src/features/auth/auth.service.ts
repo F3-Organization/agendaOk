@@ -12,11 +12,6 @@ export const authService = {
     return { url: `${apiClient.defaults.baseURL}/auth/google` };
   },
 
-  exchangeCode: async (code: string): Promise<LoginResponseWithCompanies> => {
-    const { data } = await apiClient.get(`/auth/google/callback?code=${code}`);
-    return data;
-  },
-
   login: async (credentials: LoginInput): Promise<LoginResponseWithCompanies> => {
     const { data } = await apiClient.post('/auth/login', credentials);
     return data;
@@ -45,7 +40,6 @@ export const authService = {
   updateConfig: async (configData: {
     whatsappNumber?: string;
     taxId?: string;
-    syncEnabled?: boolean;
     silentWindowStart?: string;
     silentWindowEnd?: string;
   }): Promise<void> => {

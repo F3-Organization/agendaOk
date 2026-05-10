@@ -7,7 +7,6 @@ export const userConfigSchema = z.object({
     taxId: z.string().optional(),
     silentWindowStart: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Formato inválido (HH:mm)").optional(),
     silentWindowEnd: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Formato inválido (HH:mm)").optional(),
-    syncEnabled: z.boolean().optional(),
     twoFactorEnabled: z.boolean().optional(),
     hasPassword: z.boolean().optional(),
 });

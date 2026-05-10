@@ -62,7 +62,7 @@ export class UserConfigRepository implements IUserConfigRepository {
     }
 
     async findAllActive(): Promise<UserConfig[]> {
-        return await this.repository.find({ where: { syncEnabled: true } });
+        return await this.repository.find();
     }
 
     async update(userId: string, data: Partial<UserConfig>): Promise<void> {

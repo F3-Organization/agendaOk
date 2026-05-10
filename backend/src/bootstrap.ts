@@ -43,7 +43,7 @@ async function bootstrap() {
         factory.controller.app();
         factory.controller.auth();
         factory.controller.company();
-        factory.controller.calendar();
+        factory.controller.appointment();
         factory.controller.webhook();
         factory.controller.subscription();
         factory.controller.whatsapp();
@@ -53,8 +53,6 @@ async function bootstrap() {
         factory.controller.admin();
         console.log("[Bootstrap] Controllers and routes registered.");
 
-
-        factory.workers.sync();
         factory.workers.notify();
         factory.workers.subscription();
         console.log("[Bootstrap] Background workers started.");

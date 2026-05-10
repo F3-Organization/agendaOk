@@ -11,7 +11,6 @@ interface User {
   role: string;
   config: {
     whatsappNumber: string | null;
-    syncEnabled: boolean;
     silentWindowStart: string;
     silentWindowEnd: string;
   } | null;

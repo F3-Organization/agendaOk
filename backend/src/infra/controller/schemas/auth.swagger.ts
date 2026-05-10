@@ -46,7 +46,6 @@ export const authMeSchema = {
                     properties: {
                         whatsappNumber: { type: "string" as const, nullable: true },
                         taxId: { type: "string" as const, nullable: true },
-                        syncEnabled: { type: "boolean" as const },
                         silentWindowStart: { type: "string" as const },
                         silentWindowEnd: { type: "string" as const }
                     }
@@ -123,7 +122,6 @@ export const authConfigSchema = {
         properties: {
             whatsappNumber: { type: "string" as const },
             taxId: { type: "string" as const },
-            syncEnabled: { type: "boolean" as const },
             silentWindowStart: { type: "string" as const },
             silentWindowEnd: { type: "string" as const },
             name: { type: "string" as const },

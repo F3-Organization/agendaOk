@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Zap, Check, ArrowRight, Calendar, MessageSquare, BarChart3, ShieldCheck, ZapOff, Sparkles, Bot, Brain, Clock, Users, MessageCircle, Send } from 'lucide-react';
+import { Zap, Check, ArrowRight, MessageSquare, BarChart3, ShieldCheck, ZapOff, Sparkles, Bot, Brain, Clock, Users, MessageCircle, Send } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { Button } from '../shared/ui/Button';
@@ -324,11 +324,11 @@ export const LandingPage = () => {
 
             <Card variant="glass" className="p-8 border-outline-variant/40 hover:scale-105 transition-transform group">
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-6 border border-primary/20 group-hover:bg-primary/20 transition-colors">
-                <Calendar className="w-6 h-6 text-primary-dim" />
+                <Users className="w-6 h-6 text-primary-dim" />
               </div>
-              <h3 className="text-lg font-bold mb-2 tracking-tight">{t('landing.calendarSyncTitle')}</h3>
+              <h3 className="text-lg font-bold mb-2 tracking-tight">{t('landing.multiCompanyTitle', 'Multi-empresas')}</h3>
               <p className="text-muted-foreground leading-relaxed font-medium text-sm">
-                {t('landing.calendarSyncDesc')}
+                {t('landing.multiCompanyDesc', 'Gerencie até 3 empresas com atendentes de WhatsApp independentes em uma única conta.')}
               </p>
             </Card>
 
@@ -411,7 +411,7 @@ export const LandingPage = () => {
                       <Check className="w-4 h-4 text-primary flex-shrink-0" /> {t('landing.plans.remindersPerMonth')}
                     </li>
                     <li className="flex items-center gap-4 text-sm font-medium">
-                      <Check className="w-4 h-4 text-primary flex-shrink-0" /> {t('landing.calendarSyncTitle')}
+                      <Check className="w-4 h-4 text-primary flex-shrink-0" /> {t('landing.multiCompanyTitle', '1 empresa')}
                     </li>
                     <li className="flex items-center gap-4 text-sm font-medium opacity-20 grayscale">
                       <ZapOff className="w-4 h-4 flex-shrink-0" /> {t('landing.plans.aiBotFeature')}

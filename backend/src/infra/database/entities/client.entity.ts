@@ -1,6 +1,5 @@
-import { Entity, Column, ManyToOne, OneToMany, JoinColumn, Index } from "typeorm";
+import { Entity, Column, ManyToOne, JoinColumn, Index } from "typeorm";
 import { Company } from "./company.entity";
-import { Schedule } from "./schedule.entity";
 import { BaseEntity } from "./base.entity";
 
 @Entity("clients")
@@ -21,7 +20,4 @@ export class Client extends BaseEntity {
     @ManyToOne(() => Company)
     @JoinColumn({ name: "company_id" })
     company!: Company;
-
-    @OneToMany(() => Schedule, (schedule) => schedule.client)
-    schedules?: Schedule[];
 }

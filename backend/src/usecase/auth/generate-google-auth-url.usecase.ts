@@ -1,7 +1,7 @@
-import { IGoogleCalendarService } from "../ports/igoogle-calendar-service";
+import { IGoogleAuthService } from "../ports/igoogle-auth-service";
 
 export class GenerateGoogleAuthUrlUseCase {
-    constructor(private readonly googleService: IGoogleCalendarService) {}
+    constructor(private readonly googleService: IGoogleAuthService) {}
 
     execute(): string {
         return this.googleService.getAuthUrl();

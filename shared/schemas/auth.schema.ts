@@ -7,7 +7,6 @@ export const AuthUserSchema = z.object({
     role: z.enum(["ADMIN", "USER"]),
     config: z.object({
         whatsappNumber: z.string().nullable(),
-        syncEnabled: z.boolean(),
         silentWindowStart: z.string(),
         silentWindowEnd: z.string()
     }).nullable(),

@@ -106,7 +106,6 @@ export class AuthController {
                 config: config ? {
                     whatsappNumber: config.whatsappNumber,
                     taxId: config.taxId,
-                    syncEnabled: config.syncEnabled,
                     silentWindowStart: config.silentWindowStart,
                     silentWindowEnd: config.silentWindowEnd
                 } : null,
@@ -182,7 +181,6 @@ export class AuthController {
             const schema = z.object({
                 whatsappNumber: z.string().optional(),
                 taxId: z.string().optional(),
-                syncEnabled: z.boolean().optional(),
                 silentWindowStart: z.string().optional(),
                 silentWindowEnd: z.string().optional(),
                 name: z.string().optional(),

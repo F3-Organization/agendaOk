@@ -31,9 +31,7 @@ export class CompanyConfigRepository implements ICompanyConfigRepository {
     }
 
     async findAllActive(): Promise<CompanyConfig[]> {
-        return await this.repository.find({
-            where: { syncEnabled: true }
-        });
+        return await this.repository.find();
     }
 
     async updateByCompanyId(companyId: string, data: Partial<CompanyConfig>): Promise<void> {

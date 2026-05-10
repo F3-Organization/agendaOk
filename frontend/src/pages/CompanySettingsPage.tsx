@@ -8,7 +8,6 @@ import {
   Bell,
   BellOff,
   Clock,
-  RefreshCw,
   CreditCard,
   Save,
   Loader2,
@@ -118,9 +117,7 @@ export const CompanySettingsPage = () => {
     const formData = new FormData(e.currentTarget);
     const rawData = Object.fromEntries(formData.entries());
 
-    const data: any = {
-      syncEnabled: formData.get('syncEnabled') === 'on',
-    };
+    const data: any = {};
 
     if (rawData.whatsappNumber) data.whatsappNumber = rawData.whatsappNumber as string;
     if (rawData.taxId) data.taxId = rawData.taxId as string;
@@ -222,26 +219,6 @@ export const CompanySettingsPage = () => {
                     defaultValue={companyConfig?.whatsappNumber}
                     className="pl-12 h-12 bg-white border-outline-variant focus:bg-white focus:border-primary/30 transition-all rounded-lg font-medium"
                     placeholder="11999999999"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between p-6 rounded-xl bg-surface-container border border-outline-variant shadow-inner group/sync">
-                <div className="flex gap-6">
-                  <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover/sync:rotate-180 transition-transform duration-1000 shadow-xl">
-                    <RefreshCw className="w-7 h-7" />
-                  </div>
-                  <div>
-                    <h3 className="font-black text-lg tracking-tight">{t('settings.automation.syncTitle')}</h3>
-                    <p className="text-xs text-muted-foreground/60 mt-0.5 font-medium">{t('settings.automation.syncDesc')}</p>
-                  </div>
-                </div>
-                <div className="flex items-center scale-110 pr-2">
-                  <input
-                    type="checkbox"
-                    name="syncEnabled"
-                    defaultChecked={companyConfig?.syncEnabled}
-                    className="w-12 h-6 rounded-full bg-surface-high appearance-none cursor-pointer relative checked:bg-primary transition-all border border-outline-variant after:content-[''] after:absolute after:top-1 after:left-1 after:w-4 after:h-4 after:rounded-full after:bg-white after:transition-all checked:after:translate-x-6 shadow-inner"
                   />
                 </div>
               </div>

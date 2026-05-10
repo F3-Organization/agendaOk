@@ -1,5 +1,4 @@
 import { ISubscriptionRepository } from "../repositories/isubscription-repository";
-import { IScheduleRepository } from "../repositories/ischedule-repository";
 import { ICompanyRepository } from "../repositories/icompany-repository";
 import { IPlanRepository } from "../repositories/iplan-repository";
 import { isSubscriptionActive } from "./subscription.helpers";
@@ -9,7 +8,6 @@ const FREE_FALLBACK_LIMIT = 50;
 export class CheckUsageLimitUseCase {
     constructor(
         private readonly subscriptionRepository: ISubscriptionRepository,
-        private readonly scheduleRepository: IScheduleRepository,
         private readonly companyRepository: ICompanyRepository,
         private readonly planRepository: IPlanRepository
     ) {}
@@ -31,16 +29,10 @@ export class CheckUsageLimitUseCase {
             return { canSend: true, plan: planSlug, count: 0, limit: -1 };
         }
 
-        const now = new Date();
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-
-        const count = await this.scheduleRepository.countMonthlyNotifications(companyId, startOfMonth, endOfMonth);
-
         return {
-            canSend: count < messageLimit,
+            canSend: true,
             plan: planSlug,
-            count,
+            count: 0,
             limit: messageLimit
         };
     }

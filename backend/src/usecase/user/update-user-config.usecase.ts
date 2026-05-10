@@ -34,7 +34,6 @@ export class UpdateUserConfigUseCase {
         if (data.taxId !== undefined) configData.taxId = data.taxId;
         if (data.silentWindowStart !== undefined) configData.silentWindowStart = data.silentWindowStart;
         if (data.silentWindowEnd !== undefined) configData.silentWindowEnd = data.silentWindowEnd;
-        if (data.syncEnabled !== undefined) configData.syncEnabled = data.syncEnabled;
 
         // 3. Update or Create CompanyConfig
         let config = await this.companyConfigRepo.findByCompanyId(companyId);

@@ -1,5 +1,20 @@
 import { errorResponse, messageResponse, uuidParam } from "./_common.swagger";
 
+const workingHoursResponseSchema = {
+    type: "object" as const,
+    nullable: true,
+    additionalProperties: {
+        type: "array" as const,
+        items: {
+            type: "object" as const,
+            properties: {
+                start: { type: "string" as const },
+                end: { type: "string" as const },
+            },
+        },
+    },
+};
+
 export const listProfessionalsSchema = {
     tags: ["Professional"],
     summary: "Lista profissionais da empresa",
@@ -14,8 +29,9 @@ export const listProfessionalsSchema = {
                     name: { type: "string" as const },
                     specialty: { type: "string" as const, nullable: true },
                     active: { type: "boolean" as const },
+                    userId: { type: "string" as const, format: "uuid", nullable: true },
                     appointmentDuration: { type: "number" as const },
-                    workingHours: { type: "object" as const }
+                    workingHours: workingHoursResponseSchema,
                 }
             }
         },
@@ -96,7 +112,7 @@ export const getBotConfigSchema = {
                 botGreeting: { type: "string" as const, nullable: true },
                 botInstructions: { type: "string" as const, nullable: true },
                 address: { type: "string" as const, nullable: true },
-                workingHours: { type: "object" as const, nullable: true },
+                workingHours: { ...workingHoursResponseSchema },
                 servicesOffered: { type: "array" as const, items: { type: "string" as const }, nullable: true },
                 botEnabled: { type: "boolean" as const }
             }

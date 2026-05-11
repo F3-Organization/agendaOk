@@ -6,13 +6,13 @@ const timeSlotSchema = z.array(z.object({
 }));
 
 const workingHoursSchema = z.object({
-    mon: timeSlotSchema.optional().default([]),
-    tue: timeSlotSchema.optional().default([]),
-    wed: timeSlotSchema.optional().default([]),
-    thu: timeSlotSchema.optional().default([]),
-    fri: timeSlotSchema.optional().default([]),
-    sat: timeSlotSchema.optional().default([]),
-    sun: timeSlotSchema.optional().default([]),
+    mon: timeSlotSchema.optional(),
+    tue: timeSlotSchema.optional(),
+    wed: timeSlotSchema.optional(),
+    thu: timeSlotSchema.optional(),
+    fri: timeSlotSchema.optional(),
+    sat: timeSlotSchema.optional(),
+    sun: timeSlotSchema.optional(),
 }).optional();
 
 export const createProfessionalSchema = z.object({

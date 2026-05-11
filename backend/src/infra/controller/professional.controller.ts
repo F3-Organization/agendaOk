@@ -19,6 +19,13 @@ import {
     updateBotConfigSwaggerSchema,
 } from "./schemas/professional.swagger";
 
+type TimeSlot = { start: string; end: string };
+function filterWorkingHours(raw: Record<string, TimeSlot[] | undefined>): Record<string, TimeSlot[]> {
+    return Object.fromEntries(
+        Object.entries(raw).filter((entry): entry is [string, TimeSlot[]] => Array.isArray(entry[1]) && entry[1].length > 0)
+    );
+}
+
 export class ProfessionalController {
     constructor(
         private readonly fastify: FastifyAdapter,
@@ -59,6 +66,9 @@ export class ProfessionalController {
                 const professional = await this.manageProfessionals.create({
                     companyId: user.companyId,
                     ...parseResult.data,
+                    workingHours: parseResult.data.workingHours
+                        ? filterWorkingHours(parseResult.data.workingHours)
+                        : undefined,
                 });
                 reply.code(201).send(professional);
             } catch (error: any) {
@@ -82,6 +92,9 @@ export class ProfessionalController {
                     id,
                     companyId: user.companyId,
                     ...parseResult.data,
+                    workingHours: parseResult.data.workingHours
+                        ? filterWorkingHours(parseResult.data.workingHours)
+                        : undefined,
                 });
                 reply.send({ message: "Professional updated successfully" });
             } catch (error: any) {

@@ -149,7 +149,7 @@ export const ProfessionalsPage = () => {
 
   const toggleDay = (dayKey: string) => {
     const current = { ...form.workingHours };
-    if (current[dayKey]) {
+    if (current[dayKey]?.length) {
       delete current[dayKey];
     } else {
       current[dayKey] = [{ start: '08:00', end: '12:00' }, { start: '14:00', end: '18:00' }];
@@ -266,9 +266,9 @@ export const ProfessionalsPage = () => {
                 <span>{p.appointmentDuration} min por consulta</span>
               </div>
 
-              {p.workingHours && Object.keys(p.workingHours).length > 0 && (
+              {p.workingHours && Object.values(p.workingHours).some(v => v?.length) && (
                 <div className="flex flex-wrap gap-1.5 mb-4">
-                  {DAYS.filter(d => p.workingHours?.[d.key]).map(d => (
+                  {DAYS.filter(d => p.workingHours?.[d.key]?.length).map(d => (
                     <span
                       key={d.key}
                       className="text-[10px] font-bold uppercase py-0.5 px-2 rounded-md bg-primary/10 text-primary border border-primary/20"
@@ -376,7 +376,7 @@ export const ProfessionalsPage = () => {
                 </label>
                 <div className="space-y-2">
                   {DAYS.map((day) => {
-                    const isActive = !!form.workingHours[day.key];
+                    const isActive = !!form.workingHours[day.key]?.length;
                     return (
                       <div
                         key={day.key}

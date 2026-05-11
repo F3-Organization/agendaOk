@@ -5,6 +5,9 @@ import { HandleAbacatePayWebhookUseCase } from "../../usecase/subscription/handl
 import { GetSubscriptionStatusUseCase } from "../../usecase/subscription/get-subscription-status.usecase";
 import { GetSubscriptionPaymentHistoryUseCase } from "../../usecase/subscription/get-payment-history.usecase";
 import { GenerateInvoicePdfUseCase } from "../../usecase/subscription/generate-invoice-pdf.usecase";
+import { CreateTransparentPixUseCase } from "../../usecase/subscription/create-transparent-pix.usecase";
+import { CancelSubscriptionUseCase } from "../../usecase/subscription/cancel-subscription.usecase";
+import { IPaymentGateway } from "../../usecase/ports/ipayment-gateway";
 import { IPlanRepository } from "../../usecase/repositories/iplan-repository";
 import { PaymentMethodRepository } from "../database/repositories/payment-method.repository";
 import { AuthUserPayload } from "../types/auth.types";
@@ -15,6 +18,9 @@ import {
     listPlansSchema,
     listPaymentMethodsSchema,
     createCheckoutSchema,
+    createPixSchema,
+    getPixStatusSchema,
+    cancelSubscriptionSchema,
     getSubscriptionStatusSchema,
     getPaymentHistorySchema,
     downloadInvoicePdfSchema,
@@ -30,7 +36,10 @@ export class SubscriptionController {
         private readonly getHistory: GetSubscriptionPaymentHistoryUseCase,
         private readonly generatePdf: GenerateInvoicePdfUseCase,
         private readonly planRepository: IPlanRepository,
-        private readonly paymentMethodRepository: PaymentMethodRepository
+        private readonly paymentMethodRepository: PaymentMethodRepository,
+        private readonly createPixUseCase: CreateTransparentPixUseCase,
+        private readonly cancelSubscriptionUseCase: CancelSubscriptionUseCase,
+        private readonly paymentGateway: IPaymentGateway
     ) {
         this.fastify.logInfo("[SubscriptionController] Initializing...");
         this.registerRoutes();
@@ -116,7 +125,40 @@ export class SubscriptionController {
             }
         }, downloadInvoicePdfSchema);
 
-        // 6. Webhook do Abacate Pay (Público)
+        // 6. Criar PIX Transparente (checkout inline)
+        this.fastify.addProtectedRoute("POST", "/subscription/pix", async (request: FastifyRequest, reply: FastifyReply) => {
+            const user = request.user as AuthUserPayload;
+            try {
+                const result = await this.createPixUseCase.execute(user.id);
+                reply.send(result);
+            } catch (error: any) {
+                reply.code(400).send({ error: "PIX creation failed", message: error.message });
+            }
+        }, createPixSchema);
+
+        // 7. Verificar status do PIX
+        this.fastify.addProtectedRoute("GET", "/subscription/pix/:id/status", async (request: FastifyRequest, reply: FastifyReply) => {
+            const { id } = request.params as { id: string };
+            try {
+                const status = await this.paymentGateway.getTransparentPix(id);
+                reply.send(status ?? { id, status: "UNKNOWN" });
+            } catch {
+                reply.code(500).send({ error: "Status check failed" });
+            }
+        }, getPixStatusSchema);
+
+        // 8. Cancelar Assinatura
+        this.fastify.addProtectedRoute("POST", "/subscription/cancel", async (request: FastifyRequest, reply: FastifyReply) => {
+            const user = request.user as AuthUserPayload;
+            try {
+                await this.cancelSubscriptionUseCase.execute(user.id);
+                reply.send({ status: "cancelled" });
+            } catch (error: any) {
+                reply.code(400).send({ error: "Cancellation failed", message: error.message });
+            }
+        }, cancelSubscriptionSchema);
+
+        // 9. Webhook do Abacate Pay (Público)
         this.fastify.addRoute("POST", "/webhook/abacatepay", async (request: FastifyRequest, reply: FastifyReply) => {
             const signature = request.headers["x-abacatepay-signature"] as string;
             

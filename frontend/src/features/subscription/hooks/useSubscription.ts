@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { subscriptionService, type Plan } from '../subscription.service';
+import { subscriptionService, type Plan, type PixPaymentResponse } from '../subscription.service';
 import { authService } from '../../auth/auth.service';
 
 export const useSubscription = () => {
@@ -12,6 +12,8 @@ export const useSubscription = () => {
   const queryClient = useQueryClient();
   const [showSuccessBanner, setShowSuccessBanner] = useState(false);
   const [showBillingModal, setShowBillingModal] = useState(false);
+  const [pixData, setPixData] = useState<PixPaymentResponse | null>(null);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const prevStatusRef = useRef<string | undefined>(undefined);
 
   const SUPPORT_WHATSAPP = import.meta.env.VITE_SUPPORT_WHATSAPP;
@@ -104,6 +106,38 @@ export const useSubscription = () => {
     await updateBillingConfigMutation.mutateAsync(data);
   };
 
+  const pixMutation = useMutation({
+    mutationFn: subscriptionService.createPixPayment,
+    onSuccess: (data) => {
+      setPixData(data);
+    },
+    onError: (error: any) => {
+      const message = error.response?.data?.message || t('common.error');
+      toast.error(message);
+    }
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: subscriptionService.cancelSubscription,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['subscription-status'] });
+      queryClient.invalidateQueries({ queryKey: ['subscription-payments'] });
+      setShowCancelConfirm(false);
+      toast.success(t('subscription.cancel.success'));
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || t('common.error'));
+    }
+  });
+
+  const handlePixPaid = () => {
+    setPixData(null);
+    queryClient.invalidateQueries({ queryKey: ['subscription-status'] });
+    queryClient.invalidateQueries({ queryKey: ['subscription-payments'] });
+    setShowSuccessBanner(true);
+    setTimeout(() => setShowSuccessBanner(false), 30000);
+  };
+
   const handlePlanAction = (planSlug: string) => {
     const plan = plans.find(p => p.slug === planSlug);
 
@@ -191,6 +225,13 @@ export const useSubscription = () => {
     updateBillingConfigMutation,
     isTrial: subStatus?.status === 'TRIAL',
     trialEndsAt: subStatus?.trialEndsAt,
+    pixData,
+    setPixData,
+    pixMutation,
+    handlePixPaid,
+    cancelMutation,
+    showCancelConfirm,
+    setShowCancelConfirm,
   };
 };
 

@@ -7,7 +7,7 @@ function cn(...inputs: ClassValue[]) {
 }
 
 interface ModalProps {
-  onClose: () => void;
+  onClose?: () => void;
   children: ReactNode;
   maxWidth?: string;
   className?: string;
@@ -15,6 +15,7 @@ interface ModalProps {
 
 export const Modal = ({ onClose, children, maxWidth = 'max-w-lg', className }: ModalProps) => {
   useEffect(() => {
+    if (!onClose) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);

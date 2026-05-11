@@ -59,12 +59,15 @@ export class HandleAbacatePayWebhookUseCase {
     private extractPaymentMethodCode(event: string, data: any): string {
         // v2 webhook doesn't expose the chosen payment method in the payload.
         // Infer from event type and the methods we configure per product type.
-        if (
-            event === "subscription.completed" ||
-            event === "subscription.renewed"
-        ) {
+        if (event === "subscription.completed" || event === "subscription.renewed") {
             // Subscriptions are created with methods: ["CARD"] only
             return "CREDIT_CARD";
+        }
+
+        if (event === "transparent.completed" || event === "transparent.refunded" ||
+            event === "transparent.disputed" || event === "transparent.lost") {
+            // Transparent checkouts are always PIX
+            return "PIX";
         }
 
         // For checkout events try to read from payload (v1 compat or future v2 field)
@@ -121,6 +124,20 @@ export class HandleAbacatePayWebhookUseCase {
 
             case "checkout.disputed":
             case "checkout.lost":
+                await this.handleBillingDisputed(event, data);
+                break;
+
+            // ── Transparent PIX events ───────────────────────────────────
+            case "transparent.completed":
+                await this.handleBillingPaid(data, "PIX");
+                break;
+
+            case "transparent.refunded":
+                await this.handleBillingRefunded(data);
+                break;
+
+            case "transparent.disputed":
+            case "transparent.lost":
                 await this.handleBillingDisputed(event, data);
                 break;
 

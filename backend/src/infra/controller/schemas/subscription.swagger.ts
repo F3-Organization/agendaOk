@@ -45,6 +45,54 @@ export const listPaymentMethodsSchema = {
     }
 };
 
+export const createPixSchema = {
+    tags: ["Subscription"],
+    summary: "Creates a transparent PIX QR code for PRO subscription payment",
+    response: {
+        200: {
+            type: "object" as const,
+            properties: {
+                id: { type: "string" as const },
+                brCode: { type: "string" as const },
+                brCodeBase64: { type: "string" as const },
+                amount: { type: "number" as const },
+                status: { type: "string" as const },
+                expiresAt: { type: "string" as const, nullable: true },
+                planName: { type: "string" as const },
+            }
+        },
+        400: { type: "object" as const, properties: { error: { type: "string" as const }, message: { type: "string" as const } } }
+    }
+};
+
+export const getPixStatusSchema = {
+    tags: ["Subscription"],
+    summary: "Checks the payment status of a transparent PIX",
+    params: {
+        type: "object" as const,
+        required: ["id"] as const,
+        properties: { id: { type: "string" as const } }
+    },
+    response: {
+        200: {
+            type: "object" as const,
+            properties: {
+                id: { type: "string" as const },
+                status: { type: "string" as const }
+            }
+        }
+    }
+};
+
+export const cancelSubscriptionSchema = {
+    tags: ["Subscription"],
+    summary: "Cancels the current active subscription",
+    response: {
+        200: { type: "object" as const, properties: { status: { type: "string" as const } } },
+        400: { type: "object" as const, properties: { error: { type: "string" as const }, message: { type: "string" as const } } }
+    }
+};
+
 export const createCheckoutSchema = {
     tags: ["Subscription"],
     summary: "Creates a payment link for PRO subscription",

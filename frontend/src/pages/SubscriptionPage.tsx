@@ -15,13 +15,17 @@ import {
   Smartphone,
   QrCode,
   Clock,
+  AlertTriangle,
 } from 'lucide-react';
 import { PageLayout } from '../shared/ui/PageLayout';
 import { Card } from '../shared/ui/Card';
 import { Button } from '../shared/ui/Button';
+import { Modal } from '../shared/ui/Modal';
 import { useSubscription } from '../features/subscription/hooks/useSubscription';
 import { BillingInfoModal } from '../features/subscription/components/BillingInfoModal';
+import { PixPaymentModal } from '../features/subscription/components/PixPaymentModal';
 import { formatCurrency, formatDate } from '../shared/utils/formatters';
+import { subscriptionService } from '../features/subscription/subscription.service';
 import type { PaymentMethod } from '../features/subscription/subscription.service';
 
 function PaymentMethodBadge({ method, methods }: { method?: string | null; methods: PaymentMethod[] }) {
@@ -60,6 +64,13 @@ export const SubscriptionPage = () => {
     updateBillingConfigMutation,
     isTrial,
     trialEndsAt,
+    pixData,
+    setPixData,
+    pixMutation,
+    handlePixPaid,
+    cancelMutation,
+    showCancelConfirm,
+    setShowCancelConfirm,
   } = useSubscription();
 
   const messageCount = subStatus?.messageCount ?? 0;
@@ -207,10 +218,19 @@ export const SubscriptionPage = () => {
             </div>
 
             {subStatus.plan === 'FREE' && (
-              <div className="shrink-0 w-full md:w-auto">
+              <div className="shrink-0 w-full md:w-auto flex flex-col sm:flex-row gap-3">
+                <Button
+                  variant="ghost"
+                  className="h-14 px-6 text-[10px] font-black tracking-[0.2em] uppercase gap-2"
+                  onClick={() => pixMutation.mutate()}
+                  disabled={pixMutation.isPending}
+                >
+                  {pixMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <QrCode className="w-3.5 h-3.5" />}
+                  {t('subscription.pix.payWithPix')}
+                </Button>
                 <Button
                   variant={isAtLimit ? 'primary' : 'secondary'}
-                  className={`w-full md:w-auto h-14 px-10 text-[10px] font-black tracking-[0.2em] uppercase shadow-2xl transition-all ${isAtLimit ? 'shadow-red-500/20 active:scale-95' : 'shadow-primary/10'}`}
+                  className={`h-14 px-10 text-[10px] font-black tracking-[0.2em] uppercase shadow-2xl transition-all ${isAtLimit ? 'shadow-red-500/20 active:scale-95' : 'shadow-primary/10'}`}
                   onClick={() => checkoutMutation.mutate()}
                   disabled={checkoutMutation.isPending}
                 >
@@ -219,6 +239,15 @@ export const SubscriptionPage = () => {
                   <ArrowRight className="w-3 h-3 ml-3 opacity-50 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </div>
+            )}
+
+            {subStatus.status === 'ACTIVE' && subStatus.plan !== 'FREE' && (
+              <button
+                onClick={() => setShowCancelConfirm(true)}
+                className="text-xs text-muted-foreground/40 hover:text-red-400 transition-colors underline underline-offset-4 shrink-0"
+              >
+                {t('subscription.cancel.button')}
+              </button>
             )}
           </div>
         </Card>
@@ -407,6 +436,44 @@ export const SubscriptionPage = () => {
           whatsappNumber: subStatus?.whatsappNumber
         }}
       />
+
+      {pixData && (
+        <PixPaymentModal
+          pix={pixData}
+          onClose={() => setPixData(null)}
+          onPaid={handlePixPaid}
+          onCheckStatus={subscriptionService.getPixStatus}
+        />
+      )}
+
+      {showCancelConfirm && (
+        <Modal onClose={() => setShowCancelConfirm(false)} maxWidth="max-w-sm">
+          <div className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5 text-red-500" />
+              </div>
+              <h2 className="text-base font-bold">{t('subscription.cancel.confirmTitle')}</h2>
+            </div>
+            <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+              {t('subscription.cancel.confirmDescription')}
+            </p>
+            <div className="flex justify-end gap-3">
+              <Button variant="ghost" onClick={() => setShowCancelConfirm(false)}>
+                {t('common.close')}
+              </Button>
+              <Button
+                variant="primary"
+                className="bg-red-500 hover:bg-red-600 shadow-red-500/20"
+                onClick={() => cancelMutation.mutate()}
+                disabled={cancelMutation.isPending}
+              >
+                {cancelMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : t('subscription.cancel.confirm')}
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </PageLayout>
   );
 };

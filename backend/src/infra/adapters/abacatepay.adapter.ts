@@ -1,4 +1,4 @@
-import { CreateBillingRequest, CreateCustomerRequest, IPaymentGateway } from "../../usecase/ports/ipayment-gateway";
+import { CreateBillingRequest, CreateCustomerRequest, CreateTransparentPixRequest, IPaymentGateway, TransparentPixResponse } from "../../usecase/ports/ipayment-gateway";
 import { env } from "../config/configs";
 
 export class AbacatePayAdapter implements IPaymentGateway {
@@ -177,5 +177,40 @@ export class AbacatePayAdapter implements IPaymentGateway {
         } catch {
             return null;
         }
+    }
+
+    // ── Transparent PIX ───────────────────────────────────────────────────
+
+    async createTransparentPix(request: CreateTransparentPixRequest): Promise<TransparentPixResponse> {
+        const result = await this.request("/transparents/create", "POST", {
+            data: {
+                amount: request.amount,
+                ...(request.description ? { description: request.description } : {}),
+                ...(request.expiresIn ? { expiresIn: request.expiresIn } : {}),
+                ...(request.customer ? { customer: request.customer } : {}),
+                ...(request.metadata ? { metadata: request.metadata } : {}),
+            }
+        });
+        return {
+            id: result.data.id,
+            brCode: result.data.brCode,
+            brCodeBase64: result.data.brCodeBase64,
+            amount: result.data.amount,
+            status: result.data.status ?? "PENDING",
+            expiresAt: result.data.expiresAt,
+        };
+    }
+
+    async getTransparentPix(id: string): Promise<{ id: string; status: string } | null> {
+        try {
+            const result = await this.request(`/transparents/check?id=${encodeURIComponent(id)}`, "GET");
+            return result.data ?? null;
+        } catch {
+            return null;
+        }
+    }
+
+    async cancelSubscription(billingId: string): Promise<void> {
+        await this.request("/subscriptions/cancel", "POST", { id: billingId });
     }
 }

@@ -37,6 +37,21 @@ export interface SubscriptionPayment {
   paymentMethod?: string | null;
 }
 
+export interface PixPaymentResponse {
+  id: string;
+  brCode: string;
+  brCodeBase64: string;
+  amount: number;
+  status: string;
+  expiresAt?: string;
+  planName: string;
+}
+
+export interface PixStatusResponse {
+  id: string;
+  status: string;
+}
+
 export interface PaymentMethod {
   id: string;
   code: string;
@@ -74,6 +89,20 @@ export const subscriptionService = {
   getInvoicePdfUrl: (paymentId: string): string => {
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
     return `${API_URL}/subscription/payments/${paymentId}/pdf`;
+  },
+
+  createPixPayment: async (): Promise<PixPaymentResponse> => {
+    const response = await apiClient.post('/subscription/pix');
+    return response.data;
+  },
+
+  getPixStatus: async (pixId: string): Promise<PixStatusResponse> => {
+    const response = await apiClient.get(`/subscription/pix/${pixId}/status`);
+    return response.data;
+  },
+
+  cancelSubscription: async (): Promise<void> => {
+    await apiClient.post('/subscription/cancel');
   },
 
   downloadInvoicePdf: async (paymentId: string): Promise<void> => {

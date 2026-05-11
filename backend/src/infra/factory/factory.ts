@@ -39,6 +39,8 @@ import { CreateSubscriptionCheckoutUseCase } from "../../usecase/subscription/cr
 import { HandleAbacatePayWebhookUseCase } from "../../usecase/subscription/handle-abacate-webhook.usecase";
 import { GetSubscriptionPaymentHistoryUseCase } from "../../usecase/subscription/get-payment-history.usecase";
 import { GenerateInvoicePdfUseCase } from "../../usecase/subscription/generate-invoice-pdf.usecase";
+import { CreateTransparentPixUseCase } from "../../usecase/subscription/create-transparent-pix.usecase";
+import { CancelSubscriptionUseCase } from "../../usecase/subscription/cancel-subscription.usecase";
 import { ConnectWhatsappUseCase } from "../../usecase/notification/connect-whatsapp.usecase";
 import { DisconnectWhatsappUseCase } from "../../usecase/notification/disconnect-whatsapp.usecase";
 import { GetWhatsappStatusUseCase } from "../../usecase/notification/get-whatsapp-status.usecase";
@@ -188,6 +190,22 @@ const getUseCase = {
         getRepo.subscription(),
         getRepo.subscriptionPayment()
     ),
+    createTransparentPix: () => new CreateTransparentPixUseCase(
+        getRepo.user(),
+        getRepo.subscription(),
+        getRepo.companyConfig(),
+        getRepo.company(),
+        abacatePayAdapter,
+        getRepo.subscriptionPayment(),
+        getRepo.plan()
+    ),
+    cancelSubscription: () => new CancelSubscriptionUseCase(
+        getRepo.user(),
+        getRepo.subscription(),
+        getRepo.subscriptionPayment(),
+        abacatePayAdapter,
+        new SubscriptionNotificationService(mailAdapter)
+    ),
     generateInvoicePdf: () => new GenerateInvoicePdfUseCase(
         getRepo.subscriptionPayment(),
         getRepo.user(),
@@ -303,7 +321,10 @@ export const factory = {
             getUseCase.getSubscriptionPaymentHistory(),
             getUseCase.generateInvoicePdf(),
             getRepo.plan(),
-            getRepo.paymentMethod()
+            getRepo.paymentMethod(),
+            getUseCase.createTransparentPix(),
+            getUseCase.cancelSubscription(),
+            abacatePayAdapter
         ),
         whatsapp: () => new WhatsappController(
             adapterInstance,

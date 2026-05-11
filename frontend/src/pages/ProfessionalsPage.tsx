@@ -22,16 +22,6 @@ import { Card } from '../shared/ui/Card';
 import { Button } from '../shared/ui/Button';
 import { professionalService, type Professional } from '../features/company/professional.service';
 
-const DAYS = [
-  { key: 'mon', label: 'Segunda' },
-  { key: 'tue', label: 'Terça' },
-  { key: 'wed', label: 'Quarta' },
-  { key: 'thu', label: 'Quinta' },
-  { key: 'fri', label: 'Sexta' },
-  { key: 'sat', label: 'Sábado' },
-  { key: 'sun', label: 'Domingo' },
-];
-
 interface ProfessionalFormData {
   name: string;
   specialty: string;
@@ -57,6 +47,16 @@ export const ProfessionalsPage = () => {
   const [form, setForm] = useState<ProfessionalFormData>(emptyForm);
   const [inviteId, setInviteId] = useState<string | null>(null);
   const [inviteEmail, setInviteEmail] = useState('');
+
+  const DAYS = [
+    { key: 'mon', label: t('professionals.days.mon') },
+    { key: 'tue', label: t('professionals.days.tue') },
+    { key: 'wed', label: t('professionals.days.wed') },
+    { key: 'thu', label: t('professionals.days.thu') },
+    { key: 'fri', label: t('professionals.days.fri') },
+    { key: 'sat', label: t('professionals.days.sat') },
+    { key: 'sun', label: t('professionals.days.sun') },
+  ];
 
   const { data: professionals, isLoading } = useQuery({
     queryKey: ['professionals'],
@@ -186,8 +186,8 @@ export const ProfessionalsPage = () => {
 
   return (
     <PageLayout
-      title={t('professionals.title', 'Profissionais')}
-      subtitle={t('professionals.subtitle', 'Gerencie os profissionais que atendem na sua empresa.')}
+      title={t('professionals.title')}
+      subtitle={t('professionals.subtitle')}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
@@ -196,13 +196,13 @@ export const ProfessionalsPage = () => {
             <Users className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h2 className="text-xl font-bold tracking-tight">{t('professionals.title', 'Profissionais')}</h2>
-            <p className="text-xs text-muted-foreground">{professionals?.length || 0} cadastrados</p>
+            <h2 className="text-xl font-bold tracking-tight">{t('professionals.title')}</h2>
+            <p className="text-xs text-muted-foreground">{t('professionals.registered', { count: professionals?.length || 0 })}</p>
           </div>
         </div>
         <Button onClick={openNew} className="gap-2">
           <Plus className="w-4 h-4" />
-          {t('professionals.add', 'Novo Profissional')}
+          {t('professionals.newProfessional')}
         </Button>
       </div>
 
@@ -218,11 +218,11 @@ export const ProfessionalsPage = () => {
               <Users className="w-8 h-8 text-muted-foreground/50" />
             </div>
             <p className="text-sm text-muted-foreground">
-              {t('professionals.empty', 'Nenhum profissional cadastrado ainda.')}
+              {t('professionals.empty')}
             </p>
             <Button onClick={openNew} size="sm" className="gap-2">
               <Plus className="w-4 h-4" />
-              {t('professionals.add', 'Novo Profissional')}
+              {t('professionals.newProfessional')}
             </Button>
           </div>
         </Card>
@@ -251,7 +251,7 @@ export const ProfessionalsPage = () => {
                 <button
                   onClick={() => toggleActiveMutation.mutate({ id: p.id, active: !p.active })}
                   className="text-muted-foreground hover:text-primary transition-colors"
-                  title={p.active ? 'Desativar' : 'Ativar'}
+                  title={p.active ? t('professionals.deactivate') : t('professionals.activate')}
                 >
                   {p.active ? (
                     <ToggleRight className="w-6 h-6 text-green-500" />
@@ -263,7 +263,7 @@ export const ProfessionalsPage = () => {
 
               <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
                 <Clock className="w-3.5 h-3.5" />
-                <span>{p.appointmentDuration} min por consulta</span>
+                <span>{t('professionals.durationPerAppointment', { duration: p.appointmentDuration })}</span>
               </div>
 
               {p.workingHours && Object.values(p.workingHours).some(v => v?.length) && (
@@ -281,13 +281,13 @@ export const ProfessionalsPage = () => {
 
               {p.userId ? (
                 <div className="flex items-center gap-1.5 text-xs text-green-600 mt-3 pt-3 border-t border-outline-variant/20">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Conta vinculada
+                  <CheckCircle2 className="w-3.5 h-3.5" /> {t('professionals.accountLinked')}
                 </div>
               ) : p.invitedEmail ? (
                 <div className="flex items-start justify-between gap-2 mt-3 pt-3 border-t border-outline-variant/20">
                   <div className="flex flex-col gap-0.5">
                     <span className="flex items-center gap-1.5 text-xs text-yellow-600">
-                      <Clock className="w-3.5 h-3.5 flex-shrink-0" /> Convite enviado
+                      <Clock className="w-3.5 h-3.5 flex-shrink-0" /> {t('professionals.inviteSent')}
                     </span>
                     <span className="text-[10px] text-muted-foreground truncate max-w-[120px]">{p.invitedEmail}</span>
                   </div>
@@ -295,7 +295,7 @@ export const ProfessionalsPage = () => {
                     onClick={() => { setInviteId(p.id); setInviteEmail(p.invitedEmail ?? ''); }}
                     className="text-[10px] font-semibold text-primary hover:underline whitespace-nowrap"
                   >
-                    Reenviar / Alterar
+                    {t('professionals.resendChange')}
                   </button>
                 </div>
               ) : (
@@ -304,7 +304,7 @@ export const ProfessionalsPage = () => {
                     onClick={() => { setInviteId(p.id); setInviteEmail(''); }}
                     className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors px-2 py-1 rounded-lg hover:bg-surface-high"
                   >
-                    <Link className="w-3.5 h-3.5" /> Vincular Conta
+                    <Link className="w-3.5 h-3.5" /> {t('professionals.linkAccount')}
                   </button>
                 </div>
               )}
@@ -313,13 +313,13 @@ export const ProfessionalsPage = () => {
                   onClick={() => openEdit(p)}
                   className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors px-2 py-1 rounded-lg hover:bg-surface-high"
                 >
-                  <Edit2 className="w-3.5 h-3.5" /> Editar
+                  <Edit2 className="w-3.5 h-3.5" /> {t('professionals.edit')}
                 </button>
                 <button
                   onClick={() => setDeleteId(p.id)}
                   className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-red-500 transition-colors px-2 py-1 rounded-lg hover:bg-surface-high"
                 >
-                  <Trash2 className="w-3.5 h-3.5" /> Excluir
+                  <Trash2 className="w-3.5 h-3.5" /> {t('professionals.delete')}
                 </button>
               </div>
             </Card>
@@ -331,12 +331,12 @@ export const ProfessionalsPage = () => {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={closeModal} />
-          <div className="relative w-full max-w-lg max-h-[90vh] bg-surface-high border border-outline-variant/20 rounded-2xl shadow-2xl overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
-            <div className="sticky top-0 z-10 bg-surface-high border-b border-outline-variant/30 p-6 flex items-center justify-between">
+          <div className="relative w-full max-w-lg max-h-[90vh] bg-surface border border-outline-variant/25 rounded-2xl shadow-2xl overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
+            <div className="sticky top-0 z-10 bg-surface border-b border-outline-variant/30 p-6 flex items-center justify-between">
               <h2 className="text-xl font-bold tracking-tight">
-                {editingId ? 'Editar Profissional' : 'Novo Profissional'}
+                {editingId ? t('professionals.editProfessional') : t('professionals.newProfessional')}
               </h2>
-              <button onClick={closeModal} className="p-2 rounded-lg hover:bg-surface-low transition-colors">
+              <button onClick={closeModal} className="p-2 rounded-lg hover:bg-surface-high transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -345,34 +345,34 @@ export const ProfessionalsPage = () => {
               {/* Name */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
-                  Nome *
+                  {t('professionals.form.name')} *
                 </label>
                 <input
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   required
-                  placeholder="Dr. João Silva"
-                  className="w-full px-4 py-3 bg-surface-low border border-outline-variant/30 rounded-xl text-sm focus:outline-none focus:border-primary/50 transition-colors"
+                  placeholder={t('professionals.form.namePlaceholder')}
+                  className="w-full px-4 py-3 bg-surface border border-outline-variant/20 rounded-xl text-sm focus:outline-none focus:border-primary/50 transition-colors"
                 />
               </div>
 
               {/* Specialty */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
-                  Especialidade
+                  {t('professionals.form.specialty')}
                 </label>
                 <input
                   value={form.specialty}
                   onChange={(e) => setForm({ ...form, specialty: e.target.value })}
-                  placeholder="Ex: Dentista, Barbeiro, Personal..."
-                  className="w-full px-4 py-3 bg-surface-low border border-outline-variant/30 rounded-xl text-sm focus:outline-none focus:border-primary/50 transition-colors"
+                  placeholder={t('professionals.form.specialtyPlaceholder')}
+                  className="w-full px-4 py-3 bg-surface border border-outline-variant/20 rounded-xl text-sm focus:outline-none focus:border-primary/50 transition-colors"
                 />
               </div>
 
               {/* Duration */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
-                  Duração da Consulta (minutos)
+                  {t('professionals.form.duration')}
                 </label>
                 <input
                   type="number"
@@ -380,14 +380,14 @@ export const ProfessionalsPage = () => {
                   onChange={(e) => setForm({ ...form, appointmentDuration: parseInt(e.target.value) || 60 })}
                   min={5}
                   max={480}
-                  className="w-full px-4 py-3 bg-surface-low border border-outline-variant/30 rounded-xl text-sm focus:outline-none focus:border-primary/50 transition-colors"
+                  className="w-full px-4 py-3 bg-surface border border-outline-variant/20 rounded-xl text-sm focus:outline-none focus:border-primary/50 transition-colors"
                 />
               </div>
 
               {/* Working Hours */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
-                  Horários de Trabalho
+                  {t('professionals.form.workingHours')}
                 </label>
                 <div className="space-y-2">
                   {DAYS.map((day) => {
@@ -424,7 +424,7 @@ export const ProfessionalsPage = () => {
                               onClick={() => addSlot(day.key)}
                               className="flex items-center gap-1 text-[10px] font-bold text-primary/70 hover:text-primary transition-colors px-2 py-1 rounded-md hover:bg-primary/10"
                             >
-                              <Plus className="w-3 h-3" /> Turno
+                              <Plus className="w-3 h-3" /> {t('professionals.form.shift')}
                             </button>
                           )}
                         </div>
@@ -451,7 +451,7 @@ export const ProfessionalsPage = () => {
                                     maxLength={5}
                                     className="w-14 bg-transparent text-sm font-mono text-center focus:outline-none text-foreground placeholder:text-muted-foreground/30"
                                   />
-                                  <span className="text-[10px] text-muted-foreground/40 font-bold uppercase">até</span>
+                                  <span className="text-[10px] text-muted-foreground/40 font-bold uppercase">{t('professionals.form.to')}</span>
                                   <input
                                     type="text"
                                     value={slot.end}
@@ -493,7 +493,7 @@ export const ProfessionalsPage = () => {
               {/* Actions */}
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-outline-variant/30">
                 <Button type="button" variant="ghost" onClick={closeModal} disabled={isSaving}>
-                  Cancelar
+                  {t('common.cancel')}
                 </Button>
                 <Button type="submit" disabled={isSaving || !form.name.trim()} className="gap-2 min-w-[120px]">
                   {isSaving ? (
@@ -501,7 +501,7 @@ export const ProfessionalsPage = () => {
                   ) : (
                     <>
                       <Save className="w-4 h-4" />
-                      {editingId ? 'Salvar' : 'Criar'}
+                      {editingId ? t('professionals.save') : t('professionals.create')}
                     </>
                   )}
                 </Button>
@@ -517,41 +517,41 @@ export const ProfessionalsPage = () => {
           <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setInviteId(null)} />
           <div className="relative w-full max-w-sm bg-surface border border-outline-variant/25 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="p-6 border-b border-outline-variant/30">
-              <h2 className="text-lg font-bold tracking-tight">Vincular Conta de Acesso</h2>
+              <h2 className="text-lg font-bold tracking-tight">{t('professionals.invite.title')}</h2>
               <p className="text-sm text-muted-foreground mt-1">
-                O profissional receberá um email para criar sua senha e acessar a agenda. Você pode reenviar ou alterar o email a qualquer momento.
+                {t('professionals.invite.description')}
               </p>
             </div>
             <div className="p-6 space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Email do Profissional</label>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t('professionals.invite.emailLabel')}</label>
                 <input
                   type="email"
                   required
-                  className="w-full px-4 py-2.5 text-sm bg-white border border-outline-variant/20 rounded-xl focus:outline-none focus:border-primary/50"
-                  placeholder="profissional@email.com"
+                  className="w-full px-4 py-2.5 text-sm bg-surface border border-outline-variant/20 rounded-xl focus:outline-none focus:border-primary/50"
+                  placeholder={t('professionals.invite.emailPlaceholder')}
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                 />
               </div>
               {inviteMutation.isError && (
                 <p className="text-xs text-red-500">
-                  {(inviteMutation.error as any)?.response?.data?.error || 'Erro ao vincular conta.'}
+                  {(inviteMutation.error as any)?.response?.data?.error || t('professionals.inviteError')}
                 </p>
               )}
               {inviteMutation.isSuccess && (
-                <p className="text-xs text-green-600">Email de verificação enviado com sucesso!</p>
+                <p className="text-xs text-green-600">{t('professionals.invite.success')}</p>
               )}
             </div>
             <div className="p-4 border-t border-outline-variant/30 flex justify-end gap-3">
               <Button variant="ghost" onClick={() => setInviteId(null)} disabled={inviteMutation.isPending}>
-                Cancelar
+                {t('common.cancel')}
               </Button>
               <Button
                 onClick={() => inviteId && inviteEmail && inviteMutation.mutate({ id: inviteId, email: inviteEmail })}
                 disabled={inviteMutation.isPending || !inviteEmail}
               >
-                {inviteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Enviar Convite'}
+                {inviteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : t('professionals.invite.send')}
               </Button>
             </div>
           </div>
@@ -562,26 +562,26 @@ export const ProfessionalsPage = () => {
       {deleteId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setDeleteId(null)} />
-          <div className="relative w-full max-w-sm bg-surface-high border border-outline-variant/20 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative w-full max-w-sm bg-surface border border-outline-variant/25 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="p-6">
               <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center border border-red-500/20 mb-4">
                 <Trash2 className="w-6 h-6 text-red-500" />
               </div>
-              <h2 className="text-xl font-bold tracking-tight mb-2">Excluir Profissional</h2>
+              <h2 className="text-xl font-bold tracking-tight mb-2">{t('professionals.deleteTitle')}</h2>
               <p className="text-sm text-foreground/80 leading-relaxed">
-                Tem certeza que deseja excluir este profissional? Esta ação não pode ser desfeita.
+                {t('professionals.deleteDescription')}
               </p>
             </div>
-            <div className="p-4 border-t border-outline-variant/30 flex items-center justify-end gap-3 bg-surface-low/50">
+            <div className="p-4 border-t border-outline-variant/30 flex items-center justify-end gap-3">
               <Button variant="ghost" onClick={() => setDeleteId(null)} disabled={deleteMutation.isPending}>
-                Cancelar
+                {t('common.cancel')}
               </Button>
               <Button
                 onClick={() => deleteId && deleteMutation.mutate(deleteId)}
                 disabled={deleteMutation.isPending}
                 className="bg-red-500 hover:bg-red-600 text-white shadow-none min-w-[100px]"
               >
-                {deleteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Excluir'}
+                {deleteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : t('professionals.delete')}
               </Button>
             </div>
           </div>

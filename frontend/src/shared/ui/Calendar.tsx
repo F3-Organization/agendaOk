@@ -20,9 +20,8 @@ export const Calendar = ({ selectedDate, onSelect, className, minDate }: Calenda
 
   const daysInMonth = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
   const firstDayOfMonth = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getDay();
-  
   const prevMonthDays = new Date(viewDate.getFullYear(), viewDate.getMonth(), 0).getDate();
-  
+
   const monthName = getMonthName(viewDate);
   const year = viewDate.getFullYear();
   const weekdayHeaders = getWeekdayHeaders();
@@ -36,12 +35,12 @@ export const Calendar = ({ selectedDate, onSelect, className, minDate }: Calenda
   };
 
   const days = [];
-  
+
   for (let i = firstDayOfMonth - 1; i >= 0; i--) {
     days.push({
       day: prevMonthDays - i,
       month: 'prev',
-      date: new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, prevMonthDays - i)
+      date: new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, prevMonthDays - i),
     });
   }
 
@@ -49,7 +48,7 @@ export const Calendar = ({ selectedDate, onSelect, className, minDate }: Calenda
     days.push({
       day: i,
       month: 'current',
-      date: new Date(viewDate.getFullYear(), viewDate.getMonth(), i)
+      date: new Date(viewDate.getFullYear(), viewDate.getMonth(), i),
     });
   }
 
@@ -58,22 +57,23 @@ export const Calendar = ({ selectedDate, onSelect, className, minDate }: Calenda
     days.push({
       day: i,
       month: 'next',
-      date: new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, i)
+      date: new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, i),
     });
   }
 
-  const isSelected = (date: Date) => {
-    return selectedDate && 
-      date.getDate() === selectedDate.getDate() &&
-      date.getMonth() === selectedDate.getMonth() &&
-      date.getFullYear() === selectedDate.getFullYear();
-  };
+  const isSelected = (date: Date) =>
+    selectedDate &&
+    date.getDate() === selectedDate.getDate() &&
+    date.getMonth() === selectedDate.getMonth() &&
+    date.getFullYear() === selectedDate.getFullYear();
 
   const isToday = (date: Date) => {
     const today = new Date();
-    return date.getDate() === today.getDate() &&
+    return (
+      date.getDate() === today.getDate() &&
       date.getMonth() === today.getMonth() &&
-      date.getFullYear() === today.getFullYear();
+      date.getFullYear() === today.getFullYear()
+    );
   };
 
   const isPast = (date: Date) => {
@@ -84,58 +84,84 @@ export const Calendar = ({ selectedDate, onSelect, className, minDate }: Calenda
   };
 
   return (
-    <div className={cn("p-4 bg-transparent select-none", className)}>
-      <div className="flex items-center justify-between mb-4 px-1">
-        <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary/70">
-          {monthName} <span className="text-muted-foreground/30 font-normal">{year}</span>
-        </h3>
-        <div className="flex gap-2">
+    <div className={cn('p-3 select-none', className)}>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4 px-0.5">
+        <div>
+          <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-muted-foreground/40 leading-none mb-0.5">
+            {year}
+          </p>
+          <h3 className="text-sm font-bold capitalize text-foreground leading-none">
+            {monthName}
+          </h3>
+        </div>
+
+        <div className="flex items-center gap-1">
           <button
             type="button"
             onClick={handlePrevMonth}
-            className="p-1.5 rounded-lg hover:bg-surface-container text-muted-foreground transition-all active:scale-95"
+            className="w-7 h-7 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-surface-container transition-all duration-150 active:scale-90"
           >
             <ChevronLeft className="w-3.5 h-3.5" />
           </button>
           <button
             type="button"
             onClick={handleNextMonth}
-            className="p-1.5 rounded-lg hover:bg-surface-container text-muted-foreground transition-all active:scale-95"
+            className="w-7 h-7 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-surface-container transition-all duration-150 active:scale-90"
           >
             <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-1 mb-2">
+      {/* Weekday headers */}
+      <div className="grid grid-cols-7 mb-1">
         {weekdayHeaders.map((d, i) => (
-          <div key={`${d}-${i}`} className="text-[9px] font-black uppercase text-muted-foreground/40 text-center py-1">
+          <div
+            key={`${d}-${i}`}
+            className="text-[10px] font-semibold text-muted-foreground/35 text-center py-1"
+          >
             {d}
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-7 gap-1">
+      {/* Days grid */}
+      <div className="grid grid-cols-7 gap-y-0.5">
         {days.map((item, i) => {
           const past = isPast(item.date);
+          const selected = isSelected(item.date);
+          const today = isToday(item.date);
+          const otherMonth = item.month !== 'current';
+
           return (
-            <button
-              key={i}
-              type="button"
-              disabled={past}
-              onClick={() => onSelect(item.date)}
-              className={cn(
-                "relative h-8 w-8 flex items-center justify-center rounded-lg text-xs font-bold transition-all duration-300",
-                item.month === 'current' ? "text-foreground" : "text-muted-foreground/10",
-                isSelected(item.date)
-                  ? "bg-primary text-white scale-105 z-10"
-                  : "hover:bg-surface-container hover:scale-105 active:scale-95",
-                isToday(item.date) && !isSelected(item.date) && "text-primary border border-primary/20 bg-primary/5",
-                past && "opacity-20 cursor-not-allowed hover:bg-transparent hover:scale-100"
-              )}
-            >
-              {item.day}
-            </button>
+            <div key={i} className="flex items-center justify-center">
+              <button
+                type="button"
+                disabled={past || otherMonth}
+                onClick={() => !otherMonth && onSelect(item.date)}
+                className={cn(
+                  'relative w-8 h-8 flex flex-col items-center justify-center rounded-lg text-xs transition-all duration-150',
+                  // Base state
+                  otherMonth
+                    ? 'text-muted-foreground/20 pointer-events-none'
+                    : 'text-foreground font-medium',
+                  // Selected
+                  selected && 'bg-primary text-primary-foreground font-bold shadow-sm scale-105',
+                  // Today (not selected)
+                  today && !selected && 'text-primary font-bold',
+                  // Hover (current month, not selected, not past)
+                  !selected && !past && !otherMonth && 'hover:bg-surface-container hover:scale-105 active:scale-95 cursor-pointer',
+                  // Past
+                  past && 'opacity-25 cursor-not-allowed pointer-events-none',
+                )}
+              >
+                {item.day}
+                {today && !selected && (
+                  <span className="absolute bottom-[3px] left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
+                )}
+              </button>
+            </div>
           );
         })}
       </div>

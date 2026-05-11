@@ -5,7 +5,7 @@ import i18n from '../lib/i18n';
  * pt → pt-BR, en → en-US
  */
 export const getLocale = (): string => {
-  return i18n.language === 'pt' ? 'pt-BR' : 'en-US';
+  return i18n.language.startsWith('pt') ? 'pt-BR' : 'en-US';
 };
 
 /**
@@ -36,7 +36,7 @@ export const formatDate = (dateString: string | Date | undefined | null): string
 export const formatTime = (dateString: string | Date | undefined | null): string => {
   if (!dateString) return '-';
   const date = new Date(dateString);
-  return date.toLocaleTimeString(getLocale(), { hour: '2-digit', minute: '2-digit' });
+  return date.toLocaleTimeString(getLocale(), { hour: '2-digit', minute: '2-digit', hour12: false });
 };
 
 /**
@@ -48,7 +48,7 @@ export const formatDateTime = (dateString: string | Date | undefined | null): st
   const date = new Date(dateString);
   const locale = getLocale();
   const d = date.toLocaleDateString(locale);
-  const t = date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+  const t = date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', hour12: false });
   const sep = locale === 'pt-BR' ? 'às' : 'at';
   return `${d} ${sep} ${t}`;
 };

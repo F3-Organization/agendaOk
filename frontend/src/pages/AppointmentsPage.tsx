@@ -261,25 +261,25 @@ export const AppointmentsPage = () => {
             className="w-40"
             icon={<Filter className="w-3.5 h-3.5" />}
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
-          >
-            <option value="ALL">{t('appointmentsPage.filterAll')}</option>
-            <option value="PENDING">{statusLabel.PENDING}</option>
-            <option value="CONFIRMED">{statusLabel.CONFIRMED}</option>
-            <option value="CANCELLED">{statusLabel.CANCELLED}</option>
-          </Select>
+            onChange={(v) => setStatusFilter(v as typeof statusFilter)}
+            options={[
+              { value: 'ALL', label: t('appointmentsPage.filterAll') },
+              { value: 'PENDING', label: statusLabel.PENDING },
+              { value: 'CONFIRMED', label: statusLabel.CONFIRMED },
+              { value: 'CANCELLED', label: statusLabel.CANCELLED },
+            ]}
+          />
           {!isProfessional && professionals.length > 0 && (
             <Select
               className="w-48"
               icon={<Briefcase className="w-3.5 h-3.5" />}
               value={professionalFilter}
-              onChange={(e) => setProfessionalFilter(e.target.value)}
-            >
-              <option value="ALL">{t('appointmentsPage.allProfessionals')}</option>
-              {professionals.map((p) => (
-                <option key={p.id} value={p.id}>{p.name}</option>
-              ))}
-            </Select>
+              onChange={setProfessionalFilter}
+              options={[
+                { value: 'ALL', label: t('appointmentsPage.allProfessionals') },
+                ...professionals.map((p) => ({ value: p.id, label: p.name })),
+              ]}
+            />
           )}
           <DateInput
             value={filterDateFrom}
@@ -441,15 +441,12 @@ export const AppointmentsPage = () => {
                     <Select
                       label={`${t('appointmentsPage.table.professional')} *`}
                       icon={<Briefcase className="w-4 h-4" />}
-                      value={form.professionalId}
-                      onChange={(e) => { setForm(f => ({ ...f, professionalId: e.target.value })); setErrors(e => ({ ...e, professionalId: undefined })); }}
+                      value={form.professionalId || undefined}
+                      placeholder={t('appointmentsPage.form.selectProfessional')}
+                      onChange={(v) => { setForm(f => ({ ...f, professionalId: v })); setErrors(e => ({ ...e, professionalId: undefined })); }}
                       error={errors.professionalId}
-                    >
-                      <option value="" disabled>{t('appointmentsPage.form.selectProfessional')}</option>
-                      {professionals.map((p) => (
-                        <option key={p.id} value={p.id}>{p.name}</option>
-                      ))}
-                    </Select>
+                      options={professionals.map((p) => ({ value: p.id, label: p.name }))}
+                    />
                   </div>
                 )}
                 <div className="space-y-1.5">

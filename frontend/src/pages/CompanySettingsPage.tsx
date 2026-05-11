@@ -160,7 +160,7 @@ export const CompanySettingsPage = () => {
                   <Input
                     value={companyName}
                     onChange={(e) => setCompanyName(e.target.value)}
-                    className="h-12 bg-white border-outline-variant focus:bg-white focus:border-primary/30 transition-all rounded-lg font-medium flex-1"
+                    className="h-12 bg-white border-outline-variant/20 focus:bg-white focus:border-primary/30 transition-all rounded-lg font-medium flex-1"
                   />
                   <Button
                     onClick={() => renameMutation.mutate(companyName)}
@@ -178,7 +178,7 @@ export const CompanySettingsPage = () => {
                   </Button>
                 </div>
               ) : (
-                <div className="flex items-center justify-between h-12 px-4 rounded-lg bg-white border border-outline-variant">
+                <div className="flex items-center justify-between h-12 px-4 rounded-lg bg-surface border border-outline-variant/25">
                   <span className="font-bold text-foreground">{selectedCompany?.name}</span>
                   <button
                     onClick={() => setIsEditingName(true)}
@@ -217,7 +217,7 @@ export const CompanySettingsPage = () => {
                   <Input
                     name="whatsappNumber"
                     defaultValue={companyConfig?.whatsappNumber}
-                    className="pl-12 h-12 bg-white border-outline-variant focus:bg-white focus:border-primary/30 transition-all rounded-lg font-medium"
+                    className="pl-12 h-12 bg-white border-outline-variant/20 focus:bg-white focus:border-primary/30 transition-all rounded-lg font-medium"
                     placeholder="11999999999"
                   />
                 </div>
@@ -237,7 +237,7 @@ export const CompanySettingsPage = () => {
                     </p>
                   </div>
 
-                  <div className="flex-1 flex items-center gap-6 p-6 rounded-xl bg-surface-container border border-outline-variant shadow-inner">
+                  <div className="flex-1 flex items-center gap-6 p-6 rounded-xl bg-surface-container border border-outline-variant/20 shadow-inner">
                     <div className="flex-1 space-y-3">
                       <label className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40 flex items-center gap-2 ml-1">
                         <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
@@ -249,7 +249,7 @@ export const CompanySettingsPage = () => {
                           name="silentWindowStart"
                           type="time"
                           defaultValue={companyConfig?.silentWindowStart}
-                          className="pl-12 bg-white border-outline-variant focus:bg-white focus:border-primary/30 transition-all font-black text-lg h-12 rounded-lg"
+                          className="pl-12 bg-white border-outline-variant/20 focus:bg-white focus:border-primary/30 transition-all font-black text-lg h-12 rounded-lg"
                         />
                       </div>
                     </div>
@@ -269,7 +269,7 @@ export const CompanySettingsPage = () => {
                           name="silentWindowEnd"
                           type="time"
                           defaultValue={companyConfig?.silentWindowEnd}
-                          className="pl-12 bg-white border-outline-variant focus:bg-white focus:border-primary/30 transition-all font-black text-lg h-12 rounded-lg"
+                          className="pl-12 bg-white border-outline-variant/20 focus:bg-white focus:border-primary/30 transition-all font-black text-lg h-12 rounded-lg"
                         />
                       </div>
                     </div>
@@ -304,7 +304,7 @@ export const CompanySettingsPage = () => {
                     <Input
                       name="taxId"
                       defaultValue={companyConfig?.taxId}
-                      className="pl-12 h-12 bg-white border-outline-variant focus:bg-white focus:border-primary/30 transition-all rounded-lg font-medium"
+                      className="pl-12 h-12 bg-white border-outline-variant/20 focus:bg-white focus:border-primary/30 transition-all rounded-lg font-medium"
                       placeholder="000.000.000-00"
                     />
                   </div>
@@ -314,7 +314,7 @@ export const CompanySettingsPage = () => {
                   <label className="text-[10px] font-black text-muted-foreground/50 uppercase tracking-[0.3em] ml-1">
                     {t('company.settings.billing.planLabel')}
                   </label>
-                  <div className="flex items-center h-12 px-4 rounded-lg bg-white border border-outline-variant">
+                  <div className="flex items-center h-12 px-4 rounded-lg bg-surface border border-outline-variant/25">
                     <Building2 className="w-4 h-4 text-muted-foreground/40 mr-3" />
                     <span className={`text-sm font-black uppercase tracking-widest ${
                       selectedCompany?.subscription?.plan === 'PRO' ? 'text-primary' : 'text-muted-foreground'

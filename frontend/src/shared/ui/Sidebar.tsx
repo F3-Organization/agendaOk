@@ -13,11 +13,14 @@ import {
   Building2,
   Users,
   Bot,
-  Shield
+  Shield,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useAuthStore } from '../../features/auth/auth.store';
+import { useThemeStore } from './theme.store';
 import { CompanySwitcher } from './CompanySwitcher';
 
 function cn(...inputs: ClassValue[]) {
@@ -34,6 +37,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const location = useLocation();
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
+  const { theme, toggleTheme } = useThemeStore();
   const isProfessional = user?.role === 'PROFESSIONAL';
 
   const navigation = isProfessional
@@ -60,14 +64,14 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
     <>
       {/* Mobile Overlay */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 lg:hidden animate-in fade-in duration-300"
           onClick={onClose}
         />
       )}
 
       <aside className={cn(
-        "w-72 h-screen bg-white border-r border-outline-variant flex flex-col fixed inset-y-0 left-0 z-50 transition-transform duration-300 transform lg:translate-x-0 lg:sticky lg:top-0 shadow-card",
+        "w-72 h-screen bg-surface border-r border-outline-variant/25 flex flex-col fixed inset-y-0 left-0 z-50 transition-transform duration-300 transform lg:translate-x-0 lg:sticky lg:top-0 shadow-card",
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="p-8">
@@ -140,17 +144,17 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           )}
         </div>
 
-        <div className="mt-auto p-8 space-y-6">
-          <div className="p-4 rounded-xl bg-surface-container border border-outline-variant group hover:border-primary/20 transition-all">
+        <div className="mt-auto p-8 space-y-3">
+          <div className="p-4 rounded-xl bg-surface-container border border-outline-variant/25 group hover:border-primary/20 transition-all">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-white border border-outline-variant flex items-center justify-center font-bold text-primary group-hover:scale-110 transition-transform">
+              <div className="w-10 h-10 rounded-full bg-surface-high border border-outline-variant/25 flex items-center justify-center font-bold text-primary group-hover:scale-110 transition-transform">
                 {user?.name?.[0] || 'U'}
               </div>
               <div className="flex flex-col min-w-0">
                 <span className="text-sm font-bold truncate">{user?.name || 'User'}</span>
                 <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{user?.role || 'Free Plan'}</span>
               </div>
-              <button 
+              <button
                 onClick={() => logout()}
                 className="ml-auto p-2 rounded-lg hover:bg-surface-low text-muted-foreground hover:text-red-400 transition-colors"
               >
@@ -159,15 +163,30 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
             </div>
           </div>
 
-          <button 
-            onClick={toggleLanguage}
-            className="flex items-center gap-3 px-4 py-2 w-full rounded-lg text-xs font-bold uppercase tracking-widest text-muted-foreground hover:bg-surface-container hover:text-primary transition-all"
-          >
-            <Globe className="w-4 h-4" />
-            {i18n.language === 'pt' ? 'English' : 'Português'}
-          </button>
+          <div className="flex gap-2">
+            {/* Theme toggle */}
+            <button
+              onClick={toggleTheme}
+              className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-widest text-muted-foreground hover:bg-surface-container hover:text-primary transition-all flex-1"
+              title={theme === 'dark' ? 'Tema claro' : 'Tema escuro'}
+            >
+              {theme === 'dark'
+                ? <Sun className="w-4 h-4" />
+                : <Moon className="w-4 h-4" />
+              }
+            </button>
 
-          <button 
+            {/* Language toggle */}
+            <button
+              onClick={toggleLanguage}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-widest text-muted-foreground hover:bg-surface-container hover:text-primary transition-all flex-1"
+            >
+              <Globe className="w-4 h-4" />
+              {i18n.language === 'pt' ? 'EN' : 'PT'}
+            </button>
+          </div>
+
+          <button
             onClick={() => logout()}
             className="flex items-center gap-3 px-4 py-3 w-full rounded-lg text-sm font-medium text-muted-foreground hover:bg-red-500/10 hover:text-red-400 transition-all group"
           >

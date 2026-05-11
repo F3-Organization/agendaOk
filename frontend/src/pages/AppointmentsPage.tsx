@@ -15,11 +15,13 @@ import {
   Bell,
   BellOff,
   Briefcase,
+  AlertCircle,
 } from 'lucide-react';
 import { PageLayout } from '../shared/ui/PageLayout';
 import { Card } from '../shared/ui/Card';
 import { Button } from '../shared/ui/Button';
 import { Input } from '../shared/ui/Input';
+import { DatePicker } from '../shared/ui/DatePicker';
 import { useAuthStore } from '../features/auth/auth.store';
 import {
   appointmentService,
@@ -28,6 +30,7 @@ import {
   type AppointmentStatus,
 } from '../features/appointment/appointment.service';
 import { professionalService } from '../features/company/professional.service';
+import { formatDate, formatTime, isValidPhone, isEndAfterStart, isNotInPast, toLocalInput } from '../shared/utils/formatters';
 
 const STATUS_COLORS: Record<AppointmentStatus, string> = {
   PENDING: 'bg-yellow-500/10 border-yellow-500/20 text-yellow-600',
@@ -38,11 +41,6 @@ const STATUS_DOT: Record<AppointmentStatus, string> = {
   PENDING: 'bg-yellow-500',
   CONFIRMED: 'bg-green-500',
   CANCELLED: 'bg-red-500',
-};
-const STATUS_LABEL: Record<AppointmentStatus, string> = {
-  PENDING: 'Pendente',
-  CONFIRMED: 'Confirmado',
-  CANCELLED: 'Cancelado',
 };
 
 interface FormState {
@@ -55,6 +53,14 @@ interface FormState {
   professionalId: string;
 }
 
+interface FormErrors {
+  clientName?: string;
+  clientPhone?: string;
+  title?: string;
+  startAt?: string;
+  endAt?: string;
+}
+
 const emptyForm: FormState = {
   clientName: '',
   clientPhone: '',
@@ -64,13 +70,6 @@ const emptyForm: FormState = {
   notes: '',
   professionalId: '',
 };
-
-function toLocalInput(iso: string): string {
-  if (!iso) return '';
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
 
 export const AppointmentsPage = () => {
   const { t } = useTranslation();
@@ -85,6 +84,13 @@ export const AppointmentsPage = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
+  const [errors, setErrors] = useState<FormErrors>({});
+
+  const statusLabel: Record<AppointmentStatus, string> = {
+    PENDING: t('appointmentsPage.statuses.pending'),
+    CONFIRMED: t('appointmentsPage.statuses.confirmed'),
+    CANCELLED: t('appointmentsPage.statuses.cancelled'),
+  };
 
   const { data: appointments = [], isLoading } = useQuery({
     queryKey: ['appointments'],
@@ -142,6 +148,7 @@ export const AppointmentsPage = () => {
   const openCreate = () => {
     setEditingId(null);
     setForm(emptyForm);
+    setErrors({});
     setIsModalOpen(true);
   };
 
@@ -156,6 +163,7 @@ export const AppointmentsPage = () => {
       notes: apt.notes ?? '',
       professionalId: apt.professionalId ?? '',
     });
+    setErrors({});
     setIsModalOpen(true);
   };
 
@@ -163,17 +171,52 @@ export const AppointmentsPage = () => {
     setIsModalOpen(false);
     setEditingId(null);
     setForm(emptyForm);
+    setErrors({});
+  };
+
+  const validate = (): boolean => {
+    const errs: FormErrors = {};
+
+    if (!form.title.trim()) {
+      errs.title = t('appointmentsPage.validation.titleRequired');
+    }
+
+    if (!form.clientName.trim()) {
+      errs.clientName = t('appointmentsPage.validation.clientNameRequired');
+    }
+
+    if (!form.clientPhone.trim()) {
+      errs.clientPhone = t('appointmentsPage.validation.phoneRequired');
+    } else if (!isValidPhone(form.clientPhone)) {
+      errs.clientPhone = t('appointmentsPage.validation.phoneInvalid');
+    }
+
+    if (!form.startAt) {
+      errs.startAt = t('appointmentsPage.validation.startRequired');
+    } else if (!editingId && !isNotInPast(form.startAt)) {
+      errs.startAt = t('appointmentsPage.validation.startInPast');
+    }
+
+    if (form.endAt && !isEndAfterStart(form.startAt, form.endAt)) {
+      errs.endAt = t('appointmentsPage.validation.endBeforeStart');
+    }
+
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!validate()) return;
+
     const payload: AppointmentInput = {
-      clientName: form.clientName,
-      clientPhone: form.clientPhone,
-      title: form.title,
+      clientName: form.clientName.trim(),
+      clientPhone: form.clientPhone.replace(/\D/g, ''),
+      title: form.title.trim(),
       startAt: new Date(form.startAt).toISOString(),
       endAt: form.endAt ? new Date(form.endAt).toISOString() : undefined,
-      notes: form.notes || undefined,
+      notes: form.notes.trim() || undefined,
       professionalId: form.professionalId || undefined,
     };
 
@@ -188,8 +231,8 @@ export const AppointmentsPage = () => {
 
   return (
     <PageLayout
-      title="Agendamentos"
-      subtitle={isProfessional ? 'Sua agenda de atendimentos' : 'Gerencie os agendamentos da sua empresa'}
+      title={t('common.appointments')}
+      subtitle={isProfessional ? t('appointmentsPage.subtitleProfessional') : t('appointmentsPage.subtitle')}
     >
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div className="flex flex-wrap gap-3 w-full sm:w-auto">
@@ -197,7 +240,7 @@ export const AppointmentsPage = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               className="pl-10"
-              placeholder="Buscar por nome, telefone..."
+              placeholder={t('appointmentsPage.searchPlaceholder')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -205,25 +248,25 @@ export const AppointmentsPage = () => {
           <div className="relative w-40">
             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
             <select
-              className="w-full pl-9 pr-4 py-2 h-10 bg-white border border-outline-variant rounded-xl text-sm focus:outline-none focus:border-primary/50 appearance-none cursor-pointer"
+              className="w-full pl-9 pr-4 py-2 h-10 bg-white border border-outline-variant/20 rounded-xl text-sm focus:outline-none focus:border-primary/50 appearance-none cursor-pointer"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
             >
-              <option value="ALL">Todos</option>
-              <option value="PENDING">Pendente</option>
-              <option value="CONFIRMED">Confirmado</option>
-              <option value="CANCELLED">Cancelado</option>
+              <option value="ALL">{t('appointmentsPage.filterAll')}</option>
+              <option value="PENDING">{statusLabel.PENDING}</option>
+              <option value="CONFIRMED">{statusLabel.CONFIRMED}</option>
+              <option value="CANCELLED">{statusLabel.CANCELLED}</option>
             </select>
           </div>
           {!isProfessional && professionals.length > 0 && (
             <div className="relative w-48">
               <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
               <select
-                className="w-full pl-9 pr-4 py-2 h-10 bg-white border border-outline-variant rounded-xl text-sm focus:outline-none focus:border-primary/50 appearance-none cursor-pointer"
+                className="w-full pl-9 pr-4 py-2 h-10 bg-white border border-outline-variant/20 rounded-xl text-sm focus:outline-none focus:border-primary/50 appearance-none cursor-pointer"
                 value={professionalFilter}
                 onChange={(e) => setProfessionalFilter(e.target.value)}
               >
-                <option value="ALL">Todos profissionais</option>
+                <option value="ALL">{t('appointmentsPage.allProfessionals')}</option>
                 {professionals.map((p) => (
                   <option key={p.id} value={p.id}>{p.name}</option>
                 ))}
@@ -234,7 +277,7 @@ export const AppointmentsPage = () => {
         {!isProfessional && (
           <Button onClick={openCreate} className="flex items-center gap-2 whitespace-nowrap">
             <Plus className="w-4 h-4" />
-            Novo Agendamento
+            {t('appointmentsPage.newAppointment')}
           </Button>
         )}
       </div>
@@ -247,13 +290,13 @@ export const AppointmentsPage = () => {
         ) : filtered.length === 0 ? (
           <div className="p-20 text-center text-muted-foreground">
             <CalendarDays className="w-12 h-12 mx-auto mb-4 opacity-30" />
-            <p className="font-medium">Nenhum agendamento encontrado.</p>
+            <p className="font-medium">{t('appointmentsPage.emptyTitle')}</p>
             <p className="text-sm mt-1 opacity-60">
               {search || statusFilter !== 'ALL'
-                ? 'Tente ajustar os filtros.'
+                ? t('appointmentsPage.emptyFilters')
                 : isProfessional
-                ? 'Você não tem agendamentos ainda.'
-                : 'Clique em "Novo Agendamento" para começar.'}
+                ? t('appointmentsPage.emptyNone')
+                : t('appointmentsPage.emptyHint')}
             </p>
           </div>
         ) : (
@@ -261,14 +304,14 @@ export const AppointmentsPage = () => {
             <table className="w-full text-left border-collapse min-w-[640px]">
               <thead className="bg-surface-high/50 border-b border-outline-variant/20">
                 <tr>
-                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Cliente</th>
-                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Serviço</th>
+                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('appointmentsPage.table.client')}</th>
+                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('appointmentsPage.table.service')}</th>
                   {!isProfessional && professionals.length > 0 && (
-                    <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Profissional</th>
+                    <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('appointmentsPage.table.professional')}</th>
                   )}
-                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Data / Hora</th>
-                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Status</th>
-                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Notif.</th>
+                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('appointmentsPage.table.dateTime')}</th>
+                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('appointmentsPage.table.status')}</th>
+                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('appointmentsPage.table.notification')}</th>
                   {!isProfessional && <th className="px-6 py-4" />}
                 </tr>
               </thead>
@@ -304,25 +347,25 @@ export const AppointmentsPage = () => {
                     <td className="px-6 py-5">
                       <div className="flex flex-col">
                         <span className="text-sm font-semibold">
-                          {new Date(apt.startAt).toLocaleDateString('pt-BR')}
+                          {formatDate(apt.startAt)}
                         </span>
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
                           <Clock className="w-3 h-3" />
-                          {new Date(apt.startAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                          {formatTime(apt.startAt)}
                         </span>
                       </div>
                     </td>
                     <td className="px-6 py-5">
                       <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${STATUS_COLORS[apt.status]}`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT[apt.status]}`} />
-                        {STATUS_LABEL[apt.status]}
+                        {statusLabel[apt.status]}
                       </span>
                     </td>
                     <td className="px-6 py-5">
                       {apt.isNotified ? (
-                        <Bell className="w-4 h-4 text-primary" title="Notificado" />
+                        <Bell className="w-4 h-4 text-primary" title={t('appointmentsPage.notified')} />
                       ) : (
-                        <BellOff className="w-4 h-4 text-muted-foreground/40" title="Não notificado" />
+                        <BellOff className="w-4 h-4 text-muted-foreground/40" title={t('appointmentsPage.notNotified')} />
                       )}
                     </td>
                     {!isProfessional && (
@@ -355,32 +398,33 @@ export const AppointmentsPage = () => {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={closeModal} />
-          <div className="relative w-full max-w-lg bg-white border border-outline-variant rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative w-full max-w-lg bg-surface border border-outline-variant/25 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="p-6 border-b border-outline-variant/30">
               <h2 className="text-lg font-bold tracking-tight">
-                {editingId ? 'Editar Agendamento' : 'Novo Agendamento'}
+                {editingId ? t('appointmentsPage.editAppointment') : t('appointmentsPage.newAppointment')}
               </h2>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5 col-span-2">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Serviço / Título</label>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t('appointmentsPage.form.serviceTitle')}</label>
                   <Input
-                    required
                     value={form.title}
-                    onChange={(e) => setForm(f => ({ ...f, title: e.target.value }))}
-                    placeholder="Ex: Consulta, Corte, Treino..."
+                    onChange={(e) => { setForm(f => ({ ...f, title: e.target.value })); setErrors(e => ({ ...e, title: undefined })); }}
+                    placeholder={t('appointmentsPage.form.servicePlaceholder')}
+                    className={errors.title ? 'border-red-500/50' : ''}
                   />
+                  {errors.title && <span className="text-[10px] text-red-400 font-bold flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.title}</span>}
                 </div>
                 {professionals.length > 0 && (
                   <div className="space-y-1.5 col-span-2">
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Profissional</label>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t('appointmentsPage.table.professional')}</label>
                     <select
-                      className="w-full px-4 py-2 h-10 bg-white border border-outline-variant rounded-xl text-sm focus:outline-none focus:border-primary/50"
+                      className="w-full px-4 py-2 h-10 bg-white border border-outline-variant/20 rounded-xl text-sm focus:outline-none focus:border-primary/50"
                       value={form.professionalId}
                       onChange={(e) => setForm(f => ({ ...f, professionalId: e.target.value }))}
                     >
-                      <option value="">Sem profissional</option>
+                      <option value="">{t('appointmentsPage.form.noProfessional')}</option>
                       {professionals.map((p) => (
                         <option key={p.id} value={p.id}>{p.name}</option>
                       ))}
@@ -388,46 +432,51 @@ export const AppointmentsPage = () => {
                   </div>
                 )}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Nome do Cliente</label>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t('appointmentsPage.form.clientName')}</label>
                   <Input
-                    required
                     value={form.clientName}
-                    onChange={(e) => setForm(f => ({ ...f, clientName: e.target.value }))}
-                    placeholder="João Silva"
+                    onChange={(e) => { setForm(f => ({ ...f, clientName: e.target.value })); setErrors(e => ({ ...e, clientName: undefined })); }}
+                    placeholder={t('appointmentsPage.form.clientNamePlaceholder')}
+                    className={errors.clientName ? 'border-red-500/50' : ''}
                   />
+                  {errors.clientName && <span className="text-[10px] text-red-400 font-bold flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.clientName}</span>}
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">WhatsApp do Cliente</label>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t('appointmentsPage.form.clientPhone')}</label>
                   <Input
-                    required
                     value={form.clientPhone}
-                    onChange={(e) => setForm(f => ({ ...f, clientPhone: e.target.value }))}
+                    onChange={(e) => { setForm(f => ({ ...f, clientPhone: e.target.value })); setErrors(e => ({ ...e, clientPhone: undefined })); }}
                     placeholder="11999999999"
+                    className={errors.clientPhone ? 'border-red-500/50' : ''}
                   />
+                  {errors.clientPhone && <span className="text-[10px] text-red-400 font-bold flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.clientPhone}</span>}
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Início</label>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t('appointmentsPage.form.startAt')}</label>
                   <Input
-                    required
                     type="datetime-local"
                     value={form.startAt}
-                    onChange={(e) => setForm(f => ({ ...f, startAt: e.target.value }))}
+                    onChange={(e) => { setForm(f => ({ ...f, startAt: e.target.value })); setErrors(e => ({ ...e, startAt: undefined })); }}
+                    className={errors.startAt ? 'border-red-500/50' : ''}
                   />
+                  {errors.startAt && <span className="text-[10px] text-red-400 font-bold flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.startAt}</span>}
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Fim (opcional)</label>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t('appointmentsPage.form.endAt')}</label>
                   <Input
                     type="datetime-local"
                     value={form.endAt}
-                    onChange={(e) => setForm(f => ({ ...f, endAt: e.target.value }))}
+                    onChange={(e) => { setForm(f => ({ ...f, endAt: e.target.value })); setErrors(e => ({ ...e, endAt: undefined })); }}
+                    className={errors.endAt ? 'border-red-500/50' : ''}
                   />
+                  {errors.endAt && <span className="text-[10px] text-red-400 font-bold flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.endAt}</span>}
                 </div>
                 <div className="space-y-1.5 col-span-2">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Observações</label>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t('appointmentsPage.form.notes')}</label>
                   <textarea
                     rows={2}
-                    className="w-full px-4 py-2 text-sm bg-white border border-outline-variant rounded-xl resize-none focus:outline-none focus:border-primary/50"
-                    placeholder="Informações adicionais..."
+                    className="w-full px-4 py-2 text-sm bg-white border border-outline-variant/20 rounded-xl resize-none focus:outline-none focus:border-primary/50"
+                    placeholder={t('appointmentsPage.form.notesPlaceholder')}
                     value={form.notes}
                     onChange={(e) => setForm(f => ({ ...f, notes: e.target.value }))}
                   />
@@ -435,10 +484,10 @@ export const AppointmentsPage = () => {
               </div>
               <div className="flex justify-end gap-3 pt-2">
                 <Button type="button" variant="ghost" onClick={closeModal} disabled={isPending}>
-                  Cancelar
+                  {t('common.cancel')}
                 </Button>
                 <Button type="submit" disabled={isPending}>
-                  {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : editingId ? 'Salvar' : 'Criar'}
+                  {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : editingId ? t('appointmentsPage.save') : t('appointmentsPage.create')}
                 </Button>
               </div>
             </form>
@@ -450,24 +499,24 @@ export const AppointmentsPage = () => {
       {deleteId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setDeleteId(null)} />
-          <div className="relative w-full max-w-sm bg-white border border-outline-variant rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative w-full max-w-sm bg-surface border border-outline-variant/25 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="p-6">
               <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center border border-red-500/20 mb-4">
                 <Trash2 className="w-6 h-6 text-red-500" />
               </div>
-              <h2 className="text-lg font-bold mb-2">Excluir agendamento?</h2>
-              <p className="text-sm text-muted-foreground">Esta ação não pode ser desfeita.</p>
+              <h2 className="text-lg font-bold mb-2">{t('appointmentsPage.deleteTitle')}</h2>
+              <p className="text-sm text-muted-foreground">{t('appointmentsPage.deleteDescription')}</p>
             </div>
             <div className="p-4 border-t border-outline-variant/30 flex justify-end gap-3">
               <Button variant="ghost" onClick={() => setDeleteId(null)} disabled={deleteMutation.isPending}>
-                Cancelar
+                {t('common.cancel')}
               </Button>
               <Button
                 onClick={() => deleteMutation.mutate(deleteId!)}
                 disabled={deleteMutation.isPending}
                 className="bg-red-500 hover:bg-red-600 text-white shadow-none"
               >
-                {deleteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Excluir'}
+                {deleteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : t('appointmentsPage.deleteConfirm')}
               </Button>
             </div>
           </div>

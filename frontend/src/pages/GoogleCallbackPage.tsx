@@ -1,11 +1,13 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../features/auth/auth.store';
 import { authService } from '../features/auth/auth.service';
 import { Zap } from 'lucide-react';
 import type { AuthUser } from '@shared/schemas/auth.schema';
 
 export const GoogleCallbackPage = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const setAuth = useAuthStore((state) => state.setAuth);
@@ -67,8 +69,8 @@ export const GoogleCallbackPage = () => {
       <div className="w-16 h-16 rounded-2xl bg-pulse-gradient flex items-center justify-center shadow-2xl shadow-primary-dim/40 mb-8 animate-bounce">
         <Zap className="w-8 h-8 text-primary-foreground fill-current" />
       </div>
-      <h1 className="text-2xl font-bold tracking-tight mb-2">Authenticating...</h1>
-      <p className="text-muted-foreground animate-pulse">Please wait while we set up your session.</p>
+      <h1 className="text-2xl font-bold tracking-tight mb-2">{t('googleCallback.authenticating')}</h1>
+      <p className="text-muted-foreground animate-pulse">{t('googleCallback.pleaseWait')}</p>
     </div>
   );
 };

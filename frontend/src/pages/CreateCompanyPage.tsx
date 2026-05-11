@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Building2, ArrowLeft, Loader2, Zap } from 'lucide-react';
+import { Building2, ArrowLeft, Loader2, Zap, Lock, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '../features/auth/auth.store';
 import { companyService } from '../features/company/company.service';
 import { Card } from '../shared/ui/Card';
@@ -12,8 +12,11 @@ export const CreateCompanyPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const companies = useAuthStore((state) => state.companies);
+  const maxCompanies = useAuthStore((state) => state.maxCompanies);
   const addCompany = useAuthStore((state) => state.addCompany);
   const selectCompany = useAuthStore((state) => state.selectCompany);
+
+  const atLimit = companies.length >= maxCompanies;
 
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -61,49 +64,73 @@ export const CreateCompanyPage = () => {
           </p>
         </div>
 
-        {/* Form */}
-        <Card variant="glass" className="p-8 border-outline-variant/50">
-          {error && (
-            <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium text-center">
-              {error}
+        {/* Upgrade wall */}
+        {atLimit ? (
+          <Card variant="glass" className="p-8 border-primary/20 bg-primary/5 text-center space-y-5">
+            <div className="w-12 h-12 rounded-2xl bg-primary/15 flex items-center justify-center text-primary mx-auto">
+              <Lock className="w-6 h-6" />
             </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-muted-foreground/50 uppercase tracking-[0.3em] ml-1">
-                {t('company.create.nameLabel', 'Nome da Empresa')}
-              </label>
-              <div className="relative group/input">
-                <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40 group-focus-within/input:text-primary transition-colors" />
-                <Input
-                  name="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="pl-12 h-12 bg-white border-outline-variant focus:bg-white focus:border-primary/30 transition-all rounded-lg font-medium"
-                  placeholder={t('company.create.namePlaceholder', 'Ex: Clínica Dr. Silva')}
-                  disabled={isLoading}
-                  autoFocus
-                />
-              </div>
+            <div className="space-y-2">
+              <p className="font-bold text-foreground">
+                {t('company.create.limitReachedTitle', 'Limite de empresas atingido')}
+              </p>
+              <p className="text-muted-foreground text-sm">
+                {t('company.create.limitReachedDesc', 'Seu plano atual permite até {{max}} empresa(s). Faça upgrade para o plano PRO e gerencie até 3 empresas.', { max: maxCompanies })}
+              </p>
             </div>
-
             <Button
-              type="submit"
-              disabled={isLoading || name.trim().length < 2}
-              className="w-full h-12 text-sm font-bold tracking-wide uppercase gap-2"
+              onClick={() => navigate('/subscription')}
+              className="w-full h-11 text-sm font-bold gap-2"
             >
-              {isLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                t('company.create.submitButton', 'Criar Empresa')
-              )}
+              {t('company.create.upgradeButton', 'Ver planos')}
+              <ArrowRight className="w-4 h-4" />
             </Button>
-          </form>
-        </Card>
+          </Card>
+        ) : (
+          /* Form */
+          <Card variant="glass" className="p-8 border-outline-variant/50">
+            {error && (
+              <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium text-center">
+                {error}
+              </div>
+            )}
 
-        {/* Back button — only shown when user already has companies */}
-        {companies.length > 0 && (
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-muted-foreground/50 uppercase tracking-[0.3em] ml-1">
+                  {t('company.create.nameLabel', 'Nome da Empresa')}
+                </label>
+                <div className="relative group/input">
+                  <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40 group-focus-within/input:text-primary transition-colors" />
+                  <Input
+                    name="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="pl-12 h-12 bg-white border-outline-variant/20 focus:bg-white focus:border-primary/30 transition-all rounded-lg font-medium"
+                    placeholder={t('company.create.namePlaceholder', 'Ex: Clínica Dr. Silva')}
+                    disabled={isLoading}
+                    autoFocus
+                  />
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                disabled={isLoading || name.trim().length < 2}
+                className="w-full h-12 text-sm font-bold tracking-wide uppercase gap-2"
+              >
+                {isLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  t('company.create.submitButton', 'Criar Empresa')
+                )}
+              </Button>
+            </form>
+          </Card>
+        )}
+
+        {/* Back button — only shown when user already has companies and isn't at limit */}
+        {companies.length > 0 && !atLimit && (
           <button
             onClick={() => navigate('/select-company')}
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mx-auto"

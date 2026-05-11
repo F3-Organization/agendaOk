@@ -24,7 +24,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         <input
           ref={ref}
           className={cn(
-            'flex h-12 w-full rounded-lg bg-white border border-outline-variant px-4 py-2 text-sm text-foreground transition-all placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/8 disabled:cursor-not-allowed disabled:opacity-50 shadow-card',
+            'flex h-12 w-full rounded-lg bg-surface border border-outline-variant/25 px-4 py-2 text-sm text-foreground transition-all placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/8 disabled:cursor-not-allowed disabled:opacity-50 shadow-card',
             error && 'border-red-400/60 focus:border-red-400/60 focus:ring-red-500/5',
             className
           )}
@@ -34,7 +34,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               try {
                 target.showPicker();
               } catch (err) {
-                // Fallback for browsers that don't support showPicker() yet
+                // Fallback for browsers that don't support showPicker()
               }
             }
             props.onClick?.(e);

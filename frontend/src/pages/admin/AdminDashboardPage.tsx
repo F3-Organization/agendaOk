@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { Users, Building2, Briefcase, CalendarDays, TrendingUp, DollarSign, Loader2 } from 'lucide-react';
 import { AdminLayout } from '../../shared/ui/AdminLayout';
 import { Card } from '../../shared/ui/Card';
@@ -19,6 +20,9 @@ const KPICard = ({ icon: Icon, label, value, sub, color }: { icon: any; label: s
 );
 
 export const AdminDashboardPage = () => {
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language === 'pt' ? 'pt-BR' : 'en-US';
+
   const { data: stats, isLoading } = useQuery({
     queryKey: ['admin-stats'],
     queryFn: adminService.getStats,
@@ -64,33 +68,33 @@ export const AdminDashboardPage = () => {
       <div className="space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Dashboard</h1>
-          <p className="text-sm text-muted-foreground font-medium mt-1">Visão geral da plataforma ConfirmaZap</p>
+          <h1 className="text-3xl font-extrabold tracking-tight text-foreground">{t('admin.dashboard.title')}</h1>
+          <p className="text-sm text-muted-foreground font-medium mt-1">{t('admin.dashboard.subtitle')}</p>
         </div>
 
         {/* KPI Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <KPICard
             icon={Users}
-            label="Total de Usuários"
+            label={t('admin.dashboard.totalUsers')}
             value={stats?.totalUsers ?? 0}
             color="bg-blue-500/10 border-blue-500/20 text-blue-500"
           />
           <KPICard
             icon={Building2}
-            label="Total de Empresas"
+            label={t('admin.dashboard.totalCompanies')}
             value={stats?.totalCompanies ?? 0}
             color="bg-purple-500/10 border-purple-500/20 text-purple-500"
           />
           <KPICard
             icon={Briefcase}
-            label="Profissionais"
+            label={t('admin.dashboard.professionals')}
             value={stats?.totalProfessionals ?? 0}
             color="bg-emerald-500/10 border-emerald-500/20 text-emerald-500"
           />
           <KPICard
             icon={CalendarDays}
-            label="Agendamentos"
+            label={t('admin.dashboard.appointments')}
             value={stats?.totalAppointments ?? 0}
             color="bg-amber-500/10 border-amber-500/20 text-amber-500"
           />
@@ -104,15 +108,15 @@ export const AdminDashboardPage = () => {
                 <DollarSign className="w-5 h-5 text-green-500" />
               </div>
               <div>
-                <h3 className="font-bold text-sm">Receita Estimada (MRR)</h3>
-                <p className="text-xs text-muted-foreground">Baseado em assinaturas ativas PRO</p>
+                <h3 className="font-bold text-sm">{t('admin.dashboard.estimatedMRR')}</h3>
+                <p className="text-xs text-muted-foreground">{t('admin.dashboard.basedOnPro')}</p>
               </div>
             </div>
             <p className="text-4xl font-extrabold tracking-tight text-green-500">
               R$ {(stats?.estimatedMRR ?? 0).toFixed(2).replace('.', ',')}
             </p>
             <p className="text-xs text-muted-foreground mt-2">
-              {stats?.activeProSubscriptions ?? 0} assinaturas PRO ativas
+              {t('admin.dashboard.activeProSubs', { count: stats?.activeProSubscriptions ?? 0 })}
             </p>
           </Card>
 
@@ -122,18 +126,18 @@ export const AdminDashboardPage = () => {
                 <TrendingUp className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h3 className="font-bold text-sm">Crescimento (30 dias)</h3>
-                <p className="text-xs text-muted-foreground">Novos registros por dia</p>
+                <h3 className="font-bold text-sm">{t('admin.dashboard.growth30d')}</h3>
+                <p className="text-xs text-muted-foreground">{t('admin.dashboard.newRegistrations')}</p>
               </div>
             </div>
             <div className="flex items-center justify-between mb-2">
               <span className="text-2xl font-extrabold text-foreground">{growthData.total}</span>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">registros</span>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('admin.dashboard.registrations')}</span>
             </div>
             <div className="flex items-end gap-[2px] h-20">
               {growthData.days.map((day, i) => {
                 const height = day.count > 0 ? Math.max((day.count / growthData.maxCount) * 100, 8) : 3;
-                const dateLabel = new Date(day.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                const dateLabel = new Date(day.date + 'T12:00:00').toLocaleDateString(locale, { day: '2-digit', month: '2-digit' });
                 return (
                   <div key={i} className="flex-1 h-full flex flex-col items-center justify-end group cursor-pointer">
                     <span className="text-[8px] font-mono text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity mb-0.5">
@@ -146,22 +150,22 @@ export const AdminDashboardPage = () => {
                           : 'bg-outline-variant/20 hover:bg-outline-variant/40'
                       }`}
                       style={{ height: `${height}%` }}
-                      title={`${dateLabel}: ${day.count} registros`}
+                      title={`${dateLabel}: ${day.count} ${t('admin.dashboard.registrations')}`}
                     />
                   </div>
                 );
               })}
             </div>
             <div className="flex justify-between mt-2">
-              <span className="text-[9px] text-muted-foreground">30 dias atrás</span>
-              <span className="text-[9px] text-muted-foreground">Hoje</span>
+              <span className="text-[9px] text-muted-foreground">{t('admin.dashboard.daysAgo')}</span>
+              <span className="text-[9px] text-muted-foreground">{t('admin.dashboard.today')}</span>
             </div>
           </Card>
         </div>
 
         {/* Subscriptions Breakdown */}
         <Card variant="glass" className="p-6">
-          <h3 className="font-bold text-sm mb-4">Assinaturas por Plano</h3>
+          <h3 className="font-bold text-sm mb-4">{t('admin.dashboard.subscriptionsByPlan')}</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {stats?.subscriptionsByPlan?.map((item, i) => (
               <div key={i} className="p-4 rounded-lg bg-surface-high/50 border border-outline-variant/20">

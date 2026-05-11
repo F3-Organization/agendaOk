@@ -204,7 +204,7 @@ export const SettingsPage = () => {
                     <Input
                       name="name"
                       defaultValue={userConfig?.name}
-                      className="pl-12 h-12 bg-white border-outline-variant focus:bg-white focus:border-primary/30 transition-all rounded-lg font-medium"
+                      className="pl-12 h-12 bg-white border-outline-variant/20 focus:bg-white focus:border-primary/30 transition-all rounded-lg font-medium"
                       placeholder={t('settings.profile.placeholders.fullName', 'Seu nome completo')}
                     />
                   </div>
@@ -218,7 +218,7 @@ export const SettingsPage = () => {
                       name="email"
                       type="email"
                       defaultValue={userConfig?.email}
-                      className="pl-12 h-12 bg-white border-outline-variant focus:bg-white focus:border-primary/30 transition-all rounded-lg font-medium"
+                      className="pl-12 h-12 bg-white border-outline-variant/20 focus:bg-white focus:border-primary/30 transition-all rounded-lg font-medium"
                       placeholder={t('settings.profile.placeholders.email', 'exemplo@email.com')}
                     />
                   </div>
@@ -275,7 +275,7 @@ export const SettingsPage = () => {
                           <Input
                             name="currentPassword"
                             type="password"
-                            className="pl-12 h-12 bg-white border-outline-variant focus:bg-orange-500/5 focus:border-orange-500/30 transition-all rounded-lg"
+                            className="pl-12 h-12 bg-white border-outline-variant/20 focus:bg-orange-500/5 focus:border-orange-500/30 transition-all rounded-lg"
                             placeholder={t('settings.security.passwordPlaceholder', '••••••••')}
                             required={userConfig?.hasPassword}
                           />
@@ -290,7 +290,7 @@ export const SettingsPage = () => {
                         <Input
                           name="newPassword"
                           type="password"
-                          className="pl-12 h-12 bg-white border-outline-variant focus:bg-orange-500/5 focus:border-orange-500/30 transition-all rounded-lg"
+                          className="pl-12 h-12 bg-white border-outline-variant/20 focus:bg-orange-500/5 focus:border-orange-500/30 transition-all rounded-lg"
                           placeholder={t('settings.security.newPasswordHint', 'Mínimo 6 caracteres')}
                           required
                         />
@@ -304,7 +304,7 @@ export const SettingsPage = () => {
                         <Input
                           name="confirmPassword"
                           type="password"
-                          className="pl-12 h-12 bg-white border-outline-variant focus:bg-orange-500/5 focus:border-orange-500/30 transition-all rounded-lg"
+                          className="pl-12 h-12 bg-white border-outline-variant/20 focus:bg-orange-500/5 focus:border-orange-500/30 transition-all rounded-lg"
                           placeholder={t('settings.security.passwordPlaceholder', '••••••••')}
                           required
                         />
@@ -314,7 +314,7 @@ export const SettingsPage = () => {
                     <Button
                       type="submit"
                       variant="ghost"
-                      className="w-full mt-6 border border-outline-variant hover:bg-orange-500/10 hover:text-orange-400 transition-all font-black uppercase text-[10px] tracking-[0.3em] h-12 shadow-inner rounded-xl"
+                      className="w-full mt-6 border border-outline-variant/20 hover:bg-orange-500/10 hover:text-orange-400 transition-all font-black uppercase text-[10px] tracking-[0.3em] h-12 shadow-inner rounded-xl"
                     >
                       {changePasswordMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : userConfig?.hasPassword ? t('settings.security.updatePassword', 'Atualizar Senha') : t('settings.security.setPassword', 'Definir Senha')}
                     </Button>
@@ -351,14 +351,14 @@ export const SettingsPage = () => {
                   </div>
 
                   <div className="space-y-6">
-                    <div className="p-6 rounded-xl bg-surface-container border border-outline-variant flex items-center justify-between shadow-inner group/status">
+                    <div className="p-6 rounded-xl bg-surface-container border border-outline-variant/20 flex items-center justify-between shadow-inner group/status">
                       <div className="space-y-1">
                         <span className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.3em]">{t('settings.security.twoFactorStatus', 'Status da Segurança')}</span>
                         <p className="text-sm font-bold tracking-tight text-foreground/80">{userConfig?.twoFactorEnabled ? 'Proteção TOTP Ativa' : 'Segurança Vulnerável'}</p>
                       </div>
                       <button
                         onClick={() => toggle2FAMutation.mutate(!userConfig?.twoFactorEnabled)}
-                        className={`w-14 h-7 rounded-full transition-all relative p-1 shadow-inner ${userConfig?.twoFactorEnabled ? 'bg-emerald-500/80' : 'bg-surface-high border border-outline-variant'}`}
+                        className={`w-14 h-7 rounded-full transition-all relative p-1 shadow-inner ${userConfig?.twoFactorEnabled ? 'bg-emerald-500/80' : 'bg-surface-high border border-outline-variant/20'}`}
                         disabled={toggle2FAMutation.isPending}
                       >
                         <div className={`w-5 h-5 rounded-full bg-white shadow-2xl transition-all duration-500 transform ${userConfig?.twoFactorEnabled ? 'translate-x-7' : 'translate-x-0'}`} />
@@ -404,13 +404,13 @@ export const SettingsPage = () => {
                   </p>
                 </div>
 
-                <div className="bg-white p-8 rounded-2xl inline-block shadow-[0_30px_80px_rgba(255,255,255,0.1)] mx-auto relative group scale-105 border-primary/10 border-4">
+                <div className="bg-surface p-8 rounded-2xl inline-block shadow-[0_30px_80px_rgba(59,130,246,0.08)] mx-auto relative group scale-105 border-primary/10 border-4">
                   <div className="absolute inset-0 bg-primary/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
                   <QRCodeSVG value={setupData.otpauthUrl} size={220} level="H" />
                 </div>
 
                 <div className="space-y-8">
-                  <div className="p-4 rounded-xl bg-surface-container border border-outline-variant flex items-center justify-between gap-6 shadow-inner group/secret">
+                  <div className="p-4 rounded-xl bg-surface-container border border-outline-variant/20 flex items-center justify-between gap-6 shadow-inner group/secret">
                     <div className="flex flex-col items-start gap-1.5 overflow-hidden">
                       <span className="text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/30">KEY MANUAL</span>
                       <code className="text-sm font-mono text-primary font-black tracking-[0.25em] truncate w-full">
@@ -434,7 +434,7 @@ export const SettingsPage = () => {
                     </label>
                     <Input 
                       placeholder="000 000"
-                      className="text-center text-4xl tracking-[0.6em] font-black h-20 bg-white border-outline-variant rounded-xl focus:border-primary/50 placeholder:opacity-20"
+                      className="text-center text-4xl tracking-[0.6em] font-black h-20 bg-white border-outline-variant/20 rounded-xl focus:border-primary/50 placeholder:opacity-20"
                       maxLength={6}
                       value={verificationCode}
                       onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ''))}

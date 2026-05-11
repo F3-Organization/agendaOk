@@ -23,7 +23,7 @@ export const PageLayout = ({ children, title, subtitle }: PageLayoutProps) => {
       <Sidebar isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
       <div className="flex-1 flex flex-col min-w-0 h-full">
         {/* Mobile Header */}
-        <header className="lg:hidden flex items-center justify-between p-4 border-b border-outline-variant bg-white z-30 shadow-card">
+        <header className="lg:hidden flex items-center justify-between p-4 border-b border-outline-variant/25 bg-surface z-30 shadow-card">
           <div className="flex items-center gap-3">
              <div className="w-8 h-8 rounded-lg bg-pulse-gradient flex items-center justify-center shadow-card">
                 <Zap className="w-5 h-5 text-white fill-current" />

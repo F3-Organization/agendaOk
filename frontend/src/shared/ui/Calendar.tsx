@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { getMonthName, getWeekdayHeaders } from '../utils/formatters';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -22,8 +23,9 @@ export const Calendar = ({ selectedDate, onSelect, className, minDate }: Calenda
   
   const prevMonthDays = new Date(viewDate.getFullYear(), viewDate.getMonth(), 0).getDate();
   
-  const monthName = viewDate.toLocaleString('pt-BR', { month: 'long' });
+  const monthName = getMonthName(viewDate);
   const year = viewDate.getFullYear();
+  const weekdayHeaders = getWeekdayHeaders();
 
   const handlePrevMonth = () => {
     setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1));
@@ -106,7 +108,7 @@ export const Calendar = ({ selectedDate, onSelect, className, minDate }: Calenda
       </div>
 
       <div className="grid grid-cols-7 gap-1 mb-2">
-        {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((d, i) => (
+        {weekdayHeaders.map((d, i) => (
           <div key={`${d}-${i}`} className="text-[9px] font-black uppercase text-muted-foreground/40 text-center py-1">
             {d}
           </div>

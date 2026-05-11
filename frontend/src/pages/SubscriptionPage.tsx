@@ -229,7 +229,7 @@ export const SubscriptionPage = () => {
           <Card
             key={i}
             variant={plan.current ? 'accent' : 'glass'}
-            className={`p-10 flex flex-col relative overflow-hidden group shadow-2xl transition-all border border-outline-variant ${plan.current ? 'ring-2 ring-primary scale-[1.02] z-10' : 'opacity-80 hover:opacity-100 hover:scale-[1.01]'}`}
+            className={`p-10 flex flex-col relative overflow-hidden group shadow-2xl transition-all border border-outline-variant/20 ${plan.current ? 'ring-2 ring-primary scale-[1.02] z-10' : 'opacity-80 hover:opacity-100 hover:scale-[1.01]'}`}
           >
             {plan.current && (
               <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase flex items-center gap-1.5 ${
@@ -284,7 +284,7 @@ export const SubscriptionPage = () => {
 
       {/* Payment History Section */}
       <h2 className="text-3xl font-bold tracking-tight mb-8">{t('subscription.billing.title')}</h2>
-      <Card variant="base" className="overflow-hidden bg-surface-dim/30 border border-outline-variant">
+      <Card variant="base" className="overflow-hidden bg-surface-dim/30 border border-outline-variant/20">
         <div className="p-8 border-b border-outline-variant/20 flex justify-between items-center group">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-surface-low flex items-center justify-center border border-outline-variant/50 group-hover:bg-primary/5 group-hover:border-primary/20 transition-all">

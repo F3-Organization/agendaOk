@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { Building2, Search, Loader2, ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import { AdminLayout } from '../../shared/ui/AdminLayout';
 import { Card } from '../../shared/ui/Card';
@@ -7,6 +8,8 @@ import { Button } from '../../shared/ui/Button';
 import { adminService } from '../../features/admin/admin.service';
 
 export const AdminCompaniesPage = () => {
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language === 'pt' ? 'pt-BR' : 'en-US';
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
 
@@ -25,9 +28,9 @@ export const AdminCompaniesPage = () => {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Empresas</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight text-foreground">{t('admin.companies.title')}</h1>
           <p className="text-sm text-muted-foreground font-medium mt-1">
-            {data?.pagination.total ?? 0} empresas cadastradas
+            {t('admin.companies.registered', { count: data?.pagination.total ?? 0 })}
           </p>
         </div>
 
@@ -38,11 +41,11 @@ export const AdminCompaniesPage = () => {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar por nome da empresa, dono ou email..."
+              placeholder={t('admin.companies.searchPlaceholder')}
               className="w-full pl-11 pr-4 py-3 bg-surface-low border border-outline-variant/30 rounded-xl text-sm focus:outline-none focus:border-primary/50 transition-colors"
             />
           </div>
-          <Button type="submit" className="px-6">Buscar</Button>
+          <Button type="submit" className="px-6">{t('admin.companies.search')}</Button>
         </form>
 
         {/* Table */}
@@ -56,11 +59,11 @@ export const AdminCompaniesPage = () => {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-outline-variant/30">
-                    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-6 py-4">Empresa</th>
-                    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-4 py-4">Proprietário</th>
-                    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-4 py-4">Plano</th>
-                    <th className="text-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-4 py-4">Profissionais</th>
-                    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-4 py-4">Criada em</th>
+                    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-6 py-4">{t('admin.companies.company')}</th>
+                    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-4 py-4">{t('admin.companies.owner')}</th>
+                    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-4 py-4">{t('admin.companies.plan')}</th>
+                    <th className="text-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-4 py-4">{t('admin.companies.professionals')}</th>
+                    <th className="text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-4 py-4">{t('admin.companies.createdAt')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -98,7 +101,7 @@ export const AdminCompaniesPage = () => {
                       </td>
                       <td className="px-4 py-4">
                         <span className="text-xs text-muted-foreground">
-                          {new Date(company.createdAt).toLocaleDateString('pt-BR')}
+                          {new Date(company.createdAt).toLocaleDateString(locale)}
                         </span>
                       </td>
                     </tr>
@@ -110,14 +113,14 @@ export const AdminCompaniesPage = () => {
             {data && data.pagination.totalPages > 1 && (
               <div className="flex items-center justify-between px-6 py-4 border-t border-outline-variant/30">
                 <p className="text-xs text-muted-foreground">
-                  Página {data.pagination.page} de {data.pagination.totalPages}
+                  {t('admin.companies.page', { page: data.pagination.page, totalPages: data.pagination.totalPages })}
                 </p>
                 <div className="flex gap-2">
                   <Button variant="ghost" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)} className="gap-1">
-                    <ChevronLeft className="w-4 h-4" /> Anterior
+                    <ChevronLeft className="w-4 h-4" /> {t('admin.companies.previous')}
                   </Button>
                   <Button variant="ghost" size="sm" disabled={page >= data.pagination.totalPages} onClick={() => setPage(p => p + 1)} className="gap-1">
-                    Próxima <ChevronRight className="w-4 h-4" />
+                    {t('admin.companies.next')} <ChevronRight className="w-4 h-4" />
                   </Button>
                 </div>
               </div>

@@ -117,7 +117,7 @@ export const WhatsAppPage = () => {
             </div>
           </div>
 
-          <Card variant="glass" className="p-8 border-primary/20 bg-primary/5 flex items-start gap-5 overflow-hidden group border border-outline-variant">
+          <Card variant="glass" className="p-8 border-primary/20 bg-primary/5 flex items-start gap-5 overflow-hidden group border border-outline-variant/20">
             <div className="absolute top-[-50%] right-[-10%] w-[200px] h-[200px] bg-primary/10 rounded-full blur-[60px] -z-10 group-hover:scale-110 transition-transform" />
             <ShieldCheck className="w-8 h-8 text-primary flex-shrink-0 mt-1" />
             <div>
@@ -178,11 +178,11 @@ export const WhatsAppPage = () => {
                </div>
             </Card>
           ) : (
-            <Card variant="glass" className="p-10 text-center relative overflow-hidden flex flex-col items-center border border-outline-variant min-h-[450px]">
+            <Card variant="glass" className="p-10 text-center relative overflow-hidden flex flex-col items-center border border-outline-variant/20 min-h-[450px]">
               {/* Pulsing Back Glow */}
               <div className="absolute inset-0 bg-radial-gradient from-primary/5 to-transparent blur-3xl rounded-full scale-150 -z-10" />
               
-              <div className="w-full aspect-square bg-white p-6 rounded-2xl shadow-card-lg mb-10 flex items-center justify-center relative group">
+              <div className="w-full aspect-square bg-surface p-6 rounded-2xl shadow-card-lg mb-10 flex items-center justify-center relative group">
                 {connectMutation.isPending ? (
                   <div className="flex flex-col items-center gap-4 text-slate-900">
                     <Loader2 className="w-12 h-12 animate-spin text-primary" />
@@ -272,7 +272,7 @@ export const WhatsAppPage = () => {
             </div>
         </div>
 
-        <Card variant="glass" className="p-8 border border-outline-variant relative overflow-hidden group">
+        <Card variant="glass" className="p-8 border border-outline-variant/20 relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10 group-hover:bg-primary/10 transition-colors" />
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-end">

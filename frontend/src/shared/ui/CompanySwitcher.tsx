@@ -81,7 +81,7 @@ export const CompanySwitcher = () => {
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 right-0 mt-1 z-50 rounded-lg border border-outline-variant bg-white shadow-card-lg overflow-hidden animate-in fade-in slide-in-from-top-1 duration-100">
+        <div className="absolute left-0 right-0 mt-1 z-50 rounded-lg border border-outline-variant/25 bg-surface shadow-card-lg overflow-hidden animate-in fade-in slide-in-from-top-1 duration-100">
           <div className="px-2 pt-1.5 pb-1">
             <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
               {t('company.switcher.label', 'Empresas')}
@@ -114,7 +114,7 @@ export const CompanySwitcher = () => {
                     'w-6 h-6 rounded-md flex items-center justify-center shrink-0 text-[9px] font-bold border',
                     isSelected
                       ? 'bg-primary/15 border-primary/20 text-primary'
-                      : 'bg-surface-container border-outline-variant text-muted-foreground/60'
+                      : 'bg-surface-container border-outline-variant/20 text-muted-foreground/60'
                   )}>
                     {loadingId === company.id ? (
                       <Loader2 className="w-3 h-3 animate-spin" />
@@ -132,7 +132,7 @@ export const CompanySwitcher = () => {
           </div>
 
           {companies.length < maxCompanies && (
-            <div className="border-t border-outline-variant px-1.5 py-1">
+            <div className="border-t border-outline-variant/20 px-1.5 py-1">
               <button
                 onClick={() => {
                   setIsOpen(false);
@@ -140,7 +140,7 @@ export const CompanySwitcher = () => {
                 }}
                 className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md text-[13px] font-medium text-muted-foreground/60 hover:bg-surface-container hover:text-foreground transition-all"
               >
-                <div className="w-6 h-6 rounded-md border border-dashed border-outline-variant flex items-center justify-center">
+                <div className="w-6 h-6 rounded-md border border-dashed border-outline-variant/20 flex items-center justify-center">
                   <Plus className="w-3 h-3" />
                 </div>
                 {t('company.switcher.newCompany', 'Nova Empresa')}

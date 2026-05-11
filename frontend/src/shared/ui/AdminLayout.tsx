@@ -1,15 +1,17 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { LayoutDashboard, Users, Building2, ArrowLeft, Shield, CreditCard } from 'lucide-react';
 
 const NAV_ITEMS = [
-  { path: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
-  { path: '/admin/users', icon: Users, label: 'Usuários' },
-  { path: '/admin/companies', icon: Building2, label: 'Empresas' },
-  { path: '/admin/plans', icon: CreditCard, label: 'Planos' },
+  { path: '/admin', icon: LayoutDashboard, labelKey: 'admin.nav.dashboard' },
+  { path: '/admin/users', icon: Users, labelKey: 'admin.nav.users' },
+  { path: '/admin/companies', icon: Building2, labelKey: 'admin.nav.companies' },
+  { path: '/admin/plans', icon: CreditCard, labelKey: 'admin.nav.plans' },
 ];
 
 export const AdminLayout = ({ children }: { children: ReactNode }) => {
+  const { t } = useTranslation();
   const location = useLocation();
 
   return (
@@ -46,7 +48,7 @@ export const AdminLayout = ({ children }: { children: ReactNode }) => {
                 }`}
               >
                 <item.icon className={`w-4.5 h-4.5 ${isActive ? 'text-primary' : ''}`} />
-                {item.label}
+                {t(item.labelKey)}
               </Link>
             );
           })}
@@ -59,7 +61,7 @@ export const AdminLayout = ({ children }: { children: ReactNode }) => {
             className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-surface-high/50 transition-all"
           >
             <ArrowLeft className="w-4 h-4" />
-            Voltar ao Painel
+            {t('common.dashboard')}
           </Link>
         </div>
       </aside>

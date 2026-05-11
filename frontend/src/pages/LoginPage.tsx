@@ -115,7 +115,7 @@ export const LoginPage = () => {
   return (
     <div className="min-h-screen grid lg:grid-cols-2 selection:bg-primary/15 selection:text-primary overflow-hidden relative bg-surface-low">
       {/* Hero Section */}
-      <div className="hidden lg:flex flex-col justify-center p-16 xl:p-24 relative overflow-hidden bg-white border-r border-outline-variant">
+      <div className="hidden lg:flex flex-col justify-center p-16 xl:p-24 relative overflow-hidden bg-surface border-r border-outline-variant/25">
         <div className="max-w-xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/8 border border-primary/20 text-primary-dim text-xs font-bold tracking-widest uppercase mb-8">
             <Zap className="w-3 h-3 fill-current" />
@@ -243,7 +243,7 @@ export const LoginPage = () => {
                 <span className="w-full border-t border-outline-variant/30"></span>
               </div>
               <div className="relative flex justify-center text-xs uppercase tracking-widest">
-                <span className="bg-white px-4 text-muted-foreground font-semibold">
+                <span className="bg-background px-4 text-muted-foreground font-semibold">
                     {t('common.orContinueWith')}
                 </span>
               </div>

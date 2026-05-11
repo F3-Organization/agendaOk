@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { Calendar as CalendarIcon, ChevronDown } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Calendar } from './Calendar';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { formatDateTime } from '../utils/formatters';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -20,6 +22,7 @@ interface DatePickerProps {
 }
 
 export const DatePicker = ({ value, onChange, label, error, required, placeholder, align = 'left', minDate }: DatePickerProps) => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   
@@ -70,9 +73,8 @@ export const DatePicker = ({ value, onChange, label, error, required, placeholde
   }, []);
 
   const formatDisplay = () => {
-    if (!selectedDate) return placeholder || 'Selecionar data e hora';
-    const timeStr = `${selectedHour.toString().padStart(2, '0')}:${selectedMinute.toString().padStart(2, '0')}`;
-    return `${selectedDate.toLocaleDateString('pt-BR')} às ${timeStr}`;
+    if (!selectedDate) return placeholder || t('datePicker.placeholder', 'Select date and time');
+    return formatDateTime(selectedDate);
   };
 
   const hours = Array.from({ length: 24 }, (_, i) => i);
@@ -128,7 +130,7 @@ export const DatePicker = ({ value, onChange, label, error, required, placeholde
 
       {isOpen && (
         <div className={cn(
-          "absolute top-full z-[100] mt-1.5 p-1 bg-white border border-outline-variant rounded-xl shadow-card-lg animate-in fade-in slide-in-from-top-2 duration-200 flex flex-col md:flex-row overflow-hidden",
+          "absolute top-full z-[100] mt-1.5 p-1 bg-surface border border-outline-variant/25 rounded-xl shadow-card-lg animate-in fade-in slide-in-from-top-2 duration-200 flex flex-col md:flex-row overflow-hidden",
           align === 'left' ? "left-0" : "right-0"
         )}>
           <div className="flex flex-col">
@@ -140,7 +142,7 @@ export const DatePicker = ({ value, onChange, label, error, required, placeholde
             />
           </div>
 
-          <div className="w-full md:w-[130px] border-t md:border-t-0 md:border-l border-outline-variant flex">
+          <div className="w-full md:w-[130px] border-t md:border-t-0 md:border-l border-outline-variant/20 flex">
             {/* Hours */}
             <div className="flex-1 flex flex-col pt-4 px-1">
               <span className="text-[8px] font-black uppercase text-center mb-3 text-muted-foreground">H</span>
@@ -169,7 +171,7 @@ export const DatePicker = ({ value, onChange, label, error, required, placeholde
             </div>
 
             {/* Minutes */}
-            <div className="flex-1 flex flex-col pt-4 px-1 border-l border-outline-variant">
+            <div className="flex-1 flex flex-col pt-4 px-1 border-l border-outline-variant/20">
               <span className="text-[8px] font-black uppercase text-center mb-3 text-muted-foreground">M</span>
               <div className="flex-1 overflow-y-auto no-scrollbar max-h-[220px] space-y-0.5 px-1 py-1">
                 {minutes.map(m => {

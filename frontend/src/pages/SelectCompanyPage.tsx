@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Building2, Plus, Loader2, Zap, Lock } from 'lucide-react';
+import { Building2, Plus, Loader2, Zap, Lock, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '../features/auth/auth.store';
 import { companyService } from '../features/company/company.service';
 import { Card } from '../shared/ui/Card';
@@ -155,10 +155,29 @@ export const SelectCompanyPage = () => {
             {t('company.select.newCompany')}
           </Button>
         ) : (
-          <div className="flex items-center justify-center gap-2 p-3 rounded-lg bg-surface-high/30 text-muted-foreground/50 text-xs font-medium">
-            <Lock className="w-3.5 h-3.5" />
-            {t('company.select.limitReached')}
-          </div>
+          <Card variant="glass" className="p-5 border-primary/20 bg-primary/5">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center text-primary shrink-0">
+                <Lock className="w-5 h-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-foreground text-sm">
+                  {t('company.select.limitReached')}
+                </p>
+                <p className="text-muted-foreground text-xs mt-1">
+                  {t('company.select.upgradeHint', 'Faça upgrade para o plano PRO e gerencie até 3 empresas.')}
+                </p>
+                <Button
+                  onClick={() => navigate('/subscription')}
+                  disabled={loadingId !== null}
+                  className="mt-3 h-8 text-xs font-bold gap-1.5 px-4"
+                >
+                  {t('company.select.upgradeButton', 'Ver planos')}
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            </div>
+          </Card>
         )}
       </div>
     </div>

@@ -8,7 +8,7 @@ import { en } from '../i18n/locales/en';
 // Incremente esta versão sempre que as traduções mudarem significativamente.
 // Isso invalida o cache do localStorage do LanguageDetector, forçando
 // re-detecção do idioma e evitando que o browser sirva dados stale.
-const I18N_VERSION = '1';
+const I18N_VERSION = '3';
 const STORAGE_KEY = `i18nextLng_v${I18N_VERSION}`;
 
 // Limpar chaves de versões anteriores para evitar lixo no localStorage

@@ -18,6 +18,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { PageLayout } from '../shared/ui/PageLayout';
+import { Modal } from '../shared/ui/Modal';
 import { Card } from '../shared/ui/Card';
 import { Button } from '../shared/ui/Button';
 import { professionalService, type Professional } from '../features/company/professional.service';
@@ -329,9 +330,7 @@ export const ProfessionalsPage = () => {
 
       {/* Create/Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={closeModal} />
-          <div className="relative w-full max-w-lg max-h-[90vh] bg-surface border border-outline-variant/25 rounded-2xl shadow-2xl overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
+        <Modal onClose={closeModal} className="max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 z-10 bg-surface border-b border-outline-variant/30 p-6 flex items-center justify-between">
               <h2 className="text-xl font-bold tracking-tight">
                 {editingId ? t('professionals.editProfessional') : t('professionals.newProfessional')}
@@ -507,15 +506,12 @@ export const ProfessionalsPage = () => {
                 </Button>
               </div>
             </form>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {/* Invite Modal */}
       {inviteId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setInviteId(null)} />
-          <div className="relative w-full max-w-sm bg-surface border border-outline-variant/25 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <Modal onClose={() => setInviteId(null)} maxWidth="max-w-sm">
             <div className="p-6 border-b border-outline-variant/30">
               <h2 className="text-lg font-bold tracking-tight">{t('professionals.invite.title')}</h2>
               <p className="text-sm text-muted-foreground mt-1">
@@ -554,15 +550,12 @@ export const ProfessionalsPage = () => {
                 {inviteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : t('professionals.invite.send')}
               </Button>
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {/* Delete Confirmation */}
       {deleteId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setDeleteId(null)} />
-          <div className="relative w-full max-w-sm bg-surface border border-outline-variant/25 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <Modal onClose={() => setDeleteId(null)} maxWidth="max-w-sm">
             <div className="p-6">
               <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center border border-red-500/20 mb-4">
                 <Trash2 className="w-6 h-6 text-red-500" />
@@ -584,8 +577,7 @@ export const ProfessionalsPage = () => {
                 {deleteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : t('professionals.delete')}
               </Button>
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
     </PageLayout>
   );

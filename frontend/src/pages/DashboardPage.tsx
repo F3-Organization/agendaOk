@@ -136,15 +136,15 @@ export const DashboardPage = () => {
               <Bot className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h3 className="text-lg font-bold tracking-tight">Bot de Atendimento</h3>
-              <p className="text-sm text-muted-foreground">Configure seu assistente virtual</p>
+              <h3 className="text-lg font-bold tracking-tight">{t('dashboard.bot.title')}</h3>
+              <p className="text-sm text-muted-foreground">{t('dashboard.bot.subtitle')}</p>
             </div>
           </div>
           <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-            Configure as respostas automáticas, horários de atendimento e instruções do seu bot para oferecer a melhor experiência aos seus clientes.
+            {t('dashboard.bot.description')}
           </p>
           <Button variant="secondary" className="w-full" onClick={() => window.location.href = '/bot-config'}>
-            Configurar Bot
+            {t('dashboard.bot.button')}
           </Button>
         </Card>
 
@@ -153,15 +153,15 @@ export const DashboardPage = () => {
             <div className="w-12 h-12 rounded-xl bg-primary-dim flex items-center justify-center mb-6 shadow-xl shadow-primary-dim/40">
               <Zap className="w-6 h-6 text-primary-foreground fill-current" />
             </div>
-            <h3 className="text-xl font-bold tracking-tight mb-3">WhatsApp</h3>
+            <h3 className="text-xl font-bold tracking-tight mb-3">{t('dashboard.whatsapp.title')}</h3>
             <p className="text-sm text-foreground/80 leading-relaxed mb-8">
-              Conecte seu WhatsApp para começar a receber e responder mensagens automaticamente com seu bot de IA.
+              {t('dashboard.whatsapp.description')}
             </p>
             <Button
               className="w-full text-xs font-bold tracking-widest uppercase py-3 group-hover:scale-[1.02] transition-transform"
               onClick={() => window.location.href = '/whatsapp'}
             >
-              Gerenciar WhatsApp
+              {t('dashboard.whatsapp.button')}
             </Button>
           </div>
         </Card>

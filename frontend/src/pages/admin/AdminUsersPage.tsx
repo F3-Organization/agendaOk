@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Users, Search, Loader2, Eye, UserCog, Crown, Mail, Globe, Shield, ChevronLeft, ChevronRight, Building2 } from 'lucide-react';
 import { AdminLayout } from '../../shared/ui/AdminLayout';
 import { Card } from '../../shared/ui/Card';
+import { Modal } from '../../shared/ui/Modal';
 import { Button } from '../../shared/ui/Button';
 import { adminService, type AdminUser } from '../../features/admin/admin.service';
 import { useAuthStore } from '../../features/auth/auth.store';
@@ -192,9 +193,7 @@ export const AdminUsersPage = () => {
 
         {/* User Detail Modal */}
         {selectedUser && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setSelectedUser(null)} />
-            <div className="relative w-full max-w-md bg-surface-high border border-outline-variant/20 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <Modal onClose={() => setSelectedUser(null)} maxWidth="max-w-md">
               <div className="p-6 border-b border-outline-variant/30">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-lg">
@@ -273,8 +272,7 @@ export const AdminUsersPage = () => {
                   {updateMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : t('admin.users.save')}
                 </Button>
               </div>
-            </div>
-          </div>
+          </Modal>
         )}
       </div>
     </AdminLayout>

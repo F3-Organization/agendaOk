@@ -18,6 +18,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { PageLayout } from '../shared/ui/PageLayout';
+import { Modal } from '../shared/ui/Modal';
 import { Card } from '../shared/ui/Card';
 import { Button } from '../shared/ui/Button';
 import { Input } from '../shared/ui/Input';
@@ -416,9 +417,7 @@ export const AppointmentsPage = () => {
 
       {/* Create/Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={closeModal} />
-          <div className="relative w-full max-w-lg bg-surface border border-outline-variant/25 rounded-2xl shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+        <Modal onClose={closeModal}>
             <div className="p-6 border-b border-outline-variant/30">
               <h2 className="text-lg font-bold tracking-tight">
                 {editingId ? t('appointmentsPage.editAppointment') : t('appointmentsPage.newAppointment')}
@@ -508,15 +507,12 @@ export const AppointmentsPage = () => {
                 </Button>
               </div>
             </form>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {/* Delete Confirmation */}
       {deleteId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setDeleteId(null)} />
-          <div className="relative w-full max-w-sm bg-surface border border-outline-variant/25 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <Modal onClose={() => setDeleteId(null)} maxWidth="max-w-sm">
             <div className="p-6">
               <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center border border-red-500/20 mb-4">
                 <Trash2 className="w-6 h-6 text-red-500" />
@@ -536,8 +532,7 @@ export const AppointmentsPage = () => {
                 {deleteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : t('appointmentsPage.deleteConfirm')}
               </Button>
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
     </PageLayout>
   );

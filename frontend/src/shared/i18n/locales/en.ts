@@ -123,7 +123,18 @@ export const en = {
       phonePlaceholder: 'E.g. 11999999999',
       phoneButton: 'Save Phone',
       phoneSuccess: 'Phone saved successfully!'
-    }
+    },
+    bot: {
+      title: 'Support Bot',
+      subtitle: 'Configure your virtual assistant',
+      description: 'Set up automatic responses, business hours, and bot instructions to deliver the best experience to your customers.',
+      button: 'Configure Bot',
+    },
+    whatsapp: {
+      title: 'WhatsApp',
+      description: 'Connect your WhatsApp to start receiving and responding to messages automatically with your AI bot.',
+      button: 'Manage WhatsApp',
+    },
   },
   whatsapp: {
     title: 'WhatsApp Connection',

@@ -670,5 +670,9 @@ export const pt = {
   },
   datePicker: {
     placeholder: 'Selecionar data e hora',
+    selectDate: 'Selecionar',
+    time: 'Horário',
+    hours: 'H',
+    minutes: 'M',
   },
 };

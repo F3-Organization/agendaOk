@@ -69,7 +69,7 @@ export const DateInput = ({
           className={cn('w-3.5 h-3.5 shrink-0', selectedDate ? 'text-primary' : 'text-muted-foreground/40')}
         />
         <span className="flex-1 text-left truncate text-xs font-semibold">
-          {selectedDate ? formatDate(selectedDate) : (placeholder || t('datePicker.selectDate', 'Selecionar'))}
+          {selectedDate ? formatDate(selectedDate) : (placeholder || t('datePicker.selectDate'))}
         </span>
         {clearable && selectedDate ? (
           <X

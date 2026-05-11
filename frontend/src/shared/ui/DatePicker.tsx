@@ -100,7 +100,7 @@ export const DatePicker = ({
   }, []);
 
   const formatDisplay = () => {
-    if (!selectedDate) return placeholder || t('datePicker.placeholder', 'Selecionar data e hora');
+    if (!selectedDate) return placeholder || t('datePicker.placeholder');
     return formatDateTime(selectedDate);
   };
 
@@ -189,7 +189,7 @@ export const DatePicker = ({
               <div className="flex items-center gap-1.5 mb-1">
                 <Clock className="w-3 h-3 text-primary/50" />
                 <span className="text-[9px] font-black uppercase tracking-[0.15em] text-muted-foreground/40">
-                  {t('datePicker.time', 'Horário')}
+                  {t('datePicker.time')}
                 </span>
               </div>
               <p className="text-xl font-bold text-foreground tabular-nums leading-none">
@@ -204,7 +204,7 @@ export const DatePicker = ({
               {/* Hours */}
               <div className="flex-1 flex flex-col">
                 <span className="text-[8px] font-bold uppercase tracking-wider text-center text-muted-foreground/30 pt-2 pb-1.5">
-                  H
+                  {t('datePicker.hours')}
                 </span>
                 <div
                   ref={hourListRef}
@@ -238,7 +238,7 @@ export const DatePicker = ({
               {/* Minutes */}
               <div className="flex-1 flex flex-col">
                 <span className="text-[8px] font-bold uppercase tracking-wider text-center text-muted-foreground/30 pt-2 pb-1.5">
-                  M
+                  {t('datePicker.minutes')}
                 </span>
                 <div
                   ref={minuteListRef}

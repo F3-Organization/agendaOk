@@ -4,6 +4,7 @@ export interface IScheduleRepository {
     save(schedule: Partial<Schedule>): Promise<Schedule>;
     findById(id: string): Promise<Schedule | null>;
     findByCompanyId(companyId: string): Promise<Schedule[]>;
+    findByProfessionalId(professionalId: string): Promise<Schedule[]>;
     findUpcomingForNotification(companyId: string, from: Date, to: Date): Promise<Schedule[]>;
     findPendingByClientPhone(companyId: string, phone: string): Promise<Schedule | null>;
     update(id: string, data: Partial<Schedule>): Promise<void>;

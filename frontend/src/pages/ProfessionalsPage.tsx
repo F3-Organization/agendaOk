@@ -14,6 +14,8 @@ import {
   X,
   Save,
   UserCircle,
+  Link,
+  CheckCircle2,
 } from 'lucide-react';
 import { PageLayout } from '../shared/ui/PageLayout';
 import { Card } from '../shared/ui/Card';
@@ -53,6 +55,8 @@ export const ProfessionalsPage = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [form, setForm] = useState<ProfessionalFormData>(emptyForm);
+  const [inviteId, setInviteId] = useState<string | null>(null);
+  const [inviteEmail, setInviteEmail] = useState('');
 
   const { data: professionals, isLoading } = useQuery({
     queryKey: ['professionals'],
@@ -89,6 +93,16 @@ export const ProfessionalsPage = () => {
       professionalService.update(id, { active }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['professionals'] });
+    },
+  });
+
+  const inviteMutation = useMutation({
+    mutationFn: ({ id, email }: { id: string; email: string }) =>
+      professionalService.invite(id, email),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['professionals'] });
+      setInviteId(null);
+      setInviteEmail('');
     },
   });
 
@@ -265,7 +279,21 @@ export const ProfessionalsPage = () => {
                 </div>
               )}
 
-              <div className="flex items-center gap-2 pt-3 border-t border-outline-variant/20 opacity-0 group-hover:opacity-100 transition-opacity">
+              {p.userId ? (
+                <div className="flex items-center gap-1.5 text-xs text-green-600 mt-3 pt-3 border-t border-outline-variant/20">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Conta vinculada
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 pt-3 border-t border-outline-variant/20 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={() => { setInviteId(p.id); setInviteEmail(''); }}
+                    className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors px-2 py-1 rounded-lg hover:bg-surface-high"
+                  >
+                    <Link className="w-3.5 h-3.5" /> Vincular Conta
+                  </button>
+                </div>
+              )}
+              <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={() => openEdit(p)}
                   className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors px-2 py-1 rounded-lg hover:bg-surface-high"
@@ -464,6 +492,53 @@ export const ProfessionalsPage = () => {
                 </Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Invite Modal */}
+      {inviteId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setInviteId(null)} />
+          <div className="relative w-full max-w-sm bg-white border border-outline-variant rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-outline-variant/30">
+              <h2 className="text-lg font-bold tracking-tight">Vincular Conta de Acesso</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                O profissional receberá um email para criar sua senha e acessar a agenda.
+              </p>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Email do Profissional</label>
+                <input
+                  type="email"
+                  required
+                  className="w-full px-4 py-2.5 text-sm bg-white border border-outline-variant rounded-xl focus:outline-none focus:border-primary/50"
+                  placeholder="profissional@email.com"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                />
+              </div>
+              {inviteMutation.isError && (
+                <p className="text-xs text-red-500">
+                  {(inviteMutation.error as any)?.response?.data?.error || 'Erro ao vincular conta.'}
+                </p>
+              )}
+              {inviteMutation.isSuccess && (
+                <p className="text-xs text-green-600">Email de verificação enviado com sucesso!</p>
+              )}
+            </div>
+            <div className="p-4 border-t border-outline-variant/30 flex justify-end gap-3">
+              <Button variant="ghost" onClick={() => setInviteId(null)} disabled={inviteMutation.isPending}>
+                Cancelar
+              </Button>
+              <Button
+                onClick={() => inviteId && inviteEmail && inviteMutation.mutate({ id: inviteId, email: inviteEmail })}
+                disabled={inviteMutation.isPending || !inviteEmail}
+              >
+                {inviteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Enviar Convite'}
+              </Button>
+            </div>
           </div>
         </div>
       )}

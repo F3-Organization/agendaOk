@@ -49,7 +49,7 @@ export const LoginPage = () => {
       }
 
       setAuth(response.user as AuthUser, response.token as string);
-      navigate('/select-company');
+      navigate((response.user as any)?.role === 'PROFESSIONAL' ? '/appointments' : '/select-company');
     } catch (err: any) {
       setError(err.response?.data?.error || t('common.loginFailed'));
     } finally {
@@ -284,8 +284,8 @@ export const LoginPage = () => {
           </div>
 
           <div className="mt-12 flex items-center justify-center gap-6 opacity-30 text-[10px] font-bold tracking-widest uppercase">
-            <a href="#" className="hover:text-foreground transition-colors">{t('common.privacyPolicy')}</a>
-            <a href="#" className="hover:text-foreground transition-colors">{t('common.termsOfService')}</a>
+            <a href="privacy" className="hover:text-foreground transition-colors">{t('common.privacyPolicy')}</a>
+            <a href="terms" className="hover:text-foreground transition-colors">{t('common.termsOfService')}</a>
           </div>
         </Card>
       </div>

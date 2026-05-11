@@ -2,6 +2,7 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { ICompanyConfigRepository } from "../../usecase/repositories/icompany-config-repository";
 import { ICompanyRepository } from "../../usecase/repositories/icompany-repository";
 import { IUserRepository } from "../../usecase/repositories/iuser-repository";
+import { IProfessionalRepository } from "../../usecase/repositories/iprofessional-repository";
 import { FastifyAdapter } from "../adapters/fastfy.adapter";
 import { GenerateGoogleAuthUrlUseCase } from "../../usecase/auth/generate-google-auth-url.usecase";
 import { AuthenticateGoogleUseCase } from "../../usecase/auth/authenticate-google.usecase";
@@ -45,7 +46,8 @@ export class AuthController {
         private readonly updateUserConfig: UpdateUserConfigUseCase,
         private readonly userRepo: IUserRepository,
         private readonly companyRepo: ICompanyRepository,
-        private readonly companyConfigRepo: ICompanyConfigRepository
+        private readonly companyConfigRepo: ICompanyConfigRepository,
+        private readonly professionalRepo: IProfessionalRepository
     ) {
         this.fastify.logInfo("[AuthController] Initializing...");
         this.registerRoutes();
@@ -271,7 +273,39 @@ export class AuthController {
             });
         }
 
-        // Fetch user's companies to send in the response
+        // PROFESSIONAL: auto-resolve company and professional from linked record
+        if (user.role === "PROFESSIONAL") {
+            const professional = await this.professionalRepo.findByUserId(user.id);
+            if (!professional) {
+                return reply.code(403).send({ error: "Conta profissional não vinculada a nenhum profissional." });
+            }
+
+            const token = this.fastify.sign({
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                role: user.role,
+                companyId: professional.companyId,
+                professionalId: professional.id,
+            });
+
+            return reply.send({
+                message,
+                token,
+                user: {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role,
+                    hasPassword: !!user.password,
+                    companyId: professional.companyId,
+                    professionalId: professional.id,
+                },
+                companies: [],
+            });
+        }
+
+        // Regular USER / ADMIN
         const companies = await this.companyRepo.findByOwnerId(user.id);
         const resolvedCompanyId = companyId || companies[0]?.id;
 
@@ -286,10 +320,10 @@ export class AuthController {
         return reply.send({
             message,
             token,
-            user: { 
-                id: user.id, 
-                name: user.name, 
-                email: user.email, 
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
                 role: user.role,
                 hasPassword: !!user.password,
                 companyId: resolvedCompanyId || undefined

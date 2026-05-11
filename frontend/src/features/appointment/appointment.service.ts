@@ -13,6 +13,7 @@ export interface Appointment {
   status: AppointmentStatus;
   isNotified: boolean;
   notes?: string;
+  professionalId?: string;
   createdAt: string;
 }
 
@@ -23,6 +24,7 @@ export interface AppointmentInput {
   startAt: string;
   endAt?: string;
   notes?: string;
+  professionalId?: string;
 }
 
 export const appointmentService = {

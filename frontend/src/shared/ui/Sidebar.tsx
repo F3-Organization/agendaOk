@@ -34,17 +34,22 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const location = useLocation();
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
+  const isProfessional = user?.role === 'PROFESSIONAL';
 
-  const navigation = [
-    { name: t('common.dashboard'), href: '/dashboard', icon: LayoutDashboard },
-    { name: t('common.appointments', 'Agendamentos'), href: '/appointments', icon: Calendar },
-    { name: t('professionals.title', 'Profissionais'), href: '/professionals', icon: Users },
-    { name: t('botConfig.nav', 'Bot IA'), href: '/bot-config', icon: Bot },
-    { name: t('common.whatsapp'), href: '/whatsapp', icon: MessageCircle },
-    { name: t('common.subscription'), href: '/subscription', icon: CreditCard },
-    { name: t('company.settings.navLabel', 'Empresa'), href: '/company/settings', icon: Building2 },
-    { name: t('common.settings'), href: '/settings', icon: Settings },
-  ];
+  const navigation = isProfessional
+    ? [
+        { name: t('common.appointments', 'Agendamentos'), href: '/appointments', icon: Calendar },
+      ]
+    : [
+        { name: t('common.dashboard'), href: '/dashboard', icon: LayoutDashboard },
+        { name: t('common.appointments', 'Agendamentos'), href: '/appointments', icon: Calendar },
+        { name: t('professionals.title', 'Profissionais'), href: '/professionals', icon: Users },
+        { name: t('botConfig.nav', 'Bot IA'), href: '/bot-config', icon: Bot },
+        { name: t('common.whatsapp'), href: '/whatsapp', icon: MessageCircle },
+        { name: t('common.subscription'), href: '/subscription', icon: CreditCard },
+        { name: t('company.settings.navLabel', 'Empresa'), href: '/company/settings', icon: Building2 },
+        { name: t('common.settings'), href: '/settings', icon: Settings },
+      ];
 
   const toggleLanguage = () => {
     const nextLang = i18n.language === 'pt' ? 'en' : 'pt';

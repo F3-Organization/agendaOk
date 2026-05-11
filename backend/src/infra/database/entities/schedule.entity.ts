@@ -1,5 +1,6 @@
 import { Entity, Column, ManyToOne, JoinColumn, Index } from "typeorm";
 import { Company } from "./company.entity";
+import { Professional } from "./professional.entity";
 import { BaseEntity } from "./base.entity";
 
 export enum ScheduleStatus {
@@ -11,6 +12,7 @@ export enum ScheduleStatus {
 @Entity("schedules")
 @Index(["companyId", "startAt"])
 @Index(["companyId", "clientPhone"])
+@Index(["professionalId"])
 export class Schedule extends BaseEntity {
     @Column({ type: "uuid", name: "company_id" })
     companyId!: string;
@@ -18,6 +20,13 @@ export class Schedule extends BaseEntity {
     @ManyToOne(() => Company)
     @JoinColumn({ name: "company_id" })
     company!: Company;
+
+    @Column({ type: "uuid", name: "professional_id", nullable: true })
+    professionalId?: string;
+
+    @ManyToOne(() => Professional, { nullable: true })
+    @JoinColumn({ name: "professional_id" })
+    professional?: Professional;
 
     @Column({ name: "client_name" })
     clientName!: string;

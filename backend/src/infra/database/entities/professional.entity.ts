@@ -12,6 +12,9 @@ export class Professional extends BaseEntity {
     @JoinColumn({ name: "company_id" })
     company!: Company;
 
+    @Column({ name: "user_id", type: "uuid", nullable: true, unique: true })
+    userId?: string;
+
     @Column()
     name!: string;
 

@@ -14,17 +14,20 @@ import {
   CalendarDays,
   Bell,
   BellOff,
+  Briefcase,
 } from 'lucide-react';
 import { PageLayout } from '../shared/ui/PageLayout';
 import { Card } from '../shared/ui/Card';
 import { Button } from '../shared/ui/Button';
 import { Input } from '../shared/ui/Input';
+import { useAuthStore } from '../features/auth/auth.store';
 import {
   appointmentService,
   type Appointment,
   type AppointmentInput,
   type AppointmentStatus,
 } from '../features/appointment/appointment.service';
+import { professionalService } from '../features/company/professional.service';
 
 const STATUS_COLORS: Record<AppointmentStatus, string> = {
   PENDING: 'bg-yellow-500/10 border-yellow-500/20 text-yellow-600',
@@ -49,6 +52,7 @@ interface FormState {
   startAt: string;
   endAt: string;
   notes: string;
+  professionalId: string;
 }
 
 const emptyForm: FormState = {
@@ -58,6 +62,7 @@ const emptyForm: FormState = {
   startAt: '',
   endAt: '',
   notes: '',
+  professionalId: '',
 };
 
 function toLocalInput(iso: string): string {
@@ -70,9 +75,12 @@ function toLocalInput(iso: string): string {
 export const AppointmentsPage = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const user = useAuthStore((state) => state.user);
+  const isProfessional = user?.role === 'PROFESSIONAL';
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | AppointmentStatus>('ALL');
+  const [professionalFilter, setProfessionalFilter] = useState('ALL');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -83,6 +91,16 @@ export const AppointmentsPage = () => {
     queryFn: appointmentService.getAll,
   });
 
+  const { data: professionals = [] } = useQuery({
+    queryKey: ['professionals'],
+    queryFn: professionalService.list,
+    enabled: !isProfessional,
+  });
+
+  const professionalMap = useMemo(() => {
+    return Object.fromEntries(professionals.map((p) => [p.id, p.name]));
+  }, [professionals]);
+
   const filtered = useMemo(() => {
     return appointments.filter((a) => {
       const matchSearch =
@@ -90,9 +108,11 @@ export const AppointmentsPage = () => {
         a.clientPhone.includes(search) ||
         a.title.toLowerCase().includes(search.toLowerCase());
       const matchStatus = statusFilter === 'ALL' || a.status === statusFilter;
-      return matchSearch && matchStatus;
+      const matchProfessional =
+        professionalFilter === 'ALL' || a.professionalId === professionalFilter;
+      return matchSearch && matchStatus && matchProfessional;
     });
-  }, [appointments, search, statusFilter]);
+  }, [appointments, search, statusFilter, professionalFilter]);
 
   const createMutation = useMutation({
     mutationFn: appointmentService.create,
@@ -134,6 +154,7 @@ export const AppointmentsPage = () => {
       startAt: toLocalInput(apt.startAt),
       endAt: apt.endAt ? toLocalInput(apt.endAt) : '',
       notes: apt.notes ?? '',
+      professionalId: apt.professionalId ?? '',
     });
     setIsModalOpen(true);
   };
@@ -153,6 +174,7 @@ export const AppointmentsPage = () => {
       startAt: new Date(form.startAt).toISOString(),
       endAt: form.endAt ? new Date(form.endAt).toISOString() : undefined,
       notes: form.notes || undefined,
+      professionalId: form.professionalId || undefined,
     };
 
     if (editingId) {
@@ -165,9 +187,12 @@ export const AppointmentsPage = () => {
   const isPending = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <PageLayout title="Agendamentos" subtitle="Gerencie os agendamentos da sua empresa">
+    <PageLayout
+      title="Agendamentos"
+      subtitle={isProfessional ? 'Sua agenda de atendimentos' : 'Gerencie os agendamentos da sua empresa'}
+    >
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-        <div className="flex gap-3 w-full sm:w-auto">
+        <div className="flex flex-wrap gap-3 w-full sm:w-auto">
           <div className="relative flex-1 sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -190,11 +215,28 @@ export const AppointmentsPage = () => {
               <option value="CANCELLED">Cancelado</option>
             </select>
           </div>
+          {!isProfessional && professionals.length > 0 && (
+            <div className="relative w-48">
+              <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+              <select
+                className="w-full pl-9 pr-4 py-2 h-10 bg-white border border-outline-variant rounded-xl text-sm focus:outline-none focus:border-primary/50 appearance-none cursor-pointer"
+                value={professionalFilter}
+                onChange={(e) => setProfessionalFilter(e.target.value)}
+              >
+                <option value="ALL">Todos profissionais</option>
+                {professionals.map((p) => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
-        <Button onClick={openCreate} className="flex items-center gap-2 whitespace-nowrap">
-          <Plus className="w-4 h-4" />
-          Novo Agendamento
-        </Button>
+        {!isProfessional && (
+          <Button onClick={openCreate} className="flex items-center gap-2 whitespace-nowrap">
+            <Plus className="w-4 h-4" />
+            Novo Agendamento
+          </Button>
+        )}
       </div>
 
       <Card variant="base" className="overflow-hidden">
@@ -209,6 +251,8 @@ export const AppointmentsPage = () => {
             <p className="text-sm mt-1 opacity-60">
               {search || statusFilter !== 'ALL'
                 ? 'Tente ajustar os filtros.'
+                : isProfessional
+                ? 'Você não tem agendamentos ainda.'
                 : 'Clique em "Novo Agendamento" para começar.'}
             </p>
           </div>
@@ -219,10 +263,13 @@ export const AppointmentsPage = () => {
                 <tr>
                   <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Cliente</th>
                   <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Serviço</th>
+                  {!isProfessional && professionals.length > 0 && (
+                    <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Profissional</th>
+                  )}
                   <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Data / Hora</th>
                   <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Status</th>
                   <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Notif.</th>
-                  <th className="px-6 py-4" />
+                  {!isProfessional && <th className="px-6 py-4" />}
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/10">
@@ -245,6 +292,15 @@ export const AppointmentsPage = () => {
                     <td className="px-6 py-5">
                       <span className="text-sm font-medium">{apt.title}</span>
                     </td>
+                    {!isProfessional && professionals.length > 0 && (
+                      <td className="px-6 py-5">
+                        {apt.professionalId && professionalMap[apt.professionalId] ? (
+                          <span className="text-sm text-muted-foreground">{professionalMap[apt.professionalId]}</span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground/40">—</span>
+                        )}
+                      </td>
+                    )}
                     <td className="px-6 py-5">
                       <div className="flex flex-col">
                         <span className="text-sm font-semibold">
@@ -269,22 +325,24 @@ export const AppointmentsPage = () => {
                         <BellOff className="w-4 h-4 text-muted-foreground/40" title="Não notificado" />
                       )}
                     </td>
-                    <td className="px-6 py-5">
-                      <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={() => openEdit(apt)}
-                          className="p-2 rounded-lg hover:bg-surface-container text-muted-foreground hover:text-primary transition-colors"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => setDeleteId(apt.id)}
-                          className="p-2 rounded-lg hover:bg-surface-container text-muted-foreground hover:text-red-500 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
+                    {!isProfessional && (
+                      <td className="px-6 py-5">
+                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => openEdit(apt)}
+                            className="p-2 rounded-lg hover:bg-surface-container text-muted-foreground hover:text-primary transition-colors"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setDeleteId(apt.id)}
+                            className="p-2 rounded-lg hover:bg-surface-container text-muted-foreground hover:text-red-500 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -314,6 +372,21 @@ export const AppointmentsPage = () => {
                     placeholder="Ex: Consulta, Corte, Treino..."
                   />
                 </div>
+                {professionals.length > 0 && (
+                  <div className="space-y-1.5 col-span-2">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Profissional</label>
+                    <select
+                      className="w-full px-4 py-2 h-10 bg-white border border-outline-variant rounded-xl text-sm focus:outline-none focus:border-primary/50"
+                      value={form.professionalId}
+                      onChange={(e) => setForm(f => ({ ...f, professionalId: e.target.value }))}
+                    >
+                      <option value="">Sem profissional</option>
+                      {professionals.map((p) => (
+                        <option key={p.id} value={p.id}>{p.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Nome do Cliente</label>
                   <Input

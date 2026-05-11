@@ -52,6 +52,7 @@ import { DeleteAppointmentUseCase } from "../../usecase/appointment/delete-appoi
 import { ConfirmAppointmentUseCase } from "../../usecase/appointment/confirm-appointment.usecase";
 import { CancelAppointmentUseCase } from "../../usecase/appointment/cancel-appointment.usecase";
 import { NotifyUpcomingAppointmentsUseCase } from "../../usecase/appointment/notify-upcoming-appointments.usecase";
+import { InviteProfessionalUserUseCase } from "../../usecase/appointment/invite-professional-user.usecase";
 import { RegisterUserUseCase } from "../../usecase/auth/register-user.usecase";
 import { LoginUseCase } from "../../usecase/auth/login.usecase";
 import { AuthenticateGoogleUseCase } from "../../usecase/auth/authenticate-google.usecase";
@@ -229,6 +230,11 @@ const getUseCase = {
 
     manageProfessionals: () => new ManageProfessionalsUseCase(getRepo.professional()),
     manageBotConfig: () => new ManageBotConfigUseCase(getRepo.companyConfig()),
+    inviteProfessionalUser: () => new InviteProfessionalUserUseCase(
+        getRepo.professional(),
+        getRepo.user(),
+        getUseCase.sendEmailVerification()
+    ),
 
     checkExpiredSubscriptions: () => new CheckExpiredSubscriptionsUseCase(
         getRepo.subscription(),
@@ -266,7 +272,8 @@ export const factory = {
             getUseCase.updateUserConfig(),
             getRepo.user(),
             getRepo.company(),
-            getRepo.companyConfig()
+            getRepo.companyConfig(),
+            getRepo.professional()
         ),
         company: () => new CompanyController(
             adapterInstance,
@@ -318,7 +325,8 @@ export const factory = {
         professional: () => new ProfessionalController(
             adapterInstance,
             getUseCase.manageProfessionals(),
-            getUseCase.manageBotConfig()
+            getUseCase.manageBotConfig(),
+            getUseCase.inviteProfessionalUser()
         ),
         admin: () => new AdminController(adapterInstance),
     },

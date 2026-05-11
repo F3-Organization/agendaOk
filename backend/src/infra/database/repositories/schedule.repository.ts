@@ -25,6 +25,13 @@ export class ScheduleRepository implements IScheduleRepository {
         });
     }
 
+    async findByProfessionalId(professionalId: string): Promise<Schedule[]> {
+        return await this.repository.find({
+            where: { professionalId },
+            order: { startAt: "DESC" },
+        });
+    }
+
     async findUpcomingForNotification(companyId: string, from: Date, to: Date): Promise<Schedule[]> {
         return await this.repository.find({
             where: {

@@ -15,6 +15,7 @@ const AppointmentBodySchema = z.object({
     startAt: z.string().datetime(),
     endAt: z.string().datetime().optional(),
     notes: z.string().optional(),
+    professionalId: z.string().uuid().optional(),
 });
 
 export class AppointmentController {
@@ -35,7 +36,9 @@ export class AppointmentController {
             async (request: FastifyRequest, reply: FastifyReply) => {
                 const user = request.user as AuthUserPayload;
                 if (!user.companyId) return reply.code(400).send({ error: "No company selected" });
-                const appointments = await this.getAppointments.execute(user.companyId);
+
+                const professionalId = user.role === "PROFESSIONAL" ? user.professionalId : undefined;
+                const appointments = await this.getAppointments.execute(user.companyId, professionalId);
                 return reply.send(appointments);
             }
         );
@@ -46,21 +49,23 @@ export class AppointmentController {
             async (request: FastifyRequest, reply: FastifyReply) => {
                 const user = request.user as AuthUserPayload;
                 if (!user.companyId) return reply.code(400).send({ error: "No company selected" });
+                if (user.role === "PROFESSIONAL") return reply.code(403).send({ error: "Professionals cannot create appointments" });
 
                 const parseResult = AppointmentBodySchema.safeParse(request.body);
                 if (!parseResult.success) {
                     return reply.code(400).send({ error: "Validation failed", details: parseResult.error.format() });
                 }
 
-                const { clientName, clientPhone, title, startAt, endAt, notes } = parseResult.data;
+                const { clientName, clientPhone, title, startAt, endAt, notes, professionalId } = parseResult.data;
                 const appointment = await this.createAppointment.execute({
                     companyId: user.companyId,
                     clientName,
                     clientPhone,
                     title,
                     startAt: new Date(startAt),
-                    endAt: endAt ? new Date(endAt) : undefined,
-                    notes,
+                    ...(endAt ? { endAt: new Date(endAt) } : {}),
+                    ...(notes ? { notes } : {}),
+                    ...(professionalId ? { professionalId } : {}),
                 });
                 return reply.code(201).send(appointment);
             }
@@ -72,6 +77,7 @@ export class AppointmentController {
             async (request: FastifyRequest, reply: FastifyReply) => {
                 const user = request.user as AuthUserPayload;
                 if (!user.companyId) return reply.code(400).send({ error: "No company selected" });
+                if (user.role === "PROFESSIONAL") return reply.code(403).send({ error: "Professionals cannot edit appointments" });
 
                 const { id } = request.params as { id: string };
                 const schema = AppointmentBodySchema.partial().extend({
@@ -83,12 +89,13 @@ export class AppointmentController {
                     return reply.code(400).send({ error: "Validation failed", details: parseResult.error.format() });
                 }
 
-                const data = parseResult.data;
-                await this.updateAppointment.execute(id, user.companyId, {
-                    ...data,
-                    startAt: data.startAt ? new Date(data.startAt) : undefined,
-                    endAt: data.endAt ? new Date(data.endAt) : undefined,
-                });
+                const { startAt: rawStart, endAt: rawEnd, professionalId: pid, ...rest } = parseResult.data;
+                const updateData: Record<string, unknown> = {};
+                for (const [k, v] of Object.entries(rest)) if (v !== undefined) updateData[k] = v;
+                if (rawStart) updateData.startAt = new Date(rawStart);
+                if (rawEnd) updateData.endAt = new Date(rawEnd);
+                if (pid) updateData.professionalId = pid;
+                await this.updateAppointment.execute(id, user.companyId, updateData as any);
                 return reply.send({ message: "Appointment updated" });
             }
         );
@@ -99,6 +106,7 @@ export class AppointmentController {
             async (request: FastifyRequest, reply: FastifyReply) => {
                 const user = request.user as AuthUserPayload;
                 if (!user.companyId) return reply.code(400).send({ error: "No company selected" });
+                if (user.role === "PROFESSIONAL") return reply.code(403).send({ error: "Professionals cannot delete appointments" });
 
                 const { id } = request.params as { id: string };
                 await this.deleteAppointment.execute(id, user.companyId);

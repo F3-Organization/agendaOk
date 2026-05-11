@@ -9,6 +9,7 @@ export interface CreateAppointmentInput {
     startAt: Date;
     endAt?: Date;
     notes?: string;
+    professionalId?: string;
 }
 
 export class CreateAppointmentUseCase {
@@ -21,8 +22,9 @@ export class CreateAppointmentUseCase {
             clientPhone: input.clientPhone.replace(/\D/g, ""),
             title: input.title,
             startAt: input.startAt,
-            endAt: input.endAt,
-            notes: input.notes,
+            ...(input.endAt !== undefined ? { endAt: input.endAt } : {}),
+            ...(input.notes !== undefined ? { notes: input.notes } : {}),
+            ...(input.professionalId !== undefined ? { professionalId: input.professionalId } : {}),
             status: ScheduleStatus.PENDING,
             isNotified: false,
         });

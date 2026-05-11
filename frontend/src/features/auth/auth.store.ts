@@ -9,6 +9,7 @@ interface User {
   name: string;
   email: string;
   role: string;
+  professionalId?: string;
   config: {
     whatsappNumber: string | null;
     silentWindowStart: string;

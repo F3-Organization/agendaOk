@@ -1,7 +1,9 @@
 import { FastifyReply, FastifyRequest } from "fastify";
+import { z } from "zod";
 import { FastifyAdapter } from "../adapters/fastfy.adapter";
 import { ManageProfessionalsUseCase } from "../../usecase/company/manage-professionals.usecase";
 import { ManageBotConfigUseCase } from "../../usecase/company/manage-bot-config.usecase";
+import { InviteProfessionalUserUseCase } from "../../usecase/appointment/invite-professional-user.usecase";
 import { AuthUserPayload } from "../types/auth.types";
 import {
     createProfessionalSchema,
@@ -21,7 +23,8 @@ export class ProfessionalController {
     constructor(
         private readonly fastify: FastifyAdapter,
         private readonly manageProfessionals: ManageProfessionalsUseCase,
-        private readonly manageBotConfig: ManageBotConfigUseCase
+        private readonly manageBotConfig: ManageBotConfigUseCase,
+        private readonly inviteProfessionalUser: InviteProfessionalUserUseCase
     ) {
         this.fastify.logInfo("[ProfessionalController] Initializing...");
         this.registerRoutes();
@@ -88,6 +91,26 @@ export class ProfessionalController {
                 reply.code(400).send({ error: "Failed to update professional", message: error.message });
             }
         }, updateProfessionalSwaggerSchema);
+
+        // POST /company/professionals/:id/invite
+        this.fastify.addProtectedRoute("POST", "/company/professionals/:id/invite", async (request: FastifyRequest, reply: FastifyReply) => {
+            const user = request.user as AuthUserPayload;
+            if (!user.companyId) return reply.code(400).send({ error: "Company not selected" });
+            const { id } = request.params as { id: string };
+
+            const parseResult = z.object({ email: z.string().email() }).safeParse(request.body);
+            if (!parseResult.success) {
+                return reply.code(400).send({ error: "Validation failed", details: parseResult.error.format() });
+            }
+
+            try {
+                const result = await this.inviteProfessionalUser.execute(id, user.companyId, parseResult.data.email);
+                reply.send(result);
+            } catch (error: any) {
+                const status = error.statusCode ?? 400;
+                reply.code(status).send({ error: error.message });
+            }
+        });
 
         // DELETE /company/professionals/:id
         this.fastify.addProtectedRoute("DELETE", "/company/professionals/:id", async (request: FastifyRequest, reply: FastifyReply) => {

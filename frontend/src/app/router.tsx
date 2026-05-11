@@ -28,6 +28,8 @@ export const AppRouter = () => {
   const selectedCompany = useAuthStore((state) => state.selectedCompany);
   const user = useAuthStore((state) => state.user);
   const isAdmin = isAuthenticated && user?.role === 'ADMIN';
+  const isProfessional = isAuthenticated && user?.role === 'PROFESSIONAL';
+  const hasCompany = !!selectedCompany || isProfessional;
 
   return (
     <Routes>
@@ -55,12 +57,12 @@ export const AppRouter = () => {
         element={isAuthenticated ? <CheckoutPage /> : <Navigate to="/login" />}
       />
 
-      {/* Protected routes — require authenticated + selectedCompany */}
+      {/* Protected routes — require authenticated + hasCompany */}
       <Route
         path="/dashboard"
         element={
           isAuthenticated
-            ? selectedCompany
+            ? hasCompany
               ? <DashboardPage />
               : <Navigate to="/select-company" />
             : <Navigate to="/login" />
@@ -70,7 +72,7 @@ export const AppRouter = () => {
         path="/appointments"
         element={
           isAuthenticated
-            ? selectedCompany
+            ? hasCompany
               ? <AppointmentsPage />
               : <Navigate to="/select-company" />
             : <Navigate to="/login" />
@@ -80,7 +82,7 @@ export const AppRouter = () => {
         path="/whatsapp"
         element={
           isAuthenticated
-            ? selectedCompany
+            ? hasCompany
               ? <WhatsAppPage />
               : <Navigate to="/select-company" />
             : <Navigate to="/login" />
@@ -90,7 +92,7 @@ export const AppRouter = () => {
         path="/subscription"
         element={
           isAuthenticated
-            ? selectedCompany
+            ? hasCompany
               ? <SubscriptionPage />
               : <Navigate to="/select-company" />
             : <Navigate to="/login" />
@@ -100,7 +102,7 @@ export const AppRouter = () => {
         path="/settings"
         element={
           isAuthenticated
-            ? selectedCompany
+            ? hasCompany
               ? <SettingsPage />
               : <Navigate to="/select-company" />
             : <Navigate to="/login" />
@@ -110,7 +112,7 @@ export const AppRouter = () => {
         path="/company/settings"
         element={
           isAuthenticated
-            ? selectedCompany
+            ? hasCompany
               ? <CompanySettingsPage />
               : <Navigate to="/select-company" />
             : <Navigate to="/login" />
@@ -120,7 +122,7 @@ export const AppRouter = () => {
         path="/professionals"
         element={
           isAuthenticated
-            ? selectedCompany
+            ? hasCompany
               ? <ProfessionalsPage />
               : <Navigate to="/select-company" />
             : <Navigate to="/login" />
@@ -130,7 +132,7 @@ export const AppRouter = () => {
         path="/bot-config"
         element={
           isAuthenticated
-            ? selectedCompany
+            ? hasCompany
               ? <BotConfigPage />
               : <Navigate to="/select-company" />
             : <Navigate to="/login" />

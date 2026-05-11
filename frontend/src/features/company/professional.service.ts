@@ -8,6 +8,7 @@ export interface Professional {
   workingHours?: Record<string, Array<{ start: string; end: string }>>;
   appointmentDuration: number;
   active: boolean;
+  userId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -31,6 +32,8 @@ export const professionalService = {
   create: (data: Partial<Professional>) => apiClient.post<Professional>('/company/professionals', data),
   update: (id: string, data: Partial<Professional>) => apiClient.put<void>(`/company/professionals/${id}`, data),
   delete: (id: string) => apiClient.delete(`/company/professionals/${id}`),
+  invite: (id: string, email: string) =>
+    apiClient.post<{ status: string }>(`/company/professionals/${id}/invite`, { email }),
   getBotConfig: async () => {
     const { data } = await apiClient.get<BotConfig>('/company/bot-config');
     return data;

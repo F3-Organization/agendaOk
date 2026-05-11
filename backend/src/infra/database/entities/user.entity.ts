@@ -17,11 +17,11 @@ export class User extends BaseEntity {
 
     @Column({
         type: "enum",
-        enum: ["ADMIN", "USER"],
+        enum: ["ADMIN", "USER", "PROFESSIONAL"],
         default: "USER",
         name: "role"
     })
-    role!: "ADMIN" | "USER";
+    role!: "ADMIN" | "USER" | "PROFESSIONAL";
 
     @Column({ name: "two_factor_enabled", default: false })
     twoFactorEnabled!: boolean;

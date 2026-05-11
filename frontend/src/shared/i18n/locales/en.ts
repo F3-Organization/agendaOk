@@ -587,6 +587,8 @@ export const en = {
     subtitleProfessional: 'Your appointment schedule',
     searchPlaceholder: 'Search by name, phone...',
     filterAll: 'All',
+    filterDateFrom: 'From',
+    filterDateTo: 'To',
     allProfessionals: 'All professionals',
     statuses: {
       pending: 'Pending',
@@ -624,7 +626,7 @@ export const en = {
       endAt: 'End (optional)',
       notes: 'Notes',
       notesPlaceholder: 'Additional information...',
-      noProfessional: 'No professional',
+      selectProfessional: 'Select a professional',
     },
     validation: {
       titleRequired: 'Title is required',
@@ -634,6 +636,7 @@ export const en = {
       startRequired: 'Start date is required',
       startInPast: 'Date cannot be in the past',
       endBeforeStart: 'End must be after start',
+      professionalRequired: 'Professional is required',
     },
   },
   datePicker: {

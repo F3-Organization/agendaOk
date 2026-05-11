@@ -22,6 +22,7 @@ import { Card } from '../shared/ui/Card';
 import { Button } from '../shared/ui/Button';
 import { Input } from '../shared/ui/Input';
 import { DatePicker } from '../shared/ui/DatePicker';
+import { DateInput } from '../shared/ui/DateInput';
 import { useAuthStore } from '../features/auth/auth.store';
 import {
   appointmentService,
@@ -59,6 +60,7 @@ interface FormErrors {
   title?: string;
   startAt?: string;
   endAt?: string;
+  professionalId?: string;
 }
 
 const emptyForm: FormState = {
@@ -80,6 +82,8 @@ export const AppointmentsPage = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | AppointmentStatus>('ALL');
   const [professionalFilter, setProfessionalFilter] = useState('ALL');
+  const [filterDateFrom, setFilterDateFrom] = useState('');
+  const [filterDateTo, setFilterDateTo] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -116,9 +120,12 @@ export const AppointmentsPage = () => {
       const matchStatus = statusFilter === 'ALL' || a.status === statusFilter;
       const matchProfessional =
         professionalFilter === 'ALL' || a.professionalId === professionalFilter;
-      return matchSearch && matchStatus && matchProfessional;
+      const aptDate = a.startAt.slice(0, 10);
+      const matchDateFrom = !filterDateFrom || aptDate >= filterDateFrom;
+      const matchDateTo = !filterDateTo || aptDate <= filterDateTo;
+      return matchSearch && matchStatus && matchProfessional && matchDateFrom && matchDateTo;
     });
-  }, [appointments, search, statusFilter, professionalFilter]);
+  }, [appointments, search, statusFilter, professionalFilter, filterDateFrom, filterDateTo]);
 
   const createMutation = useMutation({
     mutationFn: appointmentService.create,
@@ -201,6 +208,10 @@ export const AppointmentsPage = () => {
       errs.endAt = t('appointmentsPage.validation.endBeforeStart');
     }
 
+    if (professionals.length > 0 && !form.professionalId) {
+      errs.professionalId = t('appointmentsPage.validation.professionalRequired');
+    }
+
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -273,6 +284,18 @@ export const AppointmentsPage = () => {
               </select>
             </div>
           )}
+          <DateInput
+            value={filterDateFrom}
+            onChange={setFilterDateFrom}
+            placeholder={t('appointmentsPage.filterDateFrom')}
+            align="left"
+          />
+          <DateInput
+            value={filterDateTo}
+            onChange={setFilterDateTo}
+            placeholder={t('appointmentsPage.filterDateTo')}
+            align="left"
+          />
         </div>
         {!isProfessional && (
           <Button onClick={openCreate} className="flex items-center gap-2 whitespace-nowrap">
@@ -292,7 +315,7 @@ export const AppointmentsPage = () => {
             <CalendarDays className="w-12 h-12 mx-auto mb-4 opacity-30" />
             <p className="font-medium">{t('appointmentsPage.emptyTitle')}</p>
             <p className="text-sm mt-1 opacity-60">
-              {search || statusFilter !== 'ALL'
+              {search || statusFilter !== 'ALL' || filterDateFrom || filterDateTo
                 ? t('appointmentsPage.emptyFilters')
                 : isProfessional
                 ? t('appointmentsPage.emptyNone')
@@ -418,17 +441,24 @@ export const AppointmentsPage = () => {
                 </div>
                 {professionals.length > 0 && (
                   <div className="space-y-1.5 col-span-2">
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t('appointmentsPage.table.professional')}</label>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                      {t('appointmentsPage.table.professional')} <span className="text-primary">*</span>
+                    </label>
                     <select
-                      className="w-full px-4 py-2 h-10 bg-surface border border-outline-variant/20 rounded-xl text-sm focus:outline-none focus:border-primary/50"
+                      className={`w-full px-4 py-2 h-10 bg-surface border rounded-xl text-sm focus:outline-none focus:border-primary/50 ${errors.professionalId ? 'border-red-500/50' : 'border-outline-variant/20'}`}
                       value={form.professionalId}
-                      onChange={(e) => setForm(f => ({ ...f, professionalId: e.target.value }))}
+                      onChange={(e) => { setForm(f => ({ ...f, professionalId: e.target.value })); setErrors(e => ({ ...e, professionalId: undefined })); }}
                     >
-                      <option value="">{t('appointmentsPage.form.noProfessional')}</option>
+                      <option value="" disabled>{t('appointmentsPage.form.selectProfessional')}</option>
                       {professionals.map((p) => (
                         <option key={p.id} value={p.id}>{p.name}</option>
                       ))}
                     </select>
+                    {errors.professionalId && (
+                      <span className="text-[10px] text-red-400 font-bold flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" />{errors.professionalId}
+                      </span>
+                    )}
                   </div>
                 )}
                 <div className="space-y-1.5">

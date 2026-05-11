@@ -587,6 +587,8 @@ export const pt = {
     subtitleProfessional: 'Sua agenda de atendimentos',
     searchPlaceholder: 'Buscar por nome, telefone...',
     filterAll: 'Todos',
+    filterDateFrom: 'De',
+    filterDateTo: 'Até',
     allProfessionals: 'Todos profissionais',
     statuses: {
       pending: 'Pendente',
@@ -624,7 +626,7 @@ export const pt = {
       endAt: 'Fim (opcional)',
       notes: 'Observações',
       notesPlaceholder: 'Informações adicionais...',
-      noProfessional: 'Sem profissional',
+      selectProfessional: 'Selecione um profissional',
     },
     validation: {
       titleRequired: 'Título é obrigatório',
@@ -634,6 +636,7 @@ export const pt = {
       startRequired: 'Data de início é obrigatória',
       startInPast: 'A data não pode ser no passado',
       endBeforeStart: 'O fim deve ser após o início',
+      professionalRequired: 'Profissional é obrigatório',
     },
   },
   datePicker: {

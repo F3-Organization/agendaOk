@@ -36,6 +36,10 @@ export class ProfessionalRepository implements IProfessionalRepository {
         return await this.repository.findOneBy({ userId });
     }
 
+    async findByInvitedEmail(email: string): Promise<Professional | null> {
+        return await this.repository.findOneBy({ invitedEmail: email });
+    }
+
     async update(id: string, companyId: string, data: Partial<Professional>): Promise<void> {
         await this.repository.update({ id, companyId }, data);
     }

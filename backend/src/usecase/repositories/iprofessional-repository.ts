@@ -6,6 +6,7 @@ export interface IProfessionalRepository {
     findByCompanyId(companyId: string): Promise<Professional[]>;
     findActiveByCompanyId(companyId: string): Promise<Professional[]>;
     findByUserId(userId: string): Promise<Professional | null>;
+    findByInvitedEmail(email: string): Promise<Professional | null>;
     update(id: string, companyId: string, data: Partial<Professional>): Promise<void>;
     delete(id: string, companyId: string): Promise<void>;
 }

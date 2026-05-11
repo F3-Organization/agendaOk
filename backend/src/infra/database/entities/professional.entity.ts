@@ -15,6 +15,9 @@ export class Professional extends BaseEntity {
     @Column({ name: "user_id", type: "uuid", nullable: true, unique: true })
     userId?: string;
 
+    @Column({ name: "invited_email", type: "varchar", nullable: true })
+    invitedEmail?: string;
+
     @Column()
     name!: string;
 

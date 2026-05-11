@@ -275,7 +275,17 @@ export class AuthController {
 
         // PROFESSIONAL: auto-resolve company and professional from linked record
         if (user.role === "PROFESSIONAL") {
-            const professional = await this.professionalRepo.findByUserId(user.id);
+            let professional = await this.professionalRepo.findByUserId(user.id);
+
+            // First login: link userId permanently using the invited email
+            if (!professional) {
+                professional = await this.professionalRepo.findByInvitedEmail(user.email);
+                if (professional) {
+                    await this.professionalRepo.update(professional.id, professional.companyId, { userId: user.id });
+                    professional.userId = user.id;
+                }
+            }
+
             if (!professional) {
                 return reply.code(403).send({ error: "Conta profissional não vinculada a nenhum profissional." });
             }

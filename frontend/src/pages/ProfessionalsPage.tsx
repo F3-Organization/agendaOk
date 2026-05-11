@@ -283,6 +283,21 @@ export const ProfessionalsPage = () => {
                 <div className="flex items-center gap-1.5 text-xs text-green-600 mt-3 pt-3 border-t border-outline-variant/20">
                   <CheckCircle2 className="w-3.5 h-3.5" /> Conta vinculada
                 </div>
+              ) : p.invitedEmail ? (
+                <div className="flex items-start justify-between gap-2 mt-3 pt-3 border-t border-outline-variant/20">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="flex items-center gap-1.5 text-xs text-yellow-600">
+                      <Clock className="w-3.5 h-3.5 flex-shrink-0" /> Convite enviado
+                    </span>
+                    <span className="text-[10px] text-muted-foreground truncate max-w-[120px]">{p.invitedEmail}</span>
+                  </div>
+                  <button
+                    onClick={() => { setInviteId(p.id); setInviteEmail(p.invitedEmail ?? ''); }}
+                    className="text-[10px] font-semibold text-primary hover:underline whitespace-nowrap"
+                  >
+                    Reenviar / Alterar
+                  </button>
+                </div>
               ) : (
                 <div className="flex items-center gap-2 pt-3 border-t border-outline-variant/20 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
@@ -504,7 +519,7 @@ export const ProfessionalsPage = () => {
             <div className="p-6 border-b border-outline-variant/30">
               <h2 className="text-lg font-bold tracking-tight">Vincular Conta de Acesso</h2>
               <p className="text-sm text-muted-foreground mt-1">
-                O profissional receberá um email para criar sua senha e acessar a agenda.
+                O profissional receberá um email para criar sua senha e acessar a agenda. Você pode reenviar ou alterar o email a qualquer momento.
               </p>
             </div>
             <div className="p-6 space-y-4">

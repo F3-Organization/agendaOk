@@ -30,6 +30,7 @@ export const listProfessionalsSchema = {
                     specialty: { type: "string" as const, nullable: true },
                     active: { type: "boolean" as const },
                     userId: { type: "string" as const, format: "uuid", nullable: true },
+                    invitedEmail: { type: "string" as const, nullable: true },
                     appointmentDuration: { type: "number" as const },
                     workingHours: workingHoursResponseSchema,
                 }

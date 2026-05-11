@@ -9,6 +9,7 @@ export interface Professional {
   appointmentDuration: number;
   active: boolean;
   userId?: string;
+  invitedEmail?: string;
   createdAt: string;
   updatedAt: string;
 }

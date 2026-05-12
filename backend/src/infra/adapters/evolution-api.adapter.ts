@@ -138,7 +138,8 @@ export class EvolutionApiAdapter implements IEvolutionService {
                 url,
                 events: [
                     "MESSAGES_UPSERT",
-                    "MESSAGES_UPDATE"
+                    "MESSAGES_UPDATE",
+                    "CONNECTION_UPDATE"
                 ]
             }
         });

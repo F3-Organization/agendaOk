@@ -5,6 +5,7 @@ export interface ICompanyConfigRepository {
     findByCompanyId(companyId: string): Promise<CompanyConfig | null>;
     findByInstanceName(instanceName: string): Promise<CompanyConfig | null>;
     findByWhatsappNumber(number: string): Promise<CompanyConfig | null>;
+    findByWhatsappLid(lid: string): Promise<CompanyConfig | null>;
     findByLastMessageId(messageId: string): Promise<CompanyConfig | null>;
     findAllActive(): Promise<CompanyConfig[]>;
     updateByCompanyId(companyId: string, data: Partial<CompanyConfig>): Promise<void>;

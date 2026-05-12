@@ -97,7 +97,7 @@ export class HandleEvolutionWebhookUseCase {
 
         const isDirectResponse = this.isConfirmation(text) || this.isCancellation(text);
 
-        if (!isDirectResponse && isWithinSilentWindow(config.silentWindowStart ?? "23:59", config.silentWindowEnd ?? "08:00")) {
+        if (!isDirectResponse && isWithinSilentWindow(config.silentWindowStart ?? "22:00", config.silentWindowEnd ?? "08:00")) {
             return;
         }
 
@@ -195,7 +195,13 @@ export class HandleEvolutionWebhookUseCase {
         }
 
         if (!config) {
-            config = await this.companyConfigRepository.findByWhatsappNumber(fullJid);
+            // Try LID-based lookup first, then fall back to phone number
+            if (fullJid.includes("@lid")) {
+                config = await this.companyConfigRepository.findByWhatsappLid(fullJid);
+            } else {
+                config = await this.companyConfigRepository.findByWhatsappNumber(phoneNumber);
+            }
+
             if (!config) {
                 config = await this.companyConfigRepository.findByWhatsappNumber(phoneNumber);
             }
@@ -236,6 +242,6 @@ export class HandleEvolutionWebhookUseCase {
     }
 
     private normalizeNumber(number: string): string {
-        return number.replace(/\D/g, "").replace(/^55/, "");
+        return number.replace(/\D/g, "");
     }
 }

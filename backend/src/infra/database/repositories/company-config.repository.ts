@@ -26,6 +26,10 @@ export class CompanyConfigRepository implements ICompanyConfigRepository {
         return await this.repository.findOneBy({ whatsappNumber: number });
     }
 
+    async findByWhatsappLid(lid: string): Promise<CompanyConfig | null> {
+        return await this.repository.findOneBy({ whatsappLid: lid });
+    }
+
     async findByLastMessageId(messageId: string): Promise<CompanyConfig | null> {
         return await this.repository.findOneBy({ lastMessageId: messageId });
     }

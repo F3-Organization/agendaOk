@@ -5,6 +5,7 @@ import { ICompanyConfigRepository } from "../../usecase/repositories/icompany-co
 import { EvolutionWebhookSchema } from "../../../../shared/schemas/evolution.schema";
 import { decrypt } from "../../shared/utils/cryptography";
 import { evolutionWebhookSchema } from "./schemas/webhook.swagger";
+import { env } from "../config/configs";
 
 export class EvolutionWebhookController {
     constructor(
@@ -33,16 +34,21 @@ export class EvolutionWebhookController {
             const payload = parseResult.data;
             
             try {
-                const config = await this.companyConfigRepository.findByInstanceName(payload.instance);
-                if (!config?.whatsappInstanceToken) {
-                    this.fastify.logInfo("[EvolutionWebhookController] No config/token found for instance", { instance: payload.instance });
-                    return reply.code(401).send({ error: "Unauthorized webhook call" });
-                }
+                // System bot instance bypasses token validation — it has no CompanyConfig
+                const isSystemBot = payload.instance === env.evolution.systemBotInstance;
 
-                const storedToken = decrypt(config.whatsappInstanceToken);
-                if (payload.apikey !== storedToken) {
-                    this.fastify.logInfo("[EvolutionWebhookController] Token mismatch", { instance: payload.instance });
-                    return reply.code(401).send({ error: "Unauthorized webhook call" });
+                if (!isSystemBot) {
+                    const config = await this.companyConfigRepository.findByInstanceName(payload.instance);
+                    if (!config?.whatsappInstanceToken) {
+                        this.fastify.logInfo("[EvolutionWebhookController] No config/token found for instance", { instance: payload.instance });
+                        return reply.code(401).send({ error: "Unauthorized webhook call" });
+                    }
+
+                    const storedToken = decrypt(config.whatsappInstanceToken);
+                    if (payload.apikey !== storedToken) {
+                        this.fastify.logInfo("[EvolutionWebhookController] Token mismatch", { instance: payload.instance });
+                        return reply.code(401).send({ error: "Unauthorized webhook call" });
+                    }
                 }
 
                 // Processamento assíncrono para não travar o webhook

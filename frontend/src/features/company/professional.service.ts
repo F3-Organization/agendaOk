@@ -23,6 +23,8 @@ export interface BotConfig {
   workingHours?: Record<string, Array<{ start: string; end: string }>>;
   servicesOffered?: string[];
   botEnabled?: boolean;
+  hasWhatsappNumber?: boolean;
+  hasBusinessDescription?: boolean;
 }
 
 export const professionalService = {

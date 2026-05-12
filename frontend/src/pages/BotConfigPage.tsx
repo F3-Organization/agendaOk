@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -22,10 +22,13 @@ import {
   Building,
   UtensilsCrossed,
   MoreHorizontal,
+  AlertTriangle,
+  Phone,
 } from 'lucide-react';
 import { PageLayout } from '../shared/ui/PageLayout';
 import { Card } from '../shared/ui/Card';
 import { Button } from '../shared/ui/Button';
+import { useNavigate } from 'react-router-dom';
 import { professionalService, type BotConfig } from '../features/company/professional.service';
 
 const BUSINESS_TYPES = [
@@ -40,6 +43,7 @@ const BUSINESS_TYPES = [
 export const BotConfigPage = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [form, setForm] = useState<BotConfig>({});
   const [newService, setNewService] = useState('');
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -73,8 +77,42 @@ export const BotConfigPage = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Prevent saving with botEnabled if prerequisites are not met
+    if (form.botEnabled && missingPrerequisites.length > 0) {
+      showToast('error', t('botConfig.prerequisites.cannotSave', 'Preencha os pré-requisitos obrigatórios antes de ativar o bot.'));
+      return;
+    }
+
     saveMutation.mutate(form);
   };
+
+  // Compute prerequisites from the server-side flags + local form state
+  const missingPrerequisites = useMemo(() => {
+    const missing: Array<{ key: string; label: string; action?: () => void }> = [];
+
+    // WhatsApp number: always use the server flag since it can't be set on this page
+    if (!config?.hasWhatsappNumber) {
+      missing.push({
+        key: 'whatsapp',
+        label: t('botConfig.prerequisites.whatsappNumber', 'Número de WhatsApp da empresa'),
+        action: () => navigate('/whatsapp'),
+      });
+    }
+
+    // Business description: check local form state (user might have just filled it in)
+    const hasDescription = !!(form.businessDescription?.trim());
+    if (!hasDescription) {
+      missing.push({
+        key: 'description',
+        label: t('botConfig.prerequisites.businessDescription', 'Descrição do negócio'),
+      });
+    }
+
+    return missing;
+  }, [config?.hasWhatsappNumber, form.businessDescription, t, navigate]);
+
+  const canEnableBot = missingPrerequisites.length === 0;
 
   const addService = () => {
     if (newService.trim()) {
@@ -126,8 +164,14 @@ export const BotConfigPage = () => {
               </div>
               <button
                 type="button"
-                onClick={() => setForm({ ...form, botEnabled: !form.botEnabled })}
-                className="transition-transform hover:scale-110"
+                onClick={() => {
+                  if (!form.botEnabled && !canEnableBot) {
+                    showToast('error', t('botConfig.prerequisites.cannotEnable', 'Configure os itens obrigatórios antes de ativar o bot.'));
+                    return;
+                  }
+                  setForm({ ...form, botEnabled: !form.botEnabled });
+                }}
+                className={`transition-transform hover:scale-110 ${!canEnableBot && !form.botEnabled ? 'opacity-40 cursor-not-allowed' : ''}`}
               >
                 {form.botEnabled ? (
                   <ToggleRight className="w-10 h-10 text-green-500" />
@@ -137,7 +181,50 @@ export const BotConfigPage = () => {
               </button>
             </div>
 
-            {!form.botEnabled && (
+            {!form.botEnabled && !canEnableBot && (
+              <div className="mt-6 p-5 rounded-xl bg-amber-500/10 border border-amber-500/20 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                    <AlertTriangle className="w-5 h-5 text-amber-500" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-bold text-amber-500 mb-2">
+                      {t('botConfig.prerequisites.title', 'Pré-requisitos para ativar o bot')}
+                    </h4>
+                    <p className="text-xs text-muted-foreground mb-4">
+                      {t('botConfig.prerequisites.subtitle', 'Para ativar o bot de autoatendimento, é necessário configurar os seguintes itens:')}
+                    </p>
+                    <ul className="space-y-2">
+                      {missingPrerequisites.map(prereq => (
+                        <li key={prereq.key} className="flex items-center gap-3 text-sm">
+                          <div className="w-5 h-5 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
+                            {prereq.key === 'whatsapp' ? (
+                              <Phone className="w-3 h-3 text-amber-500" />
+                            ) : (
+                              <FileText className="w-3 h-3 text-amber-500" />
+                            )}
+                          </div>
+                          <span className="text-foreground/80 font-medium">{prereq.label}</span>
+                          {prereq.action && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="ml-auto text-[10px] font-bold uppercase tracking-widest text-amber-500 hover:bg-amber-500/10 px-3 h-7"
+                              onClick={prereq.action}
+                            >
+                              {t('botConfig.prerequisites.configure', 'Configurar')}
+                            </Button>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {!form.botEnabled && canEnableBot && (
               <div className="mt-6 p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
                 <p className="text-xs text-yellow-500 font-medium">
                   ⚠️ O bot está desativado. As mensagens serão tratadas apenas pelo sistema de confirmação por palavras-chave.

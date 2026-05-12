@@ -34,6 +34,8 @@ export class ManageBotConfigUseCase {
             workingHours: config.workingHours || {},
             servicesOffered: config.servicesOffered || [],
             botEnabled: config.botEnabled ?? true,
+            hasWhatsappNumber: !!config.whatsappNumber,
+            hasBusinessDescription: !!config.businessDescription?.trim(),
         };
     }
 
@@ -41,6 +43,20 @@ export class ManageBotConfigUseCase {
         const config = await this.companyConfigRepository.findByCompanyId(input.companyId);
         if (!config) {
             throw new Error("Company config not found");
+        }
+
+        // Validate prerequisites when enabling the bot
+        if (input.botEnabled === true) {
+            const effectiveDescription = input.businessDescription !== undefined
+                ? input.businessDescription
+                : config.businessDescription;
+
+            if (!config.whatsappNumber) {
+                throw new Error("É necessário configurar o número de WhatsApp da empresa antes de ativar o bot.");
+            }
+            if (!effectiveDescription?.trim()) {
+                throw new Error("É necessário preencher a descrição do negócio antes de ativar o bot.");
+            }
         }
 
         const data: Partial<CompanyConfig> = {};

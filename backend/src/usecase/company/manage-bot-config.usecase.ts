@@ -33,7 +33,7 @@ export class ManageBotConfigUseCase {
             workingHours: config.workingHours || {},
             servicesOffered: config.servicesOffered || [],
             botEnabled: config.botEnabled ?? true,
-            hasWhatsappNumber: !!config.whatsappNumber,
+            hasWhatsappNumber: !!(config.whatsappNumber || config.whatsappInstanceName),
             hasBusinessDescription: !!config.businessDescription?.trim(),
         };
     }
@@ -51,7 +51,7 @@ export class ManageBotConfigUseCase {
                 ? input.businessDescription
                 : config.businessDescription;
 
-            if (!config.whatsappNumber) {
+            if (!config.whatsappNumber && !config.whatsappInstanceName) {
                 throw new Error(t(locale, "bot.whatsappRequired"));
             }
             if (!effectiveDescription?.trim()) {

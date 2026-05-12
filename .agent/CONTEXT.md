@@ -3,11 +3,12 @@
 Este arquivo serve como o "Norte" (North Star) para o desenvolvimento e operação da ConfirmaZap. Ele fornece a visão de alto nível do projeto e orienta como os demais documentos no diretório `.agent` devem ser interpretados.
 
 ## 1. O que é a ConfirmaZap?
-A **ConfirmaZap** é uma plataforma SaaS **Multi-Tenant** focada em **bot de autoatendimento via WhatsApp** para negócios de serviços (clínicas, estéticas, academias, etc.). A plataforma utiliza **WhatsApp** (via Evolution API) com IA (Gemini) para automatizar agendamentos, confirmações e atendimento ao cliente — com cada usuário pagante podendo operar até **3 empresas independentes** (3 atendentes de WhatsApp distintos).
+A **ConfirmaZap** é uma plataforma SaaS **Multi-Tenant** focada em **bot de autoatendimento via WhatsApp** para negócios de serviços (clínicas, estéticas, academias, etc.). A plataforma utiliza **WhatsApp** (via Evolution API) com IA (Gemini) para automatizar agendamentos, confirmações e atendimento ao cliente — com cada usuário pagante podendo operar até **3 empresas independentes** (3 atendentes de WhatsApp distintos). A aplicação é **internacionalizada (i18n)** com suporte a **Português (pt-BR)** e **Inglês (en)**, tanto no frontend quanto no backend.
 
 ## 2. Objetivo do Sistema
 - **Bot Multi-Tenant:** Cada empresa tem seu próprio atendente WhatsApp com IA, isolado das demais.
 - **Autoatendimento Inteligente:** Clientes finais fazem agendamentos, confirmações e cancelamentos diretamente pelo WhatsApp, sem intervenção humana.
+- **Bot Bilíngue (PT/EN):** O bot detecta automaticamente o idioma do cliente (Português ou Inglês) e responde no mesmo idioma. Palavras-chave de confirmação/cancelamento e respostas automáticas também são bilíngues.
 - **Sincronização com Calendário (opcional):** Integração com Google Calendar disponível para empresas que já usam a plataforma — não é requisito obrigatório.
 - **Escalabilidade:** SaaS robusto com planos Free e PRO, pagamentos via Abacate Pay e gestão de assinaturas.
 
@@ -44,6 +45,7 @@ User (userId)
 - **Isolamento de Dados (Multi-Tenancy):** Rigoroso isolamento por `companyId` em todas as tabelas operacionais. Assinatura isolada por `userId`.
 - **Bot como Cidadão de Primeira Classe:** O fluxo primário de interação é WhatsApp → Bot IA → ação no sistema. Google Calendar é secundário/opcional.
 - **Resiliência:** Filas BullMQ/Redis garantem envio de mensagens mesmo sob falhas. Jobs com falha são retidos (DLQ) para diagnóstico.
+- **Internacionalização (i18n):** Toda a aplicação — frontend (react-i18next), backend (módulo `shared/i18n`) e bot IA — suporta Português e Inglês. Erros do backend são traduzidos via header `Accept-Language`.
 - **Facilidade de Uso:** O profissional conecta seu WhatsApp e habilita o bot em poucos cliques. Google Calendar é configuração adicional, não obrigatória.
 
 ## 6. Guia de Documentos (.agent)
@@ -70,6 +72,9 @@ Este diretório contém a "verdade" técnica e de negócio do projeto, dividida 
 ### Recurso Compartilhado
 - **[shared.md](./shared.md):** Documentação sobre o diretório `/shared` (Zod schemas/Types).
 - **[git-workflow.md](./git-workflow.md):** Padrões de versionamento (Git Flow e Conventional Commits).
+
+### Integrações Externas
+- **[abacatepay-api.md](./abacatepay-api.md):** Documentação completa da API do Abacate Pay (pagamentos, PIX, assinaturas, webhooks).
 
 ## 7. Mentalidade de Desenvolvimento
 Ao trabalhar neste projeto, priorize:

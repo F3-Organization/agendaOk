@@ -1,6 +1,7 @@
 import { IScheduleRepository } from "../repositories/ischedule-repository";
 import { ICompanyConfigRepository } from "../repositories/icompany-config-repository";
 import { IEvolutionService } from "../ports/ievolution-service";
+import { t } from "../../shared/i18n";
 
 export class NotifyUpcomingAppointmentsUseCase {
     constructor(
@@ -27,18 +28,21 @@ export class NotifyUpcomingAppointmentsUseCase {
 
                 for (const schedule of upcoming) {
                     try {
-                        const date = schedule.startAt.toLocaleDateString("pt-BR");
-                        const time = schedule.startAt.toLocaleTimeString("pt-BR", {
+                        const locale = config.locale ?? "pt";
+                        const dateLocale = locale === "en" ? "en-US" : "pt-BR";
+
+                        const date = schedule.startAt.toLocaleDateString(dateLocale);
+                        const time = schedule.startAt.toLocaleTimeString(dateLocale, {
                             hour: "2-digit",
                             minute: "2-digit",
                         });
 
-                        const message =
-                            `🔔 *Lembrete de Agendamento*\n\n` +
-                            `Olá, *${schedule.clientName}*! Você tem um agendamento marcado:\n\n` +
-                            `*${schedule.title}*\n` +
-                            `📅 ${date} às ${time}\n\n` +
-                            `Responda *SIM* para confirmar ou *NÃO* para cancelar.`;
+                        const message = t(locale, "whatsapp.appointmentReminder", {
+                            clientName: schedule.clientName,
+                            title: schedule.title,
+                            date,
+                            time,
+                        });
 
                         const target = schedule.clientPhone.startsWith("55")
                             ? schedule.clientPhone

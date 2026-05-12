@@ -15,6 +15,9 @@ export const pt = {
         currentPasswordRequired: "Senha atual é obrigatória para alterar a senha existente",
         currentPasswordIncorrect: "Senha atual incorreta",
         configNotFound: "Configuração do usuário não encontrada",
+        configUpdated: "Configurações atualizadas com sucesso",
+        passwordChanged: "Senha alterada com sucesso",
+        passwordSet: "Senha definida com sucesso",
     },
 
     company: {
@@ -48,11 +51,96 @@ export const pt = {
         noCompany: "Usuário não possui empresa configurada.",
         missingBillingInfo: "É necessário configurar o número de WhatsApp e CPF/CNPJ antes do checkout.",
         paymentNotFound: "Pagamento não encontrado",
+        userNotFound: "Usuário não encontrado",
+    },
+
+    notification: {
+        configNotFound: "Configuração do usuário não encontrada",
     },
 
     error: {
         internal: "Erro interno do servidor",
         companyNotSelected: "Empresa não selecionada",
         validationFailed: "Falha na validação",
+    },
+
+    whatsapp: {
+        appointmentReminder:
+            "🔔 *Lembrete de Agendamento*\n\n" +
+            "Olá, *{clientName}*! Você tem um agendamento marcado:\n\n" +
+            "*{title}*\n" +
+            "📅 {date} às {time}\n\n" +
+            "Responda *SIM* para confirmar ou *NÃO* para cancelar.",
+        confirmSuccess: "✅ Ótimo! Seu agendamento foi confirmado com sucesso. Te esperamos!",
+        cancelSuccess: "❌ Certo, seu agendamento foi cancelado. Entre em contato para remarcar quando puder.",
+        activationIntro:
+            "🔔 *Ativação ConfirmaZap*\n\n" +
+            "Olá! Para concluir seu vínculo com o sistema e receber alertas de agendamentos e cancelamentos por aqui, precisamos validar sua conta.\n\n" +
+            "👉 *Copie e envie a próxima mensagem abaixo neste chat:*",
+        activationSuccess: "✅ *Vínculo realizado com sucesso!*\n\nAgora você receberá notificações diretamente por aqui.",
+        activationInvalid:
+            "❌ *Código de ativação inválido.*\n\n" +
+            "Não encontrei nenhuma conta com este código no sistema. Verifique se copiou corretamente do seu painel e tente novamente.",
+    },
+
+    email: {
+        verification: {
+            subject: "ConfirmaZap — Seu código de verificação",
+            heading: "Verificação de e-mail",
+            body: "Olá! Use o código abaixo para verificar seu endereço de e-mail e definir sua senha.",
+            expiry: "Este código é válido por <strong>15 minutos</strong>. Se você não solicitou o cadastro, pode ignorar este e-mail.",
+            support: "Caso tenha dúvidas, entre em contato com nosso suporte.",
+        },
+        payment: {
+            subject: "✅ Assinatura {planName} ativada com sucesso!",
+            heading: "Bem-vindo ao {planName}, {userName}!",
+            body: "Seu pagamento foi confirmado. Sua conta agora tem acesso completo a todos os recursos do plano.",
+            statusLabel: "Status",
+            statusValue: "Ativo ✓",
+            cta: "Você já pode configurar seu bot de atendimento WhatsApp, adicionar empresas e começar a automatizar seu atendimento.",
+            nfseEmitted: "Sua Nota Fiscal de Serviço (NFS-e) foi emitida com sucesso e será enviada ao seu e-mail pela prefeitura.",
+            nfsePending: "Sua Nota Fiscal de Serviço (NFS-e) está sendo processada pela prefeitura e será enviada ao seu e-mail em breve.",
+            button: "Acessar o painel",
+            footer: "Obrigado por escolher o {companyName}. Qualquer dúvida, estamos à disposição.",
+        },
+        expired: {
+            subject: "Sua assinatura expirou — renove para continuar",
+            heading: "Olá, {userName}",
+            body: "Identificamos que o prazo de pagamento da sua assinatura expirou ou o checkout foi cancelado.",
+            highlight: "Seu acesso aos recursos do plano PRO foi <strong>suspenso</strong>. Seus dados estão preservados e podem ser recuperados ao renovar.",
+            body2: "Para continuar automatizando seu atendimento, renove sua assinatura diretamente no painel.",
+            button: "Renovar assinatura",
+            support: "Dúvidas? Fale com a gente pelo WhatsApp de suporte.",
+        },
+        refund: {
+            subject: "Reembolso processado — confirmação",
+            heading: "Olá, {userName}",
+            body: "Confirmamos que o reembolso da sua assinatura foi processado com sucesso.",
+            statusLabel: "Status do reembolso",
+            statusValue: "Processado ✓",
+            accessLabel: "Acesso premium",
+            accessValue: "Encerrado",
+            warning: "Se esta ação <strong>não foi solicitada por você</strong>, entre em contato com nosso suporte imediatamente via WhatsApp.",
+            footer: "Agradecemos por ter utilizado o {companyName}.",
+        },
+        trial: {
+            subject: "🎉 Seu período de teste do {planName} foi ativado!",
+            heading: "Olá, {userName}!",
+            body: "Seu período de teste do plano <strong>{planName}</strong> foi ativado com sucesso!",
+            statusLabel: "Status",
+            statusValue: "Período de Teste",
+            durationLabel: "Duração",
+            durationValue: "{trialDays} dias",
+            billingLabel: "Cobrança",
+            billingValue: "Nenhuma durante o teste",
+            highlight: "Você tem <strong>{trialDays} dias</strong> para explorar todas as funcionalidades do plano {planName} sem nenhum custo. Configure seu bot, conecte seu WhatsApp e comece agora.",
+            button: "Começar agora",
+            nfseNote: "A NFS-e será emitida somente após a confirmação do primeiro pagamento ao final do período de teste.",
+        },
+        footer: {
+            help: "Precisa de ajuda? Fale conosco via",
+            whatsapp: "WhatsApp",
+            rights: "Todos os direitos reservados.",
+        },
     },
 };

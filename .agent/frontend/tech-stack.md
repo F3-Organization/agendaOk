@@ -27,6 +27,14 @@ Selected technologies for the full ConfirmaZap ecosystem, optimized for high per
 - **React Hook Form**: Performant form handling with minimal re-renders.
 - **Zod**: Schema validation for form inputs and API response verification.
 
+## Internacionalização (i18n)
+- **react-i18next + i18next**: Biblioteca padrão para internacionalização no React.
+- **Locales suportados:** `pt` (Português BR, padrão) e `en` (Inglês).
+- **Arquivos de tradução:** `frontend/src/shared/i18n/locales/pt.json` e `en.json`.
+- **Detecção de idioma:** Via `i18next-browser-languagedetector` (detecta do navegador).
+- **Integração com API:** O interceptor do Axios envia automaticamente o header `Accept-Language` baseado no idioma ativo do i18next, garantindo que erros do backend sejam retornados no idioma correto.
+- **Toggle de idioma:** Disponível no Sidebar para troca manual entre PT e EN.
+
 ---
 
 ## Documentos Relacionados

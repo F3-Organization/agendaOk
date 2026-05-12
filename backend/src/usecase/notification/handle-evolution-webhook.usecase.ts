@@ -72,8 +72,15 @@ export class HandleEvolutionWebhookUseCase {
         if (config) {
             const updateData: Partial<CompanyConfig> = { whatsappLid: jid };
 
+            // Try to extract the phone number from multiple sources
             if (rawNumber && !rawNumber.includes("@")) {
                 updateData.whatsappNumber = this.normalizeNumber(rawNumber);
+            } else if (jid && jid.includes("@")) {
+                // Extract number from jid format: "5511999999999@s.whatsapp.net"
+                const numberFromJid = jid.split("@")[0];
+                if (numberFromJid && /^\d+$/.test(numberFromJid)) {
+                    updateData.whatsappNumber = this.normalizeNumber(numberFromJid);
+                }
             }
 
             await this.companyConfigRepository.updateByCompanyId(config.companyId, updateData);

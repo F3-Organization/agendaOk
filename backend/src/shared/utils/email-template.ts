@@ -1,10 +1,11 @@
 import { env } from "../../infra/config/configs";
+import { t, type Locale } from "../i18n";
 
 const BRAND_BLUE = "#1d4ed8";
 const BRAND_BLUE_DARK = "#1e3a8a";
 const BRAND_GREEN = "#16a34a";
 
-export function buildEmailTemplate(content: string): string {
+export function buildEmailTemplate(content: string, locale: Locale = "pt"): string {
     const companyName = env.company.name;
     const supportWhatsapp = env.company.supportWhatsapp;
 
@@ -47,10 +48,10 @@ export function buildEmailTemplate(content: string): string {
           <!-- Footer -->
           <tr>
             <td align="center" style="padding:24px 0 8px;color:#94a3b8;font-size:12px;line-height:1.6;">
-              <p style="margin:0 0 4px;">Precisa de ajuda? Fale conosco via
-                <a href="https://wa.me/${supportWhatsapp}" style="color:${BRAND_BLUE};text-decoration:none;font-weight:600;">WhatsApp</a>.
+              <p style="margin:0 0 4px;">${t(locale, "email.footer.help")}
+                <a href="https://wa.me/${supportWhatsapp}" style="color:${BRAND_BLUE};text-decoration:none;font-weight:600;">${t(locale, "email.footer.whatsapp")}</a>.
               </p>
-              <p style="margin:0;color:#cbd5e1;">© ${new Date().getFullYear()} ${companyName}. Todos os direitos reservados.</p>
+              <p style="margin:0;color:#cbd5e1;">© ${new Date().getFullYear()} ${companyName}. ${t(locale, "email.footer.rights")}</p>
             </td>
           </tr>
 

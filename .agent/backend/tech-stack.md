@@ -19,6 +19,15 @@
 - **WhatsApp API:** Evolution API (Consumo via HTTP/REST simples).
 - **IA Generativa:** Google Gemini API (`@google/generative-ai`). Modelo padrão: `gemini-2.0-flash`. Usado para o bot de autoatendimento (PRO).
 
+## Internacionalização (i18n)
+- **Módulo próprio:** `backend/src/shared/i18n/` — sistema leve de tradução sem dependências externas.
+- **Locales suportados:** `pt` (Português BR) e `en` (Inglês).
+- **Arquivos de tradução:** `locales/pt.ts` e `locales/en.ts` — objetos aninhados por domínio (`auth`, `user`, `company`, `bot`, etc.) com flatten automático.
+- **Função `t(locale, key, params?)`:** Tradução com interpolação de parâmetros (`{planName}`, `{maxCompanies}`).
+- **Função `parseLocale(acceptLanguage)`:** Extrai locale do header `Accept-Language`.
+- **Hook `onRequest`:** Cada request tem `request.locale` extraído automaticamente.
+- **Erros traduzidos:** Todos os `throw new Error()` em use cases usam `t(locale, 'chave')` para i18n.
+
 ## Testes (Opcional para MVP, mas configurado)
 - **Test Runner:** Vitest (Mais rápido que Jest e com suporte nativo a ESM/TS).
 

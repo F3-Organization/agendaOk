@@ -1,5 +1,6 @@
 import { IMailService } from "../ports/imail-service";
 import { env } from "../../infra/config/configs";
+import { t, type Locale } from "../../shared/i18n";
 import {
     buildEmailTemplate,
     emailHeading,
@@ -17,88 +18,88 @@ export class SubscriptionNotificationService {
         userEmail: string,
         userName: string,
         planName: string,
-        nfseEmitted?: boolean
+        nfseEmitted?: boolean,
+        locale: Locale = "pt"
     ): Promise<void> {
-        const subject = `✅ Assinatura ${planName} ativada com sucesso!`;
+        const subject = t(locale, "email.payment.subject", { planName });
 
         const invoiceNote = nfseEmitted
-            ? emailHighlightBox("Sua Nota Fiscal de Serviço (NFS-e) foi emitida com sucesso e será enviada ao seu e-mail pela prefeitura.", "success")
-            : emailHighlightBox("Sua Nota Fiscal de Serviço (NFS-e) está sendo processada pela prefeitura e será enviada ao seu e-mail em breve.", "info");
+            ? emailHighlightBox(t(locale, "email.payment.nfseEmitted"), "success")
+            : emailHighlightBox(t(locale, "email.payment.nfsePending"), "info");
 
         const content = `
-            ${emailHeading(`Bem-vindo ao ${planName}, ${userName}!`)}
-            ${emailText("Seu pagamento foi confirmado. Sua conta agora tem acesso completo a todos os recursos do plano.")}
+            ${emailHeading(t(locale, "email.payment.heading", { planName, userName }))}
+            ${emailText(t(locale, "email.payment.body"))}
             ${emailInfoBox([
-                ["Plano", planName],
-                ["Status", "Ativo ✓"],
+                [t(locale, "email.payment.statusLabel"), t(locale, "email.payment.statusValue")],
             ])}
-            ${emailHighlightBox("Você já pode configurar seu bot de atendimento WhatsApp, adicionar empresas e começar a automatizar seu atendimento.", "success")}
+            ${emailHighlightBox(t(locale, "email.payment.cta"), "success")}
             ${invoiceNote}
-            ${emailButton("Acessar o painel", `https://${env.domain}/dashboard`)}
+            ${emailButton(t(locale, "email.payment.button"), `https://${env.domain}/dashboard`)}
             ${emailDivider()}
-            ${emailText(`Obrigado por escolher o ${env.company.name}. Qualquer dúvida, estamos à disposição.`)}
+            ${emailText(t(locale, "email.payment.footer", { companyName: env.company.name }))}
         `;
 
-        await this.mailService.sendMail(userEmail, subject, buildEmailTemplate(content));
+        await this.mailService.sendMail(userEmail, subject, buildEmailTemplate(content, locale));
     }
 
-    async notifySubscriptionExpired(userEmail: string, userName: string): Promise<void> {
-        const subject = "Sua assinatura expirou — renove para continuar";
+    async notifySubscriptionExpired(userEmail: string, userName: string, locale: Locale = "pt"): Promise<void> {
+        const subject = t(locale, "email.expired.subject");
 
         const content = `
-            ${emailHeading(`Olá, ${userName}`)}
-            ${emailText("Identificamos que o prazo de pagamento da sua assinatura expirou ou o checkout foi cancelado.")}
-            ${emailHighlightBox("Seu acesso aos recursos do plano PRO foi <strong>suspenso</strong>. Seus dados estão preservados e podem ser recuperados ao renovar.", "warning")}
-            ${emailText("Para continuar automatizando seu atendimento, renove sua assinatura diretamente no painel.")}
-            ${emailButton("Renovar assinatura", `https://${env.domain}/subscription`)}
+            ${emailHeading(t(locale, "email.expired.heading", { userName }))}
+            ${emailText(t(locale, "email.expired.body"))}
+            ${emailHighlightBox(t(locale, "email.expired.highlight"), "warning")}
+            ${emailText(t(locale, "email.expired.body2"))}
+            ${emailButton(t(locale, "email.expired.button"), `https://${env.domain}/subscription`)}
             ${emailDivider()}
-            ${emailText(`Dúvidas? Fale com a gente pelo WhatsApp de suporte.`)}
+            ${emailText(t(locale, "email.expired.support"))}
         `;
 
-        await this.mailService.sendMail(userEmail, subject, buildEmailTemplate(content));
+        await this.mailService.sendMail(userEmail, subject, buildEmailTemplate(content, locale));
     }
 
-    async notifySubscriptionRefunded(userEmail: string, userName: string): Promise<void> {
-        const subject = "Reembolso processado — confirmação";
+    async notifySubscriptionRefunded(userEmail: string, userName: string, locale: Locale = "pt"): Promise<void> {
+        const subject = t(locale, "email.refund.subject");
 
         const content = `
-            ${emailHeading(`Olá, ${userName}`)}
-            ${emailText("Confirmamos que o reembolso da sua assinatura foi processado com sucesso.")}
+            ${emailHeading(t(locale, "email.refund.heading", { userName }))}
+            ${emailText(t(locale, "email.refund.body"))}
             ${emailInfoBox([
-                ["Status do reembolso", "Processado ✓"],
-                ["Acesso premium", "Encerrado"],
+                [t(locale, "email.refund.statusLabel"), t(locale, "email.refund.statusValue")],
+                [t(locale, "email.refund.accessLabel"), t(locale, "email.refund.accessValue")],
             ])}
-            ${emailHighlightBox("Se esta ação <strong>não foi solicitada por você</strong>, entre em contato com nosso suporte imediatamente via WhatsApp.", "warning")}
+            ${emailHighlightBox(t(locale, "email.refund.warning"), "warning")}
             ${emailDivider()}
-            ${emailText(`Agradecemos por ter utilizado o ${env.company.name}.`)}
+            ${emailText(t(locale, "email.refund.footer", { companyName: env.company.name }))}
         `;
 
-        await this.mailService.sendMail(userEmail, subject, buildEmailTemplate(content));
+        await this.mailService.sendMail(userEmail, subject, buildEmailTemplate(content, locale));
     }
 
     async notifyTrialStarted(
         userEmail: string,
         userName: string,
         planName: string,
-        trialDays: number
+        trialDays: number,
+        locale: Locale = "pt"
     ): Promise<void> {
-        const subject = `🎉 Seu período de teste do ${planName} foi ativado!`;
+        const subject = t(locale, "email.trial.subject", { planName });
 
         const content = `
-            ${emailHeading(`Olá, ${userName}!`)}
-            ${emailText(`Seu período de teste do plano <strong>${planName}</strong> foi ativado com sucesso!`)}
+            ${emailHeading(t(locale, "email.trial.heading", { userName }))}
+            ${emailText(t(locale, "email.trial.body", { planName }))}
             ${emailInfoBox([
-                ["Plano", planName],
-                ["Status", "Período de Teste"],
-                ["Duração", `${trialDays} dias`],
-                ["Cobrança", "Nenhuma durante o teste"],
+                [t(locale, "email.trial.statusLabel"), t(locale, "email.trial.statusValue")],
+                [t(locale, "email.trial.durationLabel"), t(locale, "email.trial.durationValue", { trialDays })],
+                [t(locale, "email.trial.billingLabel"), t(locale, "email.trial.billingValue")],
             ])}
-            ${emailHighlightBox(`Você tem <strong>${trialDays} dias</strong> para explorar todas as funcionalidades do plano ${planName} sem nenhum custo. Configure seu bot, conecte seu WhatsApp e comece agora.`, "info")}
-            ${emailButton("Começar agora", `https://${env.domain}/dashboard`)}
+            ${emailHighlightBox(t(locale, "email.trial.highlight", { trialDays, planName }), "info")}
+            ${emailButton(t(locale, "email.trial.button"), `https://${env.domain}/dashboard`)}
             ${emailDivider()}
-            ${emailText("A NFS-e será emitida somente após a confirmação do primeiro pagamento ao final do período de teste.")}
+            ${emailText(t(locale, "email.trial.nfseNote"))}
         `;
 
-        await this.mailService.sendMail(userEmail, subject, buildEmailTemplate(content));
+        await this.mailService.sendMail(userEmail, subject, buildEmailTemplate(content, locale));
     }
 }

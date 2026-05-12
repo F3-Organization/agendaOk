@@ -27,18 +27,27 @@ A ConfirmaZap é uma plataforma **SaaS Multi-Tenant** com dois níveis de entida
 - O bot WhatsApp com IA é o **produto central** da plataforma — disponível no plano PRO.
 - Cada empresa pode habilitar um atendente inteligente via WhatsApp que age de forma autônoma.
 - O bot utiliza a **Gemini API (gemini-2.0-flash)** para processar linguagem natural.
+- **Bot Bilíngue (PT/EN):** O bot detecta automaticamente o idioma da mensagem do cliente e responde no mesmo idioma. Se o cliente escreve em inglês, toda a resposta é em inglês; se em português, responde em português. O system prompt contém uma regra crítica (`CRITICAL LANGUAGE RULE`) que força essa consistência.
 - O contexto do bot é dinâmico: inclui descrição da empresa, serviços oferecidos, profissionais, horários de trabalho e instruções personalizadas.
 
 ### Fluxo de Mensagens (Webhook)
 1. O webhook da Evolution API recebe a mensagem do cliente.
-2. O sistema verifica **palavras-chave de confirmação/cancelamento** primeiro (fallback rápido).
-3. Se não for uma palavra-chave, e o bot estiver habilitado + plano PRO → encaminha para a IA.
-4. O `ConversationService` (Redis) mantém o histórico da conversa (TTL 30min, max 20 mensagens).
-5. O `GeminiAdapter` monta um prompt dinâmico com o contexto da empresa e envia para a API.
+2. O sistema verifica **palavras-chave de confirmação/cancelamento** primeiro (fallback rápido) — suporta keywords em **português e inglês**.
+3. Se for confirmação/cancelamento, o sistema detecta o idioma da mensagem e responde na mesma língua.
+4. Se não for uma palavra-chave, e o bot estiver habilitado + plano PRO → encaminha para a IA.
+5. O `ConversationService` (Redis) mantém o histórico da conversa (TTL 30min, max 20 mensagens).
+6. O `GeminiAdapter` monta um prompt dinâmico bilíngue com o contexto da empresa e envia para a API.
 
 ### Configuração do Bot
 - Via `CompanyConfig`: `botEnabled`, `botGreeting`, `botInstructions`, `businessType`, `businessDescription`, `address`, `servicesOffered`.
 - Via `Professional`: lista de profissionais com especialidades e horários.
+- **Defaults i18n:** `botGreeting` e `botInstructions` possuem valores padrão traduzidos via `t(locale, 'bot.defaultGreeting')`. Quando o usuário não personaliza, o sistema retorna o default no idioma da interface.
+
+### Palavras-chave Bilíngues
+- **Confirmação (PT):** sim, confirmado, ok, com certeza, pode confirmar, confirmar, perfeito, topo
+- **Confirmação (EN):** yes, confirmed, confirm, sure, absolutely, of course, perfect
+- **Cancelamento (PT):** não, nao, cancelar, desistir, remarcar, não vou, cancela
+- **Cancelamento (EN):** no, cancel, reschedule, won’t go, can’t make it, not going
 
 ### Variáveis de Ambiente
 - `GEMINI_API_KEY`: Chave de acesso à API do Google Gemini.

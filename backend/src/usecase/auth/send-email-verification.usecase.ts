@@ -1,5 +1,6 @@
 import { IMailService } from "../ports/imail-service";
 import { RedisService } from "../../infra/database/redis.service";
+import { t, type Locale } from "../../shared/i18n";
 import {
     buildEmailTemplate,
     emailHeading,
@@ -14,21 +15,21 @@ export class SendEmailVerificationUseCase {
         private readonly redisService: RedisService
     ) {}
 
-    async execute(email: string): Promise<void> {
+    async execute(email: string, locale: Locale = "pt"): Promise<void> {
         const code = Math.floor(100000 + Math.random() * 900000).toString();
 
         await this.redisService.set(`verify_email:${email}`, code, 900);
 
-        const subject = "ConfirmaZap — Seu código de verificação";
+        const subject = t(locale, "email.verification.subject");
 
         const content = `
-            ${emailHeading("Verificação de e-mail")}
-            ${emailText("Olá! Use o código abaixo para verificar seu endereço de e-mail e definir sua senha.")}
+            ${emailHeading(t(locale, "email.verification.heading"))}
+            ${emailText(t(locale, "email.verification.body"))}
             ${emailCodeBlock(code)}
-            ${emailHighlightBox("Este código é válido por <strong>15 minutos</strong>. Se você não solicitou o cadastro, pode ignorar este e-mail.", "warning")}
-            ${emailText("Caso tenha dúvidas, entre em contato com nosso suporte.")}
+            ${emailHighlightBox(t(locale, "email.verification.expiry"), "warning")}
+            ${emailText(t(locale, "email.verification.support"))}
         `;
 
-        await this.mailService.sendMail(email, subject, buildEmailTemplate(content));
+        await this.mailService.sendMail(email, subject, buildEmailTemplate(content, locale));
     }
 }

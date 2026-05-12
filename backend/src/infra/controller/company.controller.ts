@@ -56,7 +56,8 @@ export class CompanyController {
             try {
                 const company = await this.createCompany.execute({
                     ownerId: user.id,
-                    name: parseResult.data.name
+                    name: parseResult.data.name,
+                    locale: (request as any).locale,
                 });
                 reply.code(201).send(company);
             } catch (error: any) {
@@ -72,6 +73,7 @@ export class CompanyController {
             try {
                 const result = await this.selectCompany.execute({
                     userId: user.id,
+                    userRole: user.role,
                     companyId: id
                 });
                 reply.send(result);

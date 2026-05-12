@@ -169,11 +169,12 @@ export class ProfessionalController {
             try {
                 await this.manageBotConfig.update({
                     companyId: user.companyId,
+                    locale: (request as any).locale,
                     ...parseResult.data,
                 });
                 reply.send({ message: "Bot config updated successfully" });
             } catch (error: any) {
-                reply.code(400).send({ error: "Failed to update bot config", message: error.message });
+                reply.code(400).send({ error: error.message });
             }
         }, updateBotConfigSwaggerSchema);
     }

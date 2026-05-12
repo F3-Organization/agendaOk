@@ -32,5 +32,4 @@ export async function seedPlansIfEmpty() {
             sortOrder: 1,
         },
     ]);
-    console.log("[Bootstrap] Plans seeded successfully.");
 }

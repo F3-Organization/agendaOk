@@ -16,5 +16,4 @@ export async function seedPaymentMethods(): Promise<void> {
         .values(METHODS)
         .orUpdate(['name', 'description'], ['code'])
         .execute();
-    console.log("[Bootstrap] Payment methods seeded.");
 }

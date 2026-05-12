@@ -54,6 +54,6 @@ export class CancelSubscriptionUseCase {
             await this.notificationService.notifySubscriptionExpired(user.email, user.name);
         }
 
-        console.log(`[CancelSubscription] Subscription cancelled for user ${userId}.`);
+
     }
 }

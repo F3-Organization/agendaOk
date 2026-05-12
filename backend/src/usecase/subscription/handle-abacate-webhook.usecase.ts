@@ -142,7 +142,6 @@ export class HandleAbacatePayWebhookUseCase {
                 break;
 
             default:
-                console.log(`[Webhook] Unhandled event type: ${event}`);
         }
     }
 
@@ -154,7 +153,6 @@ export class HandleAbacatePayWebhookUseCase {
         let subscription = await this.subscriptionRepository.findByBillingId(billingId);
 
         if (!subscription && metadataUserId) {
-            console.log(`[Subscription] Billing ${billingId} not found by ID. Searching by metadata.userId: ${metadataUserId}`);
             subscription = await this.subscriptionRepository.findByUserId(metadataUserId);
         }
 
@@ -186,7 +184,6 @@ export class HandleAbacatePayWebhookUseCase {
                 ...methodPatch,
             });
         } else {
-            console.log(`[Subscription] Creating new payment record for recurring billing ${billingId}`);
             await this.paymentRepository.create({
                 subscriptionId: subscription.id,
                 billingId,
@@ -248,7 +245,6 @@ export class HandleAbacatePayWebhookUseCase {
             await this.notificationService.notifyPaymentSuccess(user.email, user.name, subscription.plan, nfseEmitted);
         }
 
-        console.log(`[Subscription] User ${subscription.userId} activated via Abacate Pay.`);
     }
 
     /**
@@ -290,7 +286,6 @@ export class HandleAbacatePayWebhookUseCase {
             );
         }
 
-        console.log(`[Subscription] Trial started (${trialDays}d) for user ${subscription.userId}.`);
     }
 
     private async handleSubscriptionCancelled(data: any) {
@@ -317,7 +312,6 @@ export class HandleAbacatePayWebhookUseCase {
             await this.notificationService.notifySubscriptionExpired(user.email, user.name);
         }
 
-        console.log(`[Subscription] Subscription cancelled for user ${subscription.userId}.`);
     }
 
     private async handleBillingDisputed(event: string, data: any) {
@@ -345,7 +339,6 @@ export class HandleAbacatePayWebhookUseCase {
             await this.notificationService.notifySubscriptionRefunded(user.email, user.name);
         }
 
-        console.log(`[Subscription] ${event} for user ${subscription.userId}. Subscription cancelled.`);
     }
 
     private async handleBillingRefunded(data: any) {

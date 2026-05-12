@@ -1,6 +1,7 @@
 import { IUserRepository } from "../repositories/iuser-repository";
 import { User } from "../../infra/database/entities/user.entity";
 import * as bcrypt from "bcrypt";
+import { t, type Locale } from "../../shared/i18n";
 
 export interface RegisterUserDTO {
     name: string;
@@ -8,6 +9,7 @@ export interface RegisterUserDTO {
     password?: string;
     googleId?: string;
     whatsappNumber: string;
+    locale?: Locale;
 }
 
 export class RegisterUserUseCase {
@@ -16,10 +18,11 @@ export class RegisterUserUseCase {
     ) {}
 
     async execute(data: RegisterUserDTO): Promise<User> {
+        const locale = data.locale || "pt";
         const existingUser = await this.userRepo.findByEmail(data.email);
         
         if (existingUser) {
-            throw new Error("User already exists");
+            throw new Error(t(locale, "auth.userAlreadyExists"));
         }
 
         const user = new User();

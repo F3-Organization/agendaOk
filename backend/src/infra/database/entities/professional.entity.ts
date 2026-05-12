@@ -12,7 +12,7 @@ export class Professional extends BaseEntity {
     @JoinColumn({ name: "company_id" })
     company!: Company;
 
-    @Column({ name: "user_id", type: "uuid", nullable: true, unique: true })
+    @Column({ name: "user_id", type: "uuid", nullable: true })
     userId?: string;
 
     @Column({ name: "invited_email", type: "varchar", nullable: true })

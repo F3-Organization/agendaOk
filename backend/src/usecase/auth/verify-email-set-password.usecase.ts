@@ -27,7 +27,6 @@ export class VerifyEmailSetPasswordUseCase {
         await this.userRepo.save(user);
         await this.redisService.del(`verify_email:${email}`);
 
-        console.log(`[VerifyEmailSetPasswordUseCase] Password set successfully for ${email}`);
         return user;
     }
 }

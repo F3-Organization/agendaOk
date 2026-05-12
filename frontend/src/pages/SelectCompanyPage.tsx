@@ -10,6 +10,7 @@ import { Button } from '../shared/ui/Button';
 export const SelectCompanyPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const user = useAuthStore((state) => state.user);
   const companies = useAuthStore((state) => state.companies);
   const maxCompanies = useAuthStore((state) => state.maxCompanies);
   const setCompanies = useAuthStore((state) => state.setCompanies);
@@ -17,38 +18,35 @@ export const SelectCompanyPage = () => {
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [isLoadingCompanies, setIsLoadingCompanies] = useState(true);
 
+  const isProfessional = user?.role === 'PROFESSIONAL';
+  const afterSelectPath = isProfessional ? '/appointments' : '/dashboard';
+
   useEffect(() => {
-    console.log('[SelectCompanyPage] Mounting, fetching companies...');
-    console.log('[SelectCompanyPage] Token in localStorage:', !!localStorage.getItem('auth_token'));
-    
-    // Fetch companies from API to get the latest list and maxCompanies
+    if (isProfessional) {
+      // Professionals already have their companies set from login response
+      setIsLoadingCompanies(false);
+      return;
+    }
+
+    // Regular users: fetch owned companies from API
     companyService.list().then(({ data }) => {
-      console.log('[SelectCompanyPage] Companies fetched:', data.companies.length, data);
       setCompanies(data.companies, data.maxCompanies);
 
-      // Auto-select if only one company
       if (data.companies.length === 1) {
         setLoadingId(data.companies[0].id);
         selectCompany(data.companies[0].id)
           .then(() => navigate('/dashboard'))
-          .catch((err) => {
-            console.error('[SelectCompanyPage] Auto-select failed:', err);
-            setLoadingId(null);
-          });
+          .catch(() => setLoadingId(null));
         return;
       }
 
-      // Redirect to create if no companies exist
       if (data.companies.length === 0) {
-        console.log('[SelectCompanyPage] No companies, redirecting to /create-company');
         navigate('/create-company');
         return;
       }
 
       setIsLoadingCompanies(false);
-    }).catch((err) => {
-      console.error('[SelectCompanyPage] Failed to fetch companies:', err?.response?.status, err?.response?.data);
-      // If API fails, use whatever is in the store
+    }).catch(() => {
       if (companies.length === 0) {
         navigate('/create-company');
       } else {
@@ -61,15 +59,15 @@ export const SelectCompanyPage = () => {
     setLoadingId(id);
     try {
       await selectCompany(id);
-      navigate('/dashboard');
+      navigate(afterSelectPath);
     } catch (err) {
-      console.error('[SelectCompanyPage] Failed to select company', err);
+      console.error(err);
     } finally {
       setLoadingId(null);
     }
   };
 
-  const canCreateMore = companies.length < maxCompanies;
+  const canCreateMore = !isProfessional && companies.length < maxCompanies;
 
   if (isLoadingCompanies) {
     return (

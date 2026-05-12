@@ -42,7 +42,7 @@ export const AppRouter = () => {
       <Route path="/privacy" element={<PrivacyPolicyPage />} />
       <Route path="/terms" element={<TermsOfServicePage />} />
 
-      {/* Authenticated but company not yet selected */}
+      {/* Authenticated but company not yet selected — also used by professionals to switch context */}
       <Route
         path="/select-company"
         element={isAuthenticated ? <SelectCompanyPage /> : <Navigate to="/login" />}
@@ -62,9 +62,11 @@ export const AppRouter = () => {
         path="/dashboard"
         element={
           isAuthenticated
-            ? hasCompany
-              ? <DashboardPage />
-              : <Navigate to="/select-company" />
+            ? isProfessional
+              ? <Navigate to="/appointments" />
+              : hasCompany
+                ? <DashboardPage />
+                : <Navigate to="/select-company" />
             : <Navigate to="/login" />
         }
       />
@@ -82,9 +84,11 @@ export const AppRouter = () => {
         path="/whatsapp"
         element={
           isAuthenticated
-            ? hasCompany
-              ? <WhatsAppPage />
-              : <Navigate to="/select-company" />
+            ? isProfessional
+              ? <Navigate to="/appointments" />
+              : hasCompany
+                ? <WhatsAppPage />
+                : <Navigate to="/select-company" />
             : <Navigate to="/login" />
         }
       />
@@ -92,9 +96,11 @@ export const AppRouter = () => {
         path="/subscription"
         element={
           isAuthenticated
-            ? hasCompany
-              ? <SubscriptionPage />
-              : <Navigate to="/select-company" />
+            ? isProfessional
+              ? <Navigate to="/appointments" />
+              : hasCompany
+                ? <SubscriptionPage />
+                : <Navigate to="/select-company" />
             : <Navigate to="/login" />
         }
       />
@@ -102,9 +108,11 @@ export const AppRouter = () => {
         path="/settings"
         element={
           isAuthenticated
-            ? hasCompany
-              ? <SettingsPage />
-              : <Navigate to="/select-company" />
+            ? isProfessional
+              ? <Navigate to="/appointments" />
+              : hasCompany
+                ? <SettingsPage />
+                : <Navigate to="/select-company" />
             : <Navigate to="/login" />
         }
       />
@@ -112,9 +120,11 @@ export const AppRouter = () => {
         path="/company/settings"
         element={
           isAuthenticated
-            ? hasCompany
-              ? <CompanySettingsPage />
-              : <Navigate to="/select-company" />
+            ? isProfessional
+              ? <Navigate to="/appointments" />
+              : hasCompany
+                ? <CompanySettingsPage />
+                : <Navigate to="/select-company" />
             : <Navigate to="/login" />
         }
       />
@@ -122,9 +132,11 @@ export const AppRouter = () => {
         path="/professionals"
         element={
           isAuthenticated
-            ? hasCompany
-              ? <ProfessionalsPage />
-              : <Navigate to="/select-company" />
+            ? isProfessional
+              ? <Navigate to="/appointments" />
+              : hasCompany
+                ? <ProfessionalsPage />
+                : <Navigate to="/select-company" />
             : <Navigate to="/login" />
         }
       />
@@ -132,9 +144,11 @@ export const AppRouter = () => {
         path="/bot-config"
         element={
           isAuthenticated
-            ? hasCompany
-              ? <BotConfigPage />
-              : <Navigate to="/select-company" />
+            ? isProfessional
+              ? <Navigate to="/appointments" />
+              : hasCompany
+                ? <BotConfigPage />
+                : <Navigate to="/select-company" />
             : <Navigate to="/login" />
         }
       />

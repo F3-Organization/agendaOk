@@ -29,9 +29,6 @@ export class CheckExpiredSubscriptionsUseCase {
                 await this.notificationService.notifySubscriptionExpired(user.email, user.name);
             }
 
-            console.log(
-                `[SubscriptionChecker] ${subscription.id} (${subscription.status}) → ${newStatus} for user ${subscription.userId}`
-            );
         }
 
         return { processed: expired.length };

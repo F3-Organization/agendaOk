@@ -25,8 +25,6 @@ export class AbacatePayAdapter implements IPaymentGateway {
         if (body) options.body = JSON.stringify(body);
 
         const logId = Math.random().toString(36).substring(7);
-        console.log(`[AbacatePay][${logId}] ${method} ${url}`);
-        if (body) console.log(`[AbacatePay][${logId}] Body: ${JSON.stringify(body)}`);
 
         const response = await fetch(url, options);
         const text = await response.text();
@@ -36,7 +34,6 @@ export class AbacatePayAdapter implements IPaymentGateway {
             throw new Error(`AbacatePay API Error [${response.status}]: ${text}`);
         }
 
-        console.log(`[AbacatePay][${logId}] OK: ${text}`);
         return JSON.parse(text);
     }
 
@@ -60,7 +57,6 @@ export class AbacatePayAdapter implements IPaymentGateway {
             );
             if (result.data?.id) {
                 this.productCache.set(externalId, result.data.id);
-                console.log(`[AbacatePay] Reusing product ${result.data.id} for externalId=${externalId}`);
                 return result.data.id;
             }
         } catch {
@@ -73,7 +69,6 @@ export class AbacatePayAdapter implements IPaymentGateway {
             const existing = listResult.data?.find((p: any) => p.externalId === externalId);
             if (existing?.id) {
                 this.productCache.set(externalId, existing.id);
-                console.log(`[AbacatePay] Found product via list: ${existing.id} for externalId=${externalId}`);
                 return existing.id;
             }
         } catch {
@@ -90,7 +85,6 @@ export class AbacatePayAdapter implements IPaymentGateway {
 
         const productId: string = created.data.id;
         this.productCache.set(externalId, productId);
-        console.log(`[AbacatePay] Created product ${productId} for externalId=${externalId}`);
         return productId;
     }
 
@@ -130,7 +124,6 @@ export class AbacatePayAdapter implements IPaymentGateway {
 
         if (gatewayProductId) {
             productId = gatewayProductId;
-            console.log(`[AbacatePay] Reusing persisted product ${productId}`);
         } else {
             const productExternalId = `plan-${name.toLowerCase().replace(/\s+/g, "-")}`;
             productId = await this.getOrCreateProduct(productExternalId, name, price, "MONTHLY");

@@ -97,7 +97,11 @@ export class HandleEvolutionWebhookUseCase {
         if (this.isConfirmation(text)) {
             try {
                 await this.confirmAppointment.execute(config.companyId, senderNumber);
-                await this.evolutionService.sendText(instanceName, fullJid, "✅ Ótimo! Seu agendamento foi confirmado com sucesso. Te esperamos!");
+                const isEnglish = this.isEnglishMessage(text);
+                const msg = isEnglish
+                    ? "✅ Great! Your appointment has been confirmed successfully. We look forward to seeing you!"
+                    : "✅ Ótimo! Seu agendamento foi confirmado com sucesso. Te esperamos!";
+                await this.evolutionService.sendText(instanceName, fullJid, msg);
                 return;
             } catch {
                 // No pending appointment — fall through to AI
@@ -105,7 +109,11 @@ export class HandleEvolutionWebhookUseCase {
         } else if (this.isCancellation(text)) {
             try {
                 await this.cancelAppointment.execute(config.companyId, senderNumber);
-                await this.evolutionService.sendText(instanceName, fullJid, "❌ Certo, seu agendamento foi cancelado. Entre em contato para remarcar quando puder.");
+                const isEnglish = this.isEnglishMessage(text);
+                const msg = isEnglish
+                    ? "❌ Alright, your appointment has been cancelled. Feel free to contact us to reschedule."
+                    : "❌ Certo, seu agendamento foi cancelado. Entre em contato para remarcar quando puder.";
+                await this.evolutionService.sendText(instanceName, fullJid, msg);
                 return;
             } catch {
                 // No pending appointment — fall through to AI
@@ -204,15 +212,39 @@ export class HandleEvolutionWebhookUseCase {
     }
 
     private isConfirmation(text: string): boolean {
-        const keywords = ["sim", "confirmado", "ok", "com certeza", "pode confirmar", "confirmar", "perfeito", "topo"];
+        const keywords = [
+            // Portuguese
+            "sim", "confirmado", "ok", "com certeza", "pode confirmar", "confirmar", "perfeito", "topo",
+            // English
+            "yes", "confirmed", "confirm", "sure", "absolutely", "of course", "perfect"
+        ];
         const normalized = text.toLowerCase().trim();
         return keywords.some(k => normalized.includes(k));
     }
 
     private isCancellation(text: string): boolean {
-        const keywords = ["não", "nao", "cancelar", "desistir", "remarcar", "não vou", "nao vou", "cancela"];
+        const keywords = [
+            // Portuguese
+            "não", "nao", "cancelar", "desistir", "remarcar", "não vou", "nao vou", "cancela",
+            // English
+            "no", "cancel", "reschedule", "won't go", "can't make it", "not going"
+        ];
         const normalized = text.toLowerCase().trim();
         return keywords.some(k => normalized.includes(k));
+    }
+
+    /**
+     * Detects if a message is likely in English based on the presence of English keywords.
+     * Used to determine the language for auto-response messages.
+     */
+    private isEnglishMessage(text: string): boolean {
+        const englishKeywords = [
+            "yes", "no", "confirm", "confirmed", "cancel", "sure", "absolutely",
+            "of course", "perfect", "reschedule", "won't go", "can't make it",
+            "not going", "hello", "hi", "thanks", "thank you", "please", "okay"
+        ];
+        const normalized = text.toLowerCase().trim();
+        return englishKeywords.some(k => normalized.includes(k));
     }
 
     private normalizeNumber(number: string): string {

@@ -1,8 +1,10 @@
 import { ICompanyConfigRepository } from "../repositories/icompany-config-repository";
 import { CompanyConfig } from "../../infra/database/entities/company-config.entity";
+import { t, type Locale } from "../../shared/i18n";
 
 interface UpdateBotConfigInput {
     companyId: string;
+    locale?: Locale;
     businessType?: string | null;
     businessDescription?: string | null;
     botGreeting?: string | null;
@@ -40,9 +42,10 @@ export class ManageBotConfigUseCase {
     }
 
     async update(input: UpdateBotConfigInput): Promise<void> {
+        const locale = input.locale || "pt";
         const config = await this.companyConfigRepository.findByCompanyId(input.companyId);
         if (!config) {
-            throw new Error("Company config not found");
+            throw new Error(t(locale, "company.configNotFound"));
         }
 
         // Validate prerequisites when enabling the bot
@@ -52,10 +55,10 @@ export class ManageBotConfigUseCase {
                 : config.businessDescription;
 
             if (!config.whatsappNumber) {
-                throw new Error("É necessário configurar o número de WhatsApp da empresa antes de ativar o bot.");
+                throw new Error(t(locale, "bot.whatsappRequired"));
             }
             if (!effectiveDescription?.trim()) {
-                throw new Error("É necessário preencher a descrição do negócio antes de ativar o bot.");
+                throw new Error(t(locale, "bot.descriptionRequired"));
             }
         }
 

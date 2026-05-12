@@ -70,13 +70,6 @@ export class FiscalService {
         const nota = response.Notas?.[0];
         const emitted = response.StatusLote === 1 && nota?.Status === 1;
 
-        console.log(
-            `[Fiscal] NFS-e ref=${params.referenceId} — ` +
-            `StatusLote: ${response.StatusLote}, ` +
-            `CodLote: ${response.CodLote || 'N/A'}, ` +
-            `NumeroNFSe: ${nota?.NumeroNFSe || 'pending'}, ` +
-            `Ambiente: ${tipoAmbiente === 1 ? 'Produção' : 'Homologação'}`
-        );
 
         return {
             emitted,

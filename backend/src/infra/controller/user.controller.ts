@@ -116,7 +116,7 @@ export class UserController {
         const data = changePasswordSchema.parse(request.body);
 
         try {
-            await this.changePasswordUseCase.execute(userId, data);
+            await this.changePasswordUseCase.execute(userId, data, (request as any).locale);
             reply.status(200).send({ message: "Senha alterada com sucesso" });
         } catch (error: any) {
             reply.status(400).send({ error: error.message });
@@ -138,7 +138,7 @@ export class UserController {
     async toggle2FA(req: FastifyRequest, reply: FastifyReply) {
         const userId = (req.user as { id: string }).id;
         const { enabled } = toggle2FASchema.parse(req.body);
-        const result = await this.toggle2FAUseCase.execute(userId, enabled);
+        const result = await this.toggle2FAUseCase.execute(userId, enabled, (req as any).locale);
         return reply.send(result);
     }
 

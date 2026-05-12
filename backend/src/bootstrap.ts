@@ -31,15 +31,12 @@ async function bootstrap() {
         validateEnv();
 
         await AppDataSource.initialize();
-        console.log("[Bootstrap] Data Source has been initialized!");
         await seedPlansIfEmpty();
         await seedPaymentMethods();
 
         const adapter = factory.adapters.fastify();
         await adapter.setup();
-        console.log("[Bootstrap] Fastify Adapter setup complete.");
 
-        console.log("[Bootstrap] Registering controllers...");
         factory.controller.app();
         factory.controller.auth();
         factory.controller.company();
@@ -51,14 +48,11 @@ async function bootstrap() {
         factory.controller.user();
         factory.controller.professional();
         factory.controller.admin();
-        console.log("[Bootstrap] Controllers and routes registered.");
 
         factory.workers.notify();
         factory.workers.subscription();
-        console.log("[Bootstrap] Background workers started.");
 
         await adapter.listen();
-        console.log("[Bootstrap] Server is listening...");
 
     } catch (err) {
         console.error("[Bootstrap] Critical error during initialization:", err);

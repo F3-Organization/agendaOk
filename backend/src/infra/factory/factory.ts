@@ -242,7 +242,7 @@ const getUseCase = {
 
     createCompany: () => new CreateCompanyUseCase(getRepo.company(), getRepo.companyConfig(), getRepo.subscription()),
     listCompanies: () => new ListCompaniesUseCase(getRepo.company(), getRepo.subscription()),
-    selectCompany: () => new SelectCompanyUseCase(getRepo.company(), adapterInstance, getRepo.user()),
+    selectCompany: () => new SelectCompanyUseCase(getRepo.company(), adapterInstance, getRepo.user(), getRepo.professional()),
     updateCompany: () => new UpdateCompanyUseCase(getRepo.company()),
     deleteCompany: () => new DeleteCompanyUseCase(getRepo.company(), getRepo.companyConfig()),
 

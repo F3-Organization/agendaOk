@@ -43,12 +43,18 @@ export const LoginPage = () => {
       const response = await authService.login(data);
       
       if (response.status === '2FA_REQUIRED' || !response.token) {
-        console.log('[LoginPage] 2FA required or no token, redirecting...', response.tempToken);
         navigate('/auth/2fa', { state: { tempToken: response.tempToken } });
         return;
       }
 
       setAuth(response.user as AuthUser, response.token as string);
+
+      if (response.status === 'SELECT_PROFESSIONAL_CONTEXT') {
+        setCompanies(response.companies ?? []);
+        navigate('/select-company');
+        return;
+      }
+
       navigate((response.user as any)?.role === 'PROFESSIONAL' ? '/appointments' : '/select-company');
     } catch (err: any) {
       setError(err.response?.data?.error || t('common.loginFailed'));
@@ -83,16 +89,22 @@ export const LoginPage = () => {
     const handleMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return;
       if (event.data?.type === 'GOOGLE_AUTH_SUCCESS') {
-        const { user, token, status, tempToken } = event.data.payload;
-        
+        const { user, token, status, tempToken, companies } = event.data.payload;
+
         if (status === '2FA_REQUIRED' || !token) {
-          console.log('[LoginPage] Google 2FA required or no token, redirecting...');
           navigate('/auth/2fa', { state: { tempToken } });
           return;
         }
 
         setAuth(user as AuthUser, token as string);
-        navigate('/select-company');
+
+        if (status === 'SELECT_PROFESSIONAL_CONTEXT') {
+          setCompanies(companies ?? []);
+          navigate('/select-company');
+          return;
+        }
+
+        navigate(user?.role === 'PROFESSIONAL' ? '/appointments' : '/select-company');
       }
     };
     window.addEventListener('message', handleMessage);

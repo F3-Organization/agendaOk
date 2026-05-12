@@ -4,6 +4,7 @@ import { ISubscriptionRepository } from "../repositories/isubscription-repositor
 import { Company } from "../../infra/database/entities/company.entity";
 import { CompanyConfig } from "../../infra/database/entities/company-config.entity";
 import { isProAccess } from "../subscription/subscription.helpers";
+import { t, type Locale } from "../../shared/i18n";
 
 const PLAN_LIMITS = {
     FREE: 1,
@@ -13,6 +14,7 @@ const PLAN_LIMITS = {
 interface CreateCompanyInput {
     ownerId: string;
     name: string;
+    locale?: Locale;
 }
 
 export class CreateCompanyUseCase {
@@ -31,7 +33,7 @@ export class CreateCompanyUseCase {
 
         if (existingCompanies.length >= maxCompanies) {
             const planName = hasPro ? "PRO" : "FREE";
-            throw new Error(`Company limit reached. ${planName} plan allows up to ${maxCompanies} company(ies). Please upgrade your plan.`);
+            throw new Error(t(input.locale || "pt", "company.limitReached", { planName, maxCompanies }));
         }
 
         const slug = this.generateSlug(input.name);
@@ -39,7 +41,7 @@ export class CreateCompanyUseCase {
         // Check slug uniqueness
         const existingSlug = await this.companyRepository.findBySlug(slug);
         if (existingSlug) {
-            throw new Error("A company with a similar name already exists");
+            throw new Error(t(input.locale || "pt", "company.nameAlreadyExists"));
         }
 
         // Create company

@@ -13,10 +13,12 @@ function cn(...inputs: ClassValue[]) {
 export const CompanySwitcher = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const user = useAuthStore((state) => state.user);
   const companies = useAuthStore((state) => state.companies);
   const maxCompanies = useAuthStore((state) => state.maxCompanies);
   const selectedCompany = useAuthStore((state) => state.selectedCompany);
   const selectCompany = useAuthStore((state) => state.selectCompany);
+  const isProfessional = user?.role === 'PROFESSIONAL';
 
   const [isOpen, setIsOpen] = useState(false);
   const [loadingId, setLoadingId] = useState<string | null>(null);
@@ -41,9 +43,9 @@ export const CompanySwitcher = () => {
     try {
       await selectCompany(id);
       setIsOpen(false);
-      navigate('/dashboard');
+      navigate(isProfessional ? '/appointments' : '/dashboard');
     } catch (err) {
-      console.error('[CompanySwitcher] Failed to switch company', err);
+      console.error(err);
     } finally {
       setLoadingId(null);
     }
@@ -131,7 +133,7 @@ export const CompanySwitcher = () => {
             })}
           </div>
 
-          {companies.length < maxCompanies && (
+          {!isProfessional && companies.length < maxCompanies && (
             <div className="border-t border-outline-variant/20 px-1.5 py-1">
               <button
                 onClick={() => {

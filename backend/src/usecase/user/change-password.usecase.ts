@@ -1,24 +1,25 @@
 import { IUserRepository } from "../repositories/iuser-repository";
 import * as bcrypt from "bcrypt";
 import { ChangePasswordDTO } from "../../../../shared/schemas/user.schema";
+import { t, type Locale } from "../../shared/i18n";
 
 export class ChangePasswordUseCase {
     constructor(private readonly userRepo: IUserRepository) {}
 
-    async execute(userId: string, data: ChangePasswordDTO): Promise<void> {
+    async execute(userId: string, data: ChangePasswordDTO, locale: Locale = "pt"): Promise<void> {
         const user = await this.userRepo.findById(userId);
         
         if (!user) {
-            throw new Error("Usuário não encontrado");
+            throw new Error(t(locale, "user.notFound"));
         }
 
         if (user.password) {
             if (!data.currentPassword) {
-                throw new Error("Senha atual é obrigatória para alterar a senha existente");
+                throw new Error(t(locale, "user.currentPasswordRequired"));
             }
             const isPasswordValid = await bcrypt.compare(data.currentPassword, user.password);
             if (!isPasswordValid) {
-                throw new Error("Senha atual incorreta");
+                throw new Error(t(locale, "user.currentPasswordIncorrect"));
             }
         }
 

@@ -16,6 +16,7 @@ import { LoginVerify2FAUseCase } from "../../usecase/auth/login-verify-2fa.useca
 import { AuthUserPayload } from "../types/auth.types";
 import { User } from "../database/entities/user.entity";
 import { z } from "zod";
+import { t } from "../../shared/i18n";
 import { 
     LoginInputSchema, 
     RegisterInputSchema, 
@@ -125,10 +126,10 @@ export class AuthController {
             const { name, email, password, whatsappNumber } = parseResult.data;
 
             try {
-                const user = await this.registerUser.execute({ name, email, password, whatsappNumber });
+                const user = await this.registerUser.execute({ name, email, password, whatsappNumber, locale: (request as any).locale });
                 return this.sendAuthResponse(reply, user, "Registration successful");
             } catch (error: any) {
-                if (error.message === "User already exists") {
+                if (error.message === t((request as any).locale || 'pt', 'auth.userAlreadyExists') || error.message === 'User already exists') {
                     // Try to send verification email for users without password (Google-only users)
                     try {
                         await this.sendEmailVerification.execute(email);
@@ -171,7 +172,7 @@ export class AuthController {
             const { email, password } = parseResult.data;
 
             try {
-                const user = await this.login.execute(email, password);
+                const user = await this.login.execute(email, password, (request as any).locale);
                 return this.sendAuthResponse(reply, user, "Login successful");
             } catch (error: any) {
                 return reply.code(401).send({ error: "Invalid credentials" });
@@ -273,45 +274,73 @@ export class AuthController {
             });
         }
 
-        // PROFESSIONAL: auto-resolve company and professional from linked record
+        // PROFESSIONAL: resolve all linked professional records
         if (user.role === "PROFESSIONAL") {
-            let professional = await this.professionalRepo.findByUserId(user.id);
+            let professionals = await this.professionalRepo.findAllByUserId(user.id);
 
-            // First login: link userId permanently using the invited email
-            if (!professional) {
-                professional = await this.professionalRepo.findByInvitedEmail(user.email);
-                if (professional) {
-                    await this.professionalRepo.update(professional.id, professional.companyId, { userId: user.id });
-                    professional.userId = user.id;
+            // First login: link userId to all professionals matching the invited email
+            if (professionals.length === 0) {
+                const byEmail = await this.professionalRepo.findAllByInvitedEmail(user.email);
+                for (const p of byEmail) {
+                    await this.professionalRepo.update(p.id, p.companyId, { userId: user.id });
+                    p.userId = user.id;
                 }
+                professionals = byEmail;
             }
 
-            if (!professional) {
+            if (professionals.length === 0) {
                 return reply.code(403).send({ error: "Conta profissional não vinculada a nenhum profissional." });
             }
 
-            const token = this.fastify.sign({
+            // Single company: auto-select
+            if (professionals.length === 1) {
+                const professional = professionals[0]!;
+                const token = this.fastify.sign({
+                    id: user.id,
+                    email: user.email,
+                    name: user.name,
+                    role: user.role,
+                    companyId: professional.companyId,
+                    professionalId: professional.id,
+                });
+                return reply.send({
+                    message,
+                    token,
+                    user: {
+                        id: user.id,
+                        name: user.name,
+                        email: user.email,
+                        role: user.role,
+                        hasPassword: !!user.password,
+                        companyId: professional.companyId,
+                        professionalId: professional.id,
+                    },
+                    companies: [],
+                });
+            }
+
+            // Multiple companies: return partial token + list for selection
+            const partialToken = this.fastify.sign({
                 id: user.id,
                 email: user.email,
                 name: user.name,
                 role: user.role,
-                companyId: professional.companyId,
-                professionalId: professional.id,
             });
-
             return reply.send({
-                message,
-                token,
+                status: "SELECT_PROFESSIONAL_CONTEXT",
+                token: partialToken,
                 user: {
                     id: user.id,
                     name: user.name,
                     email: user.email,
                     role: user.role,
                     hasPassword: !!user.password,
-                    companyId: professional.companyId,
-                    professionalId: professional.id,
                 },
-                companies: [],
+                companies: professionals.map(p => ({
+                    id: p.companyId,
+                    name: p.company?.name ?? p.companyId,
+                    professionalId: p.id,
+                })),
             });
         }
 

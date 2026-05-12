@@ -7,6 +7,7 @@ import { fastifyHelmet } from '@fastify/helmet'
 import { fastifyRateLimit } from '@fastify/rate-limit'
 import { env } from '../config/configs'
 import { ITokenService } from '../../usecase/ports/itoken-service'
+import { parseLocale, t } from '../../shared/i18n'
 
 export class FastifyAdapter implements ITokenService {
     private app: FastifyInstance;
@@ -32,7 +33,7 @@ export class FastifyAdapter implements ITokenService {
                 ? [`https://${env.domain}`] 
                 : true, // Em dev, reflete a origem. Fundamental para CORS com credentials.
             methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS', 'PATCH'],
-            allowedHeaders: ['Content-Type', 'Authorization', 'apikey'],
+            allowedHeaders: ['Content-Type', 'Authorization', 'apikey', 'Accept-Language'],
             credentials: true
         });
 
@@ -105,9 +106,15 @@ export class FastifyAdapter implements ITokenService {
             })
         }
 
+        // ── Locale extraction ────────────────────────────────
+        this.app.addHook('onRequest', async (request: any) => {
+            request.locale = parseLocale(request.headers['accept-language']);
+        });
+
         // ── Error Handler Global ───────────────────────────────
         this.app.setErrorHandler((error: any, request: any, reply: any) => {
             const statusCode = error.statusCode || 500;
+            const locale = request.locale || 'pt';
 
             request.log.error({
                 err: error,
@@ -115,7 +122,7 @@ export class FastifyAdapter implements ITokenService {
             });
 
             reply.code(statusCode).send({
-                error: statusCode >= 500 ? 'Erro interno do servidor' : error.message,
+                error: statusCode >= 500 ? t(locale, 'error.internal') : error.message,
                 statusCode,
                 ...(env.debug() && { stack: error.stack })
             });

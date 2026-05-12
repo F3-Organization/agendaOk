@@ -13,7 +13,6 @@ export class SubscriptionWorker {
             async (job: Job) => {
                 if (job.name === "check-expired-subscriptions") {
                     const result = await this.checkExpiredUseCase.execute();
-                    console.log(`[SubscriptionWorker] Checked expired subscriptions: ${result.processed} processed.`);
                 }
             },
             {
@@ -26,7 +25,6 @@ export class SubscriptionWorker {
         );
 
         this.worker.on("completed", (job: Job) => {
-            console.log(`[SubscriptionWorker] Job ${job.name} (${job.id}) completed`);
         });
 
         this.worker.on("failed", (job: Job | undefined, err: Error) => {

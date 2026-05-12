@@ -36,8 +36,20 @@ export class ProfessionalRepository implements IProfessionalRepository {
         return await this.repository.findOneBy({ userId });
     }
 
+    async findAllByUserId(userId: string): Promise<Professional[]> {
+        return await this.repository.find({ where: { userId }, relations: ['company'] });
+    }
+
+    async findByUserIdAndCompanyId(userId: string, companyId: string): Promise<Professional | null> {
+        return await this.repository.findOneBy({ userId, companyId });
+    }
+
     async findByInvitedEmail(email: string): Promise<Professional | null> {
         return await this.repository.findOneBy({ invitedEmail: email });
+    }
+
+    async findAllByInvitedEmail(email: string): Promise<Professional[]> {
+        return await this.repository.find({ where: { invitedEmail: email }, relations: ['company'] });
     }
 
     async update(id: string, companyId: string, data: Partial<Professional>): Promise<void> {

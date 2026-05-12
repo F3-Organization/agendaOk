@@ -75,6 +75,7 @@ export const useAuthStore = create<AuthState>()(
         token: state.token,
         isAuthenticated: state.isAuthenticated,
         selectedCompany: state.selectedCompany,
+        companies: state.companies,
       }),
     }
   )

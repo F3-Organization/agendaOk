@@ -26,6 +26,8 @@ export const en = {
         nameAlreadyExists: "A company with a similar name already exists",
         limitReached: "Company limit reached. {planName} plan allows up to {maxCompanies} company(ies). Please upgrade your plan.",
         configNotFound: "Company config not found",
+        updated: "Company updated successfully",
+        deleted: "Company deleted successfully",
     },
 
     bot: {
@@ -33,14 +35,18 @@ export const en = {
         descriptionRequired: "You must fill in the business description before enabling the bot.",
         defaultGreeting: "Hello! 👋 Welcome! How can I help you today?",
         defaultInstructions: "Be friendly and attentive. Help the customer with information about services, schedules, and appointments.",
+        updated: "Bot configuration updated successfully",
     },
 
     professional: {
         notFound: "Professional not found",
+        updated: "Professional updated successfully",
+        deleted: "Professional deleted successfully",
     },
 
     appointment: {
         noPending: "No pending appointment found for this client",
+        updated: "Appointment updated successfully",
     },
 
     subscription: {
@@ -136,6 +142,35 @@ export const en = {
             highlight: "You have <strong>{trialDays} days</strong> to explore all features of the {planName} plan at no cost. Set up your bot, connect your WhatsApp, and get started now.",
             button: "Get started",
             nfseNote: "The NFS-e will only be issued after the first payment is confirmed at the end of the trial period.",
+        },
+        renewal: {
+            subject: "⚠️ Your subscription expires in {dayText} — renew now",
+            heading: "Hello, {userName}",
+            body: "Your PRO plan subscription expires in <strong>{dayText}</strong>.",
+            highlight: "To keep full access to the WhatsApp chatbot, unlimited professionals, and all premium features, renew your subscription before it expires.",
+            expiryLabel: "Expires in",
+            actionLabel: "Action required",
+            actionValue: "Renew subscription via PIX",
+            warning: "After expiration, your plan will enter a grace period. If no renewal is made, it will be automatically downgraded to the FREE plan.",
+            button: "Renew now",
+            support: "Questions? Talk to us via WhatsApp support.",
+        },
+        downgrade: {
+            subject: "❌ Your plan was downgraded to FREE due to non-payment",
+            heading: "Hello, {userName}",
+            body: "Unfortunately, your subscription expired and the grace period ended without a new payment.",
+            highlight: "Your plan has been downgraded to <strong>FREE</strong>. The AI chatbot has been <strong>disabled</strong> across all your companies.",
+            planLabel: "Current plan",
+            planValue: "FREE",
+            botLabel: "AI Bot",
+            botValue: "Disabled",
+            companiesLabel: "Company limit",
+            companiesValue: "1",
+            notificationsLabel: "Notification limit",
+            notificationsValue: "50/month",
+            body2: "Your data is preserved. To reactivate premium features, simply renew your subscription.",
+            button: "Reactivate PRO plan",
+            support: "Need help? Contact us via WhatsApp support.",
         },
         footer: {
             help: "Need help? Talk to us via",

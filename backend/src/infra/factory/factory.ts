@@ -259,7 +259,10 @@ const getUseCase = {
     checkExpiredSubscriptions: () => new CheckExpiredSubscriptionsUseCase(
         getRepo.subscription(),
         getRepo.user(),
-        new SubscriptionNotificationService(mailAdapter)
+        new SubscriptionNotificationService(mailAdapter),
+        getRepo.companyConfig(),
+        getRepo.company(),
+        evolutionAdapter
     ),
 };
 

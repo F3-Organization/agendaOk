@@ -7,6 +7,7 @@ import { SubscriptionStatus } from "../../infra/database/entities/subscription.e
 import { ISubscriptionPaymentRepository } from "../repositories/isubscription-payment-repository";
 import { SubscriptionPaymentStatus } from "../../infra/database/entities/subscription-payment.entity";
 import { IPlanRepository } from "../repositories/iplan-repository";
+import { t, type Locale } from "../../shared/i18n";
 
 const PIX_EXPIRES_IN_SECONDS = 30 * 60; // 30 minutes
 
@@ -21,25 +22,25 @@ export class CreateTransparentPixUseCase {
         private readonly planRepository: IPlanRepository
     ) { }
 
-    async execute(userId: string): Promise<TransparentPixResponse & { planName: string; amount: number }> {
+    async execute(userId: string, locale: Locale = "pt"): Promise<TransparentPixResponse & { planName: string; amount: number }> {
         const user = await this.userRepository.findById(userId);
-        if (!user) throw new Error("User not found");
+        if (!user) throw new Error(t(locale, "subscription.userNotFound"));
 
         const purchasablePlan = await this.planRepository.findPurchasable();
-        if (!purchasablePlan) throw new Error("No purchasable plan available.");
+        if (!purchasablePlan) throw new Error(t(locale, "subscription.noPlan"));
 
         const subscription = await this.subscriptionRepository.findByUserId(userId);
         if (subscription?.status === SubscriptionStatus.ACTIVE) {
-            throw new Error("User already has an active subscription.");
+            throw new Error(t(locale, "subscription.alreadyActive"));
         }
 
         const companies = await this.companyRepository.findByOwnerId(userId);
-        if (companies.length === 0) throw new Error("User has no company configured.");
+        if (companies.length === 0) throw new Error(t(locale, "subscription.noCompany"));
         const primaryCompany = companies[0]!;
 
         const companyConfig = await this.companyConfigRepository.findByCompanyId(primaryCompany.id);
         if (!companyConfig?.whatsappNumber || !companyConfig?.taxId) {
-            throw new Error("User must configure WhatsApp Number and Tax ID (CPF/CNPJ) before checkout.");
+            throw new Error(t(locale, "subscription.missingBillingInfo"));
         }
 
         const pix = await this.paymentGateway.createTransparentPix({

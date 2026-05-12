@@ -13,6 +13,13 @@ export class SubscriptionWorker {
             async (job: Job) => {
                 if (job.name === "check-expired-subscriptions") {
                     const result = await this.checkExpiredUseCase.execute();
+                    console.log(
+                        `[SubscriptionWorker] Processed: ` +
+                        `${result.reminders} reminders, ` +
+                        `${result.pastDue} marked past-due, ` +
+                        `${result.downgraded} downgraded to FREE`
+                    );
+                    return result;
                 }
             },
             {

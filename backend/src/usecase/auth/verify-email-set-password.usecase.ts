@@ -2,6 +2,7 @@ import { UserRepository } from "../../infra/database/repositories/user.repositor
 import { RedisService } from "../../infra/database/redis.service";
 import * as bcrypt from "bcrypt";
 import { User } from "../../infra/database/entities/user.entity";
+import { t, type Locale } from "../../shared/i18n";
 
 export class VerifyEmailSetPasswordUseCase {
     constructor(
@@ -9,16 +10,16 @@ export class VerifyEmailSetPasswordUseCase {
         private readonly redisService: RedisService
     ) {}
 
-    async execute(email: string, code: string, password: string): Promise<User> {
+    async execute(email: string, code: string, password: string, locale: Locale = "pt"): Promise<User> {
         const storedCode = await this.redisService.get(`verify_email:${email}`);
 
         if (!storedCode || storedCode !== code) {
-            throw new Error("Invalid or expired verification code.");
+            throw new Error(t(locale, "auth.invalidOrExpiredCode"));
         }
 
         const user = await this.userRepo.findByEmail(email);
         if (!user) {
-            throw new Error("User not found.");
+            throw new Error(t(locale, "auth.userNotFound"));
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);

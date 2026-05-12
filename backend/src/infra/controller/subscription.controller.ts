@@ -73,7 +73,7 @@ export class SubscriptionController {
             const userId = user.id;
 
             try {
-                const result = await this.createCheckout.execute(userId);
+                const result = await this.createCheckout.execute(userId, (request as any).locale);
                 reply.send(result);
             } catch (error: any) {
                 this.fastify.logInfo("[SubscriptionController] Checkout failed", { error: error.message });
@@ -130,7 +130,7 @@ export class SubscriptionController {
         this.fastify.addProtectedRoute("POST", "/subscription/pix", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
             try {
-                const result = await this.createPixUseCase.execute(user.id);
+                const result = await this.createPixUseCase.execute(user.id, (request as any).locale);
                 reply.send(result);
             } catch (error: any) {
                 reply.code(400).send({ error: "PIX creation failed", message: error.message });
@@ -152,7 +152,7 @@ export class SubscriptionController {
         this.fastify.addProtectedRoute("POST", "/subscription/cancel", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
             try {
-                await this.cancelSubscriptionUseCase.execute(user.id);
+                await this.cancelSubscriptionUseCase.execute(user.id, (request as any).locale);
                 reply.send({ status: "cancelled" });
             } catch (error: any) {
                 reply.code(400).send({ error: "Cancellation failed", message: error.message });

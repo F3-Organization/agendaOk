@@ -198,12 +198,21 @@ export class HandleAbacatePayWebhookUseCase {
         const periodEnd = new Date();
         periodEnd.setDate(periodEnd.getDate() + 30);
 
+        // If subscription was downgraded to FREE, resolve the correct paid plan
+        let activePlan = subscription.plan;
+        if (activePlan === "FREE") {
+            const purchasablePlan = await this.planRepository.findPurchasable();
+            if (purchasablePlan) {
+                activePlan = purchasablePlan.slug;
+            }
+        }
+
         await this.subscriptionRepository.updateStatus(
             subscription.id,
             subscription.userId,
             SubscriptionStatus.ACTIVE,
             periodEnd,
-            subscription.plan
+            activePlan
         );
 
         await this.subscriptionRepository.deactivateOthers(subscription.userId, subscription.id);

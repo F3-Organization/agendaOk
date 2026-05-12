@@ -6,6 +6,7 @@ import { ManageBotConfigUseCase } from "../../usecase/company/manage-bot-config.
 import { InviteProfessionalUserUseCase } from "../../usecase/appointment/invite-professional-user.usecase";
 import { AuthUserPayload } from "../types/auth.types";
 import { ownerOnlyMiddleware } from "../middleware/owner-only.middleware";
+import { t } from "../../shared/i18n";
 import {
     createProfessionalSchema,
     updateProfessionalSchema,
@@ -92,14 +93,15 @@ export class ProfessionalController {
                 await this.manageProfessionals.update({
                     id,
                     companyId: user.companyId,
+                    locale: (request as any).locale,
                     ...parseResult.data,
                     workingHours: parseResult.data.workingHours
                         ? filterWorkingHours(parseResult.data.workingHours)
                         : undefined,
                 });
-                reply.send({ message: "Professional updated successfully" });
+                reply.send({ message: t((request as any).locale, "professional.updated") });
             } catch (error: any) {
-                if (error.message === "Professional not found") {
+                if (error.statusCode === 404) {
                     return reply.code(404).send({ error: error.message });
                 }
                 reply.code(400).send({ error: "Failed to update professional", message: error.message });
@@ -133,10 +135,10 @@ export class ProfessionalController {
             const { id } = request.params as { id: string };
 
             try {
-                await this.manageProfessionals.delete(id, user.companyId);
-                reply.send({ message: "Professional deleted successfully" });
+                await this.manageProfessionals.delete(id, user.companyId, (request as any).locale);
+                reply.send({ message: t((request as any).locale, "professional.deleted") });
             } catch (error: any) {
-                if (error.message === "Professional not found") {
+                if (error.statusCode === 404) {
                     return reply.code(404).send({ error: error.message });
                 }
                 reply.code(400).send({ error: "Failed to delete professional", message: error.message });
@@ -173,7 +175,7 @@ export class ProfessionalController {
                     locale: (request as any).locale,
                     ...parseResult.data,
                 });
-                reply.send({ message: "Bot config updated successfully" });
+                reply.send({ message: t((request as any).locale, "bot.updated") });
             } catch (error: any) {
                 reply.code(400).send({ error: error.message });
             }

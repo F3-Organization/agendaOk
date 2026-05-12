@@ -5,6 +5,7 @@ import { IUserRepository } from "../repositories/iuser-repository";
 import { AppError } from "../../shared/errors/app-error";
 import { UpdateUserConfigDTO } from "../../../../shared/schemas/user.schema";
 import { CompanyConfig } from "../../infra/database/entities/company-config.entity";
+import { t, type Locale } from "../../shared/i18n";
 
 export class UpdateUserConfigUseCase {
     constructor(
@@ -13,7 +14,7 @@ export class UpdateUserConfigUseCase {
         private readonly evolutionService: IEvolutionService
     ) {}
 
-    async execute(userId: string, companyId: string, data: UpdateUserConfigDTO): Promise<void> {
+    async execute(userId: string, companyId: string, data: UpdateUserConfigDTO, locale: Locale = "pt"): Promise<void> {
         if (!userId) {
             throw new AppError("ID do usuário é obrigatório", 400);
         }
@@ -62,9 +63,7 @@ export class UpdateUserConfigUseCase {
 
         if (data.whatsappNumber && (isNumberChanging || isNotVerified)) {
             try {
-                const introMessage = `🔔 *Ativação ConfirmaZap*\n\n` +
-                    `Olá! Para concluir seu vínculo com o sistema e receber alertas de agendamentos e cancelamentos por aqui, precisamos validar sua conta.\n\n` +
-                    `👉 *Copie e envie a próxima mensagem abaixo neste chat:*`;
+                const introMessage = t(locale, "whatsapp.activationIntro");
 
                 const codeMessage = `Ref: ${config.id}`;
                 const targetNumber = `55${normalizedNewNumber || config.whatsappNumber}`;

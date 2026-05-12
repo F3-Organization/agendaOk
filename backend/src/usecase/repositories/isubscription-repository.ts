@@ -9,4 +9,6 @@ export interface ISubscriptionRepository {
     updateStatus(id: string, userId: string, status: SubscriptionStatus, periodEnd?: Date, plan?: string): Promise<void>;
     deactivateOthers(userId: string, activeId: string): Promise<void>;
     findExpired(): Promise<Subscription[]>;
+    findExpiringSoon(days: number): Promise<Subscription[]>;
+    findPastDueExpired(graceDays: number): Promise<Subscription[]>;
 }

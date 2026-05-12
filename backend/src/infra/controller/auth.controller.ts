@@ -132,7 +132,7 @@ export class AuthController {
                 if (error.message === t((request as any).locale || 'pt', 'auth.userAlreadyExists') || error.message === 'User already exists') {
                     // Try to send verification email for users without password (Google-only users)
                     try {
-                        await this.sendEmailVerification.execute(email);
+                        await this.sendEmailVerification.execute(email, (request as any).locale);
                         return reply.send({
                             status: "PENDING_VERIFICATION",
                             message: "Email verification code sent. Please verify your email to set a password."
@@ -155,7 +155,7 @@ export class AuthController {
             const { email, code, password } = parseResult.data;
 
             try {
-                const user = await this.verifyEmailSetPassword.execute(email, code, password);
+                const user = await this.verifyEmailSetPassword.execute(email, code, password, (request as any).locale);
                 return this.sendAuthResponse(reply, user, "Email verified and password set successfully");
             } catch (error: any) {
                 return reply.code(400).send({ error: "Verification failed", message: error.message });
@@ -205,8 +205,9 @@ export class AuthController {
                 if (!companyId) {
                     return reply.code(400).send({ error: "No company found for user. Please re-login." });
                 }
-                await this.updateUserConfig.execute(user.id, companyId, parseResult.data);
-                reply.send({ message: "Configuration updated successfully" });
+                const locale = (request as any).locale ?? "pt";
+                await this.updateUserConfig.execute(user.id, companyId, parseResult.data, locale);
+                reply.send({ message: t(locale, "user.configUpdated") });
             } catch (error: any) {
                 reply.code(500).send({ error: "Failed to update configuration", message: error.message });
             }
@@ -226,7 +227,7 @@ export class AuthController {
             const { tempToken, code } = parseResult.data;
 
             try {
-                const user = await this.loginVerify2FA.execute(tempToken, code);
+                const user = await this.loginVerify2FA.execute(tempToken, code, (request as any).locale);
                 const companies = await this.companyRepo.findByOwnerId(user.id);
                 const resolvedCompanyId = companies[0]?.id;
 

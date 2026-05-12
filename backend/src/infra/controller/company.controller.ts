@@ -8,6 +8,7 @@ import { DeleteCompanyUseCase } from "../../usecase/company/delete-company.useca
 import { AuthUserPayload } from "../types/auth.types";
 import { ownerOnlyMiddleware } from "../middleware/owner-only.middleware";
 import { z } from "zod";
+import { t } from "../../shared/i18n";
 import {
     listCompaniesSchema,
     createCompanySchema,
@@ -108,7 +109,7 @@ export class CompanyController {
                     companyId: id,
                     name: parseResult.data.name
                 });
-                reply.send({ message: "Company updated successfully" });
+                reply.send({ message: t((request as any).locale, "company.updated") });
             } catch (error: any) {
                 if (error.message === "Forbidden") {
                     return reply.code(403).send({ error: "Forbidden", message: "You don't have access to this company" });
@@ -130,7 +131,7 @@ export class CompanyController {
                     userId: user.id,
                     companyId: id
                 });
-                reply.send({ message: "Company deleted successfully" });
+                reply.send({ message: t((request as any).locale, "company.deleted") });
             } catch (error: any) {
                 if (error.message === "Forbidden") {
                     return reply.code(403).send({ error: "Forbidden", message: "You don't have access to this company" });

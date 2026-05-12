@@ -26,6 +26,8 @@ export const pt = {
         nameAlreadyExists: "Uma empresa com nome semelhante já existe",
         limitReached: "Limite de empresas atingido. O plano {planName} permite até {maxCompanies} empresa(s). Faça upgrade do seu plano.",
         configNotFound: "Configuração da empresa não encontrada",
+        updated: "Empresa atualizada com sucesso",
+        deleted: "Empresa excluída com sucesso",
     },
 
     bot: {
@@ -33,14 +35,18 @@ export const pt = {
         descriptionRequired: "É necessário preencher a descrição do negócio antes de ativar o bot.",
         defaultGreeting: "Olá! 👋 Seja bem-vindo(a)! Como posso ajudá-lo(a) hoje?",
         defaultInstructions: "Seja cordial e atencioso. Ajude o cliente com informações sobre serviços, horários e agendamentos.",
+        updated: "Configuração do bot atualizada com sucesso",
     },
 
     professional: {
         notFound: "Profissional não encontrado",
+        updated: "Profissional atualizado com sucesso",
+        deleted: "Profissional excluído com sucesso",
     },
 
     appointment: {
         noPending: "Nenhum agendamento pendente encontrado para este cliente",
+        updated: "Agendamento atualizado com sucesso",
     },
 
     subscription: {
@@ -136,6 +142,35 @@ export const pt = {
             highlight: "Você tem <strong>{trialDays} dias</strong> para explorar todas as funcionalidades do plano {planName} sem nenhum custo. Configure seu bot, conecte seu WhatsApp e comece agora.",
             button: "Começar agora",
             nfseNote: "A NFS-e será emitida somente após a confirmação do primeiro pagamento ao final do período de teste.",
+        },
+        renewal: {
+            subject: "⚠️ Sua assinatura vence em {dayText} — renove agora",
+            heading: "Olá, {userName}",
+            body: "Sua assinatura do plano PRO vence em <strong>{dayText}</strong>.",
+            highlight: "Para manter o acesso completo ao bot de atendimento WhatsApp, profissionais ilimitados e todas as funcionalidades premium, renove sua assinatura antes do vencimento.",
+            expiryLabel: "Vencimento em",
+            actionLabel: "Ação necessária",
+            actionValue: "Renovar assinatura via PIX",
+            warning: "Após o vencimento, seu plano entrará em período de carência. Se não houver renovação, será rebaixado automaticamente para o plano FREE.",
+            button: "Renovar agora",
+            support: "Dúvidas? Fale com a gente pelo WhatsApp de suporte.",
+        },
+        downgrade: {
+            subject: "❌ Seu plano foi rebaixado para FREE por falta de pagamento",
+            heading: "Olá, {userName}",
+            body: "Infelizmente, sua assinatura expirou e o período de carência terminou sem que um novo pagamento fosse realizado.",
+            highlight: "Seu plano foi rebaixado para <strong>FREE</strong>. O bot de autoatendimento foi <strong>desativado</strong> em todas as suas empresas.",
+            planLabel: "Plano atual",
+            planValue: "FREE",
+            botLabel: "Bot IA",
+            botValue: "Desativado",
+            companiesLabel: "Limite de empresas",
+            companiesValue: "1",
+            notificationsLabel: "Limite de notificações",
+            notificationsValue: "50/mês",
+            body2: "Seus dados estão preservados. Para reativar os recursos premium, basta renovar sua assinatura.",
+            button: "Reativar plano PRO",
+            support: "Se precisar de ajuda, fale conosco pelo WhatsApp de suporte.",
         },
         footer: {
             help: "Precisa de ajuda? Fale conosco via",

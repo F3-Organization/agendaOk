@@ -14,6 +14,7 @@ import {
 } from "../../../../shared/schemas/user.schema";
 import { FastifyAdapter } from "../adapters/fastfy.adapter";
 import { ICompanyRepository } from "../../usecase/repositories/icompany-repository";
+import { t } from "../../shared/i18n";
 import {
     getUserConfigSchema,
     updateUserConfigSwaggerSchema,
@@ -104,11 +105,12 @@ export class UserController {
         if (!companyId) {
             return reply.code(400).send({ error: "No company found for user." });
         }
+        const locale = (request as any).locale ?? "pt";
         const data = updateUserConfigSchema.parse(request.body);
-        
-        await this.updateUserConfigUseCase.execute(userId, companyId, data);
-        
-        reply.status(200).send({ message: "Configurações atualizadas com sucesso" });
+
+        await this.updateUserConfigUseCase.execute(userId, companyId, data, locale);
+
+        reply.status(200).send({ message: t(locale, "user.configUpdated") });
     }
 
     async changePassword(request: FastifyRequest, reply: FastifyReply): Promise<void> {
@@ -116,8 +118,9 @@ export class UserController {
         const data = changePasswordSchema.parse(request.body);
 
         try {
-            await this.changePasswordUseCase.execute(userId, data, (request as any).locale);
-            reply.status(200).send({ message: "Senha alterada com sucesso" });
+            const locale = (request as any).locale ?? "pt";
+            await this.changePasswordUseCase.execute(userId, data, locale);
+            reply.status(200).send({ message: t(locale, "user.passwordChanged") });
         } catch (error: any) {
             reply.status(400).send({ error: error.message });
         }
@@ -128,8 +131,9 @@ export class UserController {
         const data = setPasswordSchema.parse(request.body);
 
         try {
+            const locale = (request as any).locale ?? "pt";
             await this.setPasswordUseCase.execute(userId, data);
-            reply.status(200).send({ message: "Senha definida com sucesso" });
+            reply.status(200).send({ message: t(locale, "user.passwordSet") });
         } catch (error: any) {
             reply.status(error.statusCode || 400).send({ error: error.message });
         }

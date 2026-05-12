@@ -62,4 +62,7 @@ export class CompanyConfig extends BaseEntity {
 
     @Column({ type: "boolean", name: "bot_enabled", default: false })
     botEnabled?: boolean;
+
+    @Column({ type: "varchar", name: "locale", nullable: true })
+    locale?: string;
 }

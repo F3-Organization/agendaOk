@@ -5,6 +5,7 @@ import { SubscriptionStatus } from "../../infra/database/entities/subscription.e
 import { ISubscriptionPaymentRepository } from "../repositories/isubscription-payment-repository";
 import { SubscriptionPaymentStatus } from "../../infra/database/entities/subscription-payment.entity";
 import { SubscriptionNotificationService } from "./subscription-notification.service";
+import { t, type Locale } from "../../shared/i18n";
 
 export class CancelSubscriptionUseCase {
     constructor(
@@ -15,14 +16,14 @@ export class CancelSubscriptionUseCase {
         private readonly notificationService: SubscriptionNotificationService
     ) { }
 
-    async execute(userId: string): Promise<void> {
+    async execute(userId: string, locale: Locale = "pt"): Promise<void> {
         const subscription = await this.subscriptionRepository.findByUserId(userId);
 
-        if (!subscription) throw new Error("No subscription found.");
+        if (!subscription) throw new Error(t(locale, "subscription.notFound"));
 
         const cancellable: SubscriptionStatus[] = [SubscriptionStatus.ACTIVE, SubscriptionStatus.TRIAL, SubscriptionStatus.PENDING];
         if (!cancellable.includes(subscription.status as SubscriptionStatus)) {
-            throw new Error("Subscription is not in a cancellable state.");
+            throw new Error(t(locale, "subscription.notCancellable"));
         }
 
         // Cancel on Abacate Pay only for card-based subscriptions (they have a billingId)

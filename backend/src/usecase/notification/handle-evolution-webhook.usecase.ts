@@ -11,6 +11,7 @@ import { isWithinSilentWindow } from "../../shared/utils/time.util";
 import { CompanyConfig } from "../../infra/database/entities/company-config.entity";
 import { GeminiAdapter } from "../../infra/adapters/gemini.adapter";
 import { ConversationService } from "../chatbot/conversation.service";
+import { t, type Locale } from "../../shared/i18n";
 
 export class HandleEvolutionWebhookUseCase {
     constructor(
@@ -101,14 +102,12 @@ export class HandleEvolutionWebhookUseCase {
         }
 
         // Handle appointment confirmation/cancellation via keyword
+        const locale = (config.locale ?? "pt") as Locale;
+
         if (this.isConfirmation(text)) {
             try {
                 await this.confirmAppointment.execute(config.companyId, senderNumber);
-                const isEnglish = this.isEnglishMessage(text);
-                const msg = isEnglish
-                    ? "✅ Great! Your appointment has been confirmed successfully. We look forward to seeing you!"
-                    : "✅ Ótimo! Seu agendamento foi confirmado com sucesso. Te esperamos!";
-                await this.evolutionService.sendText(instanceName, fullJid, msg);
+                await this.evolutionService.sendText(instanceName, fullJid, t(locale, "whatsapp.confirmSuccess"));
                 return;
             } catch {
                 // No pending appointment — fall through to AI
@@ -116,11 +115,7 @@ export class HandleEvolutionWebhookUseCase {
         } else if (this.isCancellation(text)) {
             try {
                 await this.cancelAppointment.execute(config.companyId, senderNumber);
-                const isEnglish = this.isEnglishMessage(text);
-                const msg = isEnglish
-                    ? "❌ Alright, your appointment has been cancelled. Feel free to contact us to reschedule."
-                    : "❌ Certo, seu agendamento foi cancelado. Entre em contato para remarcar quando puder.";
-                await this.evolutionService.sendText(instanceName, fullJid, msg);
+                await this.evolutionService.sendText(instanceName, fullJid, t(locale, "whatsapp.cancelSuccess"));
                 return;
             } catch {
                 // No pending appointment — fall through to AI
@@ -212,9 +207,9 @@ export class HandleEvolutionWebhookUseCase {
 
         if (config) {
             const target = config.whatsappNumber?.startsWith("55") ? config.whatsappNumber : `55${config.whatsappNumber}`;
-            await this.evolutionService.sendText(instanceName, target || phoneNumber, "✅ *Vínculo realizado com sucesso!*\n\nAgora você receberá notificações diretamente por aqui.");
+            await this.evolutionService.sendText(instanceName, target || phoneNumber, t("pt", "whatsapp.activationSuccess"));
         } else if (match) {
-            await this.evolutionService.sendText(instanceName, phoneNumber, "❌ *Código de ativação inválido.*\n\nNão encontrei nenhuma conta com este código no sistema. Verifique se copiou corretamente do seu painel e tente novamente.");
+            await this.evolutionService.sendText(instanceName, phoneNumber, t("pt", "whatsapp.activationInvalid"));
         }
     }
 
@@ -238,20 +233,6 @@ export class HandleEvolutionWebhookUseCase {
         ];
         const normalized = text.toLowerCase().trim();
         return keywords.some(k => normalized.includes(k));
-    }
-
-    /**
-     * Detects if a message is likely in English based on the presence of English keywords.
-     * Used to determine the language for auto-response messages.
-     */
-    private isEnglishMessage(text: string): boolean {
-        const englishKeywords = [
-            "yes", "no", "confirm", "confirmed", "cancel", "sure", "absolutely",
-            "of course", "perfect", "reschedule", "won't go", "can't make it",
-            "not going", "hello", "hi", "thanks", "thank you", "please", "okay"
-        ];
-        const normalized = text.toLowerCase().trim();
-        return englishKeywords.some(k => normalized.includes(k));
     }
 
     private normalizeNumber(number: string): string {

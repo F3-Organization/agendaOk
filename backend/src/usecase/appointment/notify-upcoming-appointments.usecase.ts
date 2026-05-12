@@ -1,7 +1,7 @@
 import { IScheduleRepository } from "../repositories/ischedule-repository";
 import { ICompanyConfigRepository } from "../repositories/icompany-config-repository";
 import { IEvolutionService } from "../ports/ievolution-service";
-import { t } from "../../shared/i18n";
+import { t, type Locale } from "../../shared/i18n";
 
 export class NotifyUpcomingAppointmentsUseCase {
     constructor(
@@ -28,7 +28,7 @@ export class NotifyUpcomingAppointmentsUseCase {
 
                 for (const schedule of upcoming) {
                     try {
-                        const locale = config.locale ?? "pt";
+                        const locale = (config.locale ?? "pt") as Locale;
                         const dateLocale = locale === "en" ? "en-US" : "pt-BR";
 
                         const date = schedule.startAt.toLocaleDateString(dateLocale);

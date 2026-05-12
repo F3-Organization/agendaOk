@@ -8,6 +8,7 @@ import { DeleteAppointmentUseCase } from "../../usecase/appointment/delete-appoi
 import { AuthUserPayload } from "../types/auth.types";
 import { ownerOnlyMiddleware } from "../middleware/owner-only.middleware";
 import { ScheduleStatus } from "../database/entities/schedule.entity";
+import { t } from "../../shared/i18n";
 
 const AppointmentBodySchema = z.object({
     clientName: z.string().min(1),
@@ -97,7 +98,7 @@ export class AppointmentController {
                 if (rawEnd) updateData.endAt = new Date(rawEnd);
                 if (pid) updateData.professionalId = pid;
                 await this.updateAppointment.execute(id, user.companyId, updateData as any);
-                return reply.send({ message: "Appointment updated" });
+                return reply.send({ message: t((request as any).locale, "appointment.updated") });
             },
             undefined,
             ownerOnlyMiddleware

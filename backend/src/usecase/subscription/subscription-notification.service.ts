@@ -102,4 +102,59 @@ export class SubscriptionNotificationService {
 
         await this.mailService.sendMail(userEmail, subject, buildEmailTemplate(content, locale));
     }
+
+    async notifyRenewalReminder(
+        userEmail: string,
+        userName: string,
+        daysUntilExpiry: number,
+        locale: Locale = "pt"
+    ): Promise<void> {
+        const dayText = daysUntilExpiry === 1
+            ? (locale === "pt" ? "1 dia" : "1 day")
+            : (locale === "pt" ? `${daysUntilExpiry} dias` : `${daysUntilExpiry} days`);
+
+        const subject = t(locale, "email.renewal.subject", { dayText });
+
+        const content = `
+            ${emailHeading(t(locale, "email.renewal.heading", { userName }))}
+            ${emailText(t(locale, "email.renewal.body", { dayText }))}
+            ${emailHighlightBox(t(locale, "email.renewal.highlight"), "warning")}
+            ${emailInfoBox([
+                [t(locale, "email.renewal.expiryLabel"), dayText],
+                [t(locale, "email.renewal.actionLabel"), t(locale, "email.renewal.actionValue")],
+            ])}
+            ${emailText(t(locale, "email.renewal.warning"))}
+            ${emailButton(t(locale, "email.renewal.button"), `https://${env.domain}/subscription`)}
+            ${emailDivider()}
+            ${emailText(t(locale, "email.renewal.support"))}
+        `;
+
+        await this.mailService.sendMail(userEmail, subject, buildEmailTemplate(content, locale));
+    }
+
+    async notifyDowngradedToFree(
+        userEmail: string,
+        userName: string,
+        locale: Locale = "pt"
+    ): Promise<void> {
+        const subject = t(locale, "email.downgrade.subject");
+
+        const content = `
+            ${emailHeading(t(locale, "email.downgrade.heading", { userName }))}
+            ${emailText(t(locale, "email.downgrade.body"))}
+            ${emailHighlightBox(t(locale, "email.downgrade.highlight"), "warning")}
+            ${emailInfoBox([
+                [t(locale, "email.downgrade.planLabel"), t(locale, "email.downgrade.planValue")],
+                [t(locale, "email.downgrade.botLabel"), t(locale, "email.downgrade.botValue")],
+                [t(locale, "email.downgrade.companiesLabel"), t(locale, "email.downgrade.companiesValue")],
+                [t(locale, "email.downgrade.notificationsLabel"), t(locale, "email.downgrade.notificationsValue")],
+            ])}
+            ${emailText(t(locale, "email.downgrade.body2"))}
+            ${emailButton(t(locale, "email.downgrade.button"), `https://${env.domain}/subscription`)}
+            ${emailDivider()}
+            ${emailText(t(locale, "email.downgrade.support"))}
+        `;
+
+        await this.mailService.sendMail(userEmail, subject, buildEmailTemplate(content, locale));
+    }
 }

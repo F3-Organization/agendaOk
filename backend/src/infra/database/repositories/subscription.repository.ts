@@ -67,4 +67,32 @@ export class SubscriptionRepository implements ISubscriptionRepository {
             .andWhere("s.current_period_end < NOW()")
             .getMany();
     }
+
+    /**
+     * Find ACTIVE subscriptions that will expire within the next N days.
+     * Used for sending renewal reminders before the subscription lapses.
+     */
+    async findExpiringSoon(days: number): Promise<Subscription[]> {
+        return await this.repository
+            .createQueryBuilder("s")
+            .where("s.status = :status", { status: SubscriptionStatus.ACTIVE })
+            .andWhere("s.plan != :freePlan", { freePlan: "FREE" })
+            .andWhere("s.current_period_end IS NOT NULL")
+            .andWhere("s.current_period_end > NOW()")
+            .andWhere("s.current_period_end <= NOW() + INTERVAL '1 day' * :days", { days })
+            .getMany();
+    }
+
+    /**
+     * Find PAST_DUE subscriptions where the grace period has elapsed.
+     * These will be downgraded to FREE.
+     */
+    async findPastDueExpired(graceDays: number): Promise<Subscription[]> {
+        return await this.repository
+            .createQueryBuilder("s")
+            .where("s.status = :status", { status: SubscriptionStatus.PAST_DUE })
+            .andWhere("s.current_period_end IS NOT NULL")
+            .andWhere("s.current_period_end <= NOW() - INTERVAL '1 day' * :graceDays", { graceDays })
+            .getMany();
+    }
 }

@@ -1,5 +1,7 @@
 import { IProfessionalRepository } from "../repositories/iprofessional-repository";
 import { Professional } from "../../infra/database/entities/professional.entity";
+import { AppError } from "../../shared/errors/app-error";
+import { t, type Locale } from "../../shared/i18n";
 
 interface CreateProfessionalInput {
     companyId: string;
@@ -17,6 +19,7 @@ interface UpdateProfessionalInput {
     workingHours?: Record<string, Array<{ start: string; end: string }>> | undefined;
     appointmentDuration?: number | undefined;
     active?: boolean | undefined;
+    locale?: Locale | undefined;
 }
 
 export class ManageProfessionalsUseCase {
@@ -43,7 +46,7 @@ export class ManageProfessionalsUseCase {
     async update(input: UpdateProfessionalInput): Promise<void> {
         const existing = await this.professionalRepository.findById(input.id, input.companyId);
         if (!existing) {
-            throw new Error("Professional not found");
+            throw new AppError(t(input.locale ?? "pt", "professional.notFound"), 404);
         }
 
         const data: Partial<Professional> = {};
@@ -56,10 +59,10 @@ export class ManageProfessionalsUseCase {
         await this.professionalRepository.update(input.id, input.companyId, data);
     }
 
-    async delete(id: string, companyId: string): Promise<void> {
+    async delete(id: string, companyId: string, locale: Locale = "pt"): Promise<void> {
         const existing = await this.professionalRepository.findById(id, companyId);
         if (!existing) {
-            throw new Error("Professional not found");
+            throw new AppError(t(locale, "professional.notFound"), 404);
         }
 
         await this.professionalRepository.delete(id, companyId);

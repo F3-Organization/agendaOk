@@ -115,7 +115,7 @@ export const LoginPage = () => {
   return (
     <div className="min-h-screen grid lg:grid-cols-2 selection:bg-primary/15 selection:text-primary overflow-hidden relative bg-surface-low">
       {/* Hero Section */}
-      <div className="hidden lg:flex flex-col justify-center p-16 xl:p-24 relative overflow-hidden bg-surface border-r border-outline-variant/25">
+      <div className="hidden lg:flex flex-col justify-center p-16 xl:p-24 relative overflow-hidden bg-surface border-r border-outline-variant/25 animate-in fade-in slide-in-from-left-8 duration-700">
         <div className="max-w-xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/8 border border-primary/20 text-primary-dim text-xs font-bold tracking-widest uppercase mb-8">
             <Zap className="w-3 h-3 fill-current" />
@@ -137,7 +137,7 @@ export const LoginPage = () => {
 
       {/* Form Section */}
       <div className="flex items-center justify-center p-8 lg:p-16 bg-surface-low">
-        <Card variant="base" className="w-full max-w-md p-10 relative overflow-hidden">
+        <Card variant="base" className="w-full max-w-md p-10 relative overflow-hidden animate-in fade-in zoom-in-95 duration-500">
           <div className="mb-10 flex flex-col items-center">
             <div className="w-12 h-12 rounded-xl bg-pulse-gradient flex items-center justify-center shadow-card-md mb-6">
               <Zap className="w-6 h-6 text-primary-foreground fill-current" />

@@ -87,7 +87,7 @@ export const SelectCompanyPage = () => {
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[120px] -z-10 pointer-events-none animate-pulse" />
       <div className="absolute bottom-[-5%] right-[-5%] w-[40%] h-[40%] bg-secondary/5 rounded-full blur-[100px] -z-10 pointer-events-none" />
 
-      <div className="w-full max-w-lg space-y-8">
+      <div className="w-full max-w-lg space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-700">
         {/* Header */}
         <div className="flex flex-col items-center text-center space-y-4">
           <div className="w-14 h-14 rounded-2xl bg-pulse-gradient flex items-center justify-center shadow-2xl shadow-primary-dim/40 mb-2">
@@ -102,7 +102,7 @@ export const SelectCompanyPage = () => {
         </div>
 
         {/* Company list */}
-        <div className="space-y-3">
+        <div className="space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200">
           {companies.map((company) => (
             <button
               key={company.id}

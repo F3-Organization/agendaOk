@@ -65,7 +65,7 @@ export const CheckoutPage: React.FC = () => {
 
         <main className="grid grid-cols-1 lg:grid-cols-[1.2fr,1fr] gap-8 items-start">
           {/* Coluna 1: Layout de Resumo */}
-          <section className="space-y-6">
+          <section className="space-y-6 animate-in fade-in slide-in-from-left-6 duration-700">
             <Card variant="glass" className="p-8 relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-3xl -mr-16 -mt-16 group-hover:bg-primary/20 transition-colors" />
 
@@ -153,7 +153,7 @@ export const CheckoutPage: React.FC = () => {
           </section>
 
           {/* Coluna 2: Detalhes e Próximos Passos */}
-          <aside className="space-y-6 lg:mt-8">
+          <aside className="space-y-6 lg:mt-8 animate-in fade-in slide-in-from-right-6 duration-700 delay-200">
             <Card variant="base" className="p-8 bg-surface-low/40 border-outline-variant/30">
               <h4 className="text-xl font-bold tracking-tight mb-8">
                 {t('checkout.nextSteps.title')}

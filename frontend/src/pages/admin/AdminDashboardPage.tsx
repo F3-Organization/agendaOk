@@ -65,7 +65,7 @@ export const AdminDashboardPage = () => {
 
   return (
     <AdminLayout>
-      <div className="space-y-8">
+      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {/* Header */}
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-foreground">{t('admin.dashboard.title')}</h1>
@@ -73,7 +73,7 @@ export const AdminDashboardPage = () => {
         </div>
 
         {/* KPI Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
           <KPICard
             icon={Users}
             label={t('admin.dashboard.totalUsers')}
@@ -101,7 +101,7 @@ export const AdminDashboardPage = () => {
         </div>
 
         {/* Revenue & Subscriptions */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200">
           <Card variant="glass" className="p-6">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-center">
@@ -164,7 +164,7 @@ export const AdminDashboardPage = () => {
         </div>
 
         {/* Subscriptions Breakdown */}
-        <Card variant="glass" className="p-6">
+        <Card variant="glass" className="p-6 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
           <h3 className="font-bold text-sm mb-4">{t('admin.dashboard.subscriptionsByPlan')}</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {stats?.subscriptionsByPlan?.map((item, i) => (

@@ -65,7 +65,7 @@ export const DashboardPage = () => {
       subtitle={t('dashboard.subtitle')}
     >
       {dashboardStats?.whatsappNumberMissing && (
-        <Card variant="glass" className="mb-8 p-6 bg-primary/5 border-primary/20 border-2">
+        <Card variant="glass" className="mb-8 p-6 bg-primary/5 border-primary/20 border-2 animate-in fade-in slide-in-from-top-4 duration-500">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -110,7 +110,7 @@ export const DashboardPage = () => {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {statsList.map((stat, i) => (
           <Card key={i} variant="glass" className="p-8 group hover:scale-[1.02] transition-all cursor-default min-w-0">
             <div className="flex justify-between items-start mb-6">
@@ -129,7 +129,7 @@ export const DashboardPage = () => {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-150">
         <Card variant="base" className="p-8">
           <div className="flex items-center gap-4 mb-6">
             <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">

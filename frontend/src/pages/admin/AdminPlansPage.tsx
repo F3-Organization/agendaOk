@@ -167,7 +167,7 @@ export const AdminPlansPage = () => {
 
   return (
     <AdminLayout>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight">{t('admin.plans.title')}</h1>
           <p className="text-sm text-muted-foreground mt-1">{t('admin.plans.subtitle')}</p>
@@ -180,7 +180,7 @@ export const AdminPlansPage = () => {
       {isLoading ? (
         <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-primary/50" /></div>
       ) : (
-        <div className="grid gap-6">
+        <div className="grid gap-6 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-100">
           {plans.map(plan => (
             <Card key={plan.id} variant="glass" className="p-6">
               <div className="flex items-start justify-between gap-4">

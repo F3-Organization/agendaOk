@@ -27,7 +27,7 @@ export const PrivacyPolicyPage = () => {
       </nav>
 
       {/* Content */}
-      <main className="max-w-4xl mx-auto px-6 py-16">
+      <main className="max-w-4xl mx-auto px-6 py-16 animate-in fade-in slide-in-from-bottom-6 duration-700">
         <p className="text-[10px] font-bold tracking-widest uppercase text-primary-dim mb-4">
           {isPt ? 'Última atualização: 19 de Abril de 2026' : 'Last updated: April 19, 2026'}
         </p>

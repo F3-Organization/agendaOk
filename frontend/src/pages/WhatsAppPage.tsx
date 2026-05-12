@@ -100,7 +100,7 @@ export const WhatsAppPage = () => {
     >
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
         {/* Left: Connection Steps */}
-        <div className="lg:col-span-3 space-y-12 pr-6">
+        <div className="lg:col-span-3 space-y-12 pr-6 animate-in fade-in slide-in-from-left-6 duration-700">
           <div className="space-y-8">
             <h2 className="text-3xl font-bold tracking-tight mb-8">{t('whatsapp.stepsTitle')}</h2>
             <div className="space-y-6">
@@ -138,7 +138,7 @@ export const WhatsAppPage = () => {
         </div>
 
         {/* Right: QR Code Visualizer or Success View */}
-        <div className="lg:col-span-2 sticky top-[120px]">
+        <div className="lg:col-span-2 sticky top-[120px] animate-in fade-in slide-in-from-right-6 duration-700 delay-200">
           {isConnected ? (
             <Card variant="glass" className="p-10 text-center relative overflow-hidden flex flex-col items-center border-2 border-green-500/30 bg-green-500/5 min-h-[450px] justify-center animate-in fade-in zoom-in duration-700">
                <div className="absolute inset-0 bg-radial-gradient from-green-500/10 to-transparent blur-3xl rounded-full scale-110 -z-10" />
@@ -261,7 +261,7 @@ export const WhatsAppPage = () => {
       </div>
 
       {/* Notification Settings Section */}
-      <div className="mt-20">
+      <div className="mt-20 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-300">
         <div className="flex items-center gap-4 mb-8">
             <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
                 <BellRing className="w-6 h-6 text-primary" />

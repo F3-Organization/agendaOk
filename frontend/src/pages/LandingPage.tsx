@@ -17,7 +17,7 @@ function cn(...inputs: ClassValue[]) {
 const ChatBubble = ({ children, align = 'left', delay = '0s' }: { children: React.ReactNode; align?: 'left' | 'right'; delay?: string }) => (
   <div
     className={cn(
-      "max-w-[280px] px-4 py-3 rounded-2xl text-sm leading-relaxed animate-fade-in-up",
+      "max-w-[280px] px-4 py-3 rounded-2xl text-sm leading-relaxed animate-in fade-in slide-in-from-bottom-3 duration-500",
       align === 'left'
         ? 'bg-surface-high/80 border border-outline-variant/20 rounded-bl-sm self-start'
         : 'bg-gradient-to-br from-primary/90 to-primary-dim/90 text-white rounded-br-sm self-end'
@@ -188,7 +188,7 @@ export const LandingPage = () => {
       <section className="relative pt-16 pb-24 px-6">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
           {/* Left: Copy */}
-          <div className="flex flex-col items-start">
+          <div className="flex flex-col items-start animate-in fade-in slide-in-from-left-8 duration-700">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-pulse-gradient/10 border border-primary/20 text-primary-dim text-[10px] font-bold tracking-widest uppercase mb-8">
               <Bot className="w-3.5 h-3.5" />
               {t('landing.multiTenantTitle')}
@@ -229,7 +229,7 @@ export const LandingPage = () => {
           </div>
 
           {/* Right: Chat Demo */}
-          <div className="hidden lg:block">
+          <div className="hidden lg:block animate-in fade-in slide-in-from-right-8 duration-700 delay-300">
             <HeroChatDemo />
           </div>
         </div>
@@ -241,7 +241,7 @@ export const LandingPage = () => {
         <div className="absolute bottom-0 right-0 w-80 h-80 bg-secondary/10 rounded-full blur-[100px] -z-10" />
         
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-20 max-w-3xl mx-auto">
+          <div className="text-center mb-20 max-w-3xl mx-auto animate-in fade-in slide-in-from-bottom-6 duration-700">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary-dim text-[10px] font-bold tracking-widest uppercase mb-6">
               <Sparkles className="w-3.5 h-3.5 fill-current" />
               POWERED BY GOOGLE GEMINI
@@ -254,7 +254,7 @@ export const LandingPage = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-200">
             {/* Feature 1: Natural Language */}
             <Card variant="glass" className="p-10 border-outline-variant/40 hover:border-primary/30 transition-all group relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-[60px] group-hover:bg-primary/15 transition-colors -z-10" />
@@ -297,7 +297,7 @@ export const LandingPage = () => {
       {/* Features Section */}
       <section id="features" className="py-28 px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-20">
+          <div className="mb-20 animate-in fade-in slide-in-from-bottom-6 duration-500">
             <h2 className="text-4xl md:text-5xl font-extrabold tracking-tighter mb-4">
               {t('landing.featuresTitle')}
             </h2>
@@ -306,7 +306,7 @@ export const LandingPage = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150">
             {/* AI Bot Feature - highlighted */}
             <Card variant="glass" className="p-8 border-primary/30 bg-primary/5 hover:scale-105 transition-transform group col-span-1 lg:col-span-2 lg:row-span-1">
               <div className="flex items-start gap-6">
@@ -377,7 +377,7 @@ export const LandingPage = () => {
       {/* Pricing Section */}
       <section id="pricing" className="py-28 px-6 bg-surface-dim/30 border-y border-outline-variant/30">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-20 flex flex-col items-center">
+          <div className="text-center mb-20 flex flex-col items-center animate-in fade-in slide-in-from-bottom-6 duration-500">
             <h2 className="text-4xl md:text-6xl font-extrabold tracking-tighter mb-4">
               {t('landing.pricingTitle')}
             </h2>
@@ -386,7 +386,7 @@ export const LandingPage = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto relative">
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto relative animate-in fade-in zoom-in-95 duration-700 delay-200">
             {/* Pulsing glow behind pricing */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-primary/5 rounded-full blur-[140px] pointer-events-none -z-10" />
 
@@ -475,7 +475,7 @@ export const LandingPage = () => {
       {/* Final CTA */}
       <section className="py-28 px-6 relative overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-primary/8 rounded-full blur-[120px] pointer-events-none" />
-        <div className="max-w-4xl mx-auto text-center relative">
+        <div className="max-w-4xl mx-auto text-center relative animate-in fade-in slide-in-from-bottom-8 duration-700">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary-dim text-[10px] font-bold tracking-widest uppercase mb-8">
             <Bot className="w-3.5 h-3.5" />
             PRONTO PARA COMEÇAR?
@@ -541,22 +541,7 @@ export const LandingPage = () => {
         </div>
       </footer>
 
-      {/* CSS for animations */}
-      <style>{`
-        @keyframes fade-in-up {
-          from {
-            opacity: 0;
-            transform: translateY(12px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-fade-in-up {
-          animation: fade-in-up 0.5s ease-out both;
-        }
-      `}</style>
+
     </div>
   );
 };

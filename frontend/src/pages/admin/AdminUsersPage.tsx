@@ -50,7 +50,7 @@ export const AdminUsersPage = () => {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -81,7 +81,7 @@ export const AdminUsersPage = () => {
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         ) : (
-          <Card variant="glass" className="overflow-hidden">
+          <Card variant="glass" className="overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>

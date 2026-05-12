@@ -40,7 +40,7 @@ export const PageLayout = ({ children, title, subtitle }: PageLayoutProps) => {
 
         {status && <UsageBanner plan={status.plan} count={status.messageCount} />}
         <main className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar relative">
-          <header className="p-4 sm:p-10 pb-0">
+          <header className="p-4 sm:p-10 pb-0 animate-in fade-in slide-in-from-bottom-3 duration-500">
             {title && (
               <div className="w-full">
                 <h1 className="text-3xl font-bold tracking-tight sm:text-4xl text-foreground">
@@ -55,7 +55,7 @@ export const PageLayout = ({ children, title, subtitle }: PageLayoutProps) => {
             )}
           </header>
 
-          <div className="p-4 sm:p-10 w-full">
+          <div className="p-4 sm:p-10 w-full animate-in fade-in duration-500 delay-100">
             {children}
           </div>
         </main>

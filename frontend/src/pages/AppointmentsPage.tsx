@@ -247,7 +247,7 @@ export const AppointmentsPage = () => {
       title={t('common.appointments')}
       subtitle={isProfessional ? t('appointmentsPage.subtitleProfessional') : t('appointmentsPage.subtitle')}
     >
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="flex flex-wrap gap-3 w-full sm:w-auto">
           <div className="relative flex-1 sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -303,7 +303,7 @@ export const AppointmentsPage = () => {
         )}
       </div>
 
-      <Card variant="base" className="overflow-hidden">
+      <Card variant="base" className="overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
         {isLoading ? (
           <div className="p-20 flex items-center justify-center">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />

@@ -176,7 +176,7 @@ export const SubscriptionPage = () => {
 
       {/* Usage Progress Section */}
       {subStatus && (
-        <Card variant="glass" className="mb-12 p-8 border border-primary/20 overflow-hidden relative group">
+        <Card variant="glass" className="mb-12 p-8 border border-primary/20 overflow-hidden relative group animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent -z-10" />
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="flex-1 w-full uppercase">
@@ -253,7 +253,7 @@ export const SubscriptionPage = () => {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-16">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-16 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-100">
         {plans.map((plan, i) => (
           <Card
             key={i}
@@ -313,7 +313,7 @@ export const SubscriptionPage = () => {
 
       {/* Payment History Section */}
       <h2 className="text-3xl font-bold tracking-tight mb-8">{t('subscription.billing.title')}</h2>
-      <Card variant="base" className="overflow-hidden bg-surface-dim/30 border border-outline-variant/20">
+      <Card variant="base" className="overflow-hidden bg-surface-dim/30 border border-outline-variant/20 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200">
         <div className="p-8 border-b border-outline-variant/20 flex justify-between items-center group">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-surface-low flex items-center justify-center border border-outline-variant/50 group-hover:bg-primary/5 group-hover:border-primary/20 transition-all">
@@ -406,7 +406,7 @@ export const SubscriptionPage = () => {
         </div>
       </Card>
 
-      <div className="mt-12 p-8 rounded-3xl bg-surface-container border border-primary/20 relative overflow-hidden group">
+      <div className="mt-12 p-8 rounded-3xl bg-surface-container border border-primary/20 relative overflow-hidden group animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
         <div className="absolute inset-0 bg-pulse-gradient opacity-[0.03] -z-10 group-hover:opacity-[0.05] transition-opacity" />
         <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
           <div className="max-w-xl text-center md:text-left">

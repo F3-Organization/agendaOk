@@ -25,7 +25,7 @@ export const AdminCompaniesPage = () => {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {/* Header */}
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-foreground">{t('admin.companies.title')}</h1>
@@ -54,7 +54,7 @@ export const AdminCompaniesPage = () => {
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         ) : (
-          <Card variant="glass" className="overflow-hidden">
+          <Card variant="glass" className="overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>

@@ -65,7 +65,7 @@ export const GoogleCallbackPage = () => {
   }, [searchParams, navigate, setAuth]);
 
   return (
-    <div className="min-h-screen bg-surface-dim flex flex-col items-center justify-center p-6 text-center">
+    <div className="min-h-screen bg-surface-dim flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-500">
       <div className="w-16 h-16 rounded-2xl bg-pulse-gradient flex items-center justify-center shadow-2xl shadow-primary-dim/40 mb-8 animate-bounce">
         <Zap className="w-8 h-8 text-primary-foreground fill-current" />
       </div>

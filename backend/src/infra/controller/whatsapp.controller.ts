@@ -4,6 +4,7 @@ import { ConnectWhatsappUseCase } from "../../usecase/notification/connect-whats
 import { DisconnectWhatsappUseCase } from "../../usecase/notification/disconnect-whatsapp.usecase";
 import { GetWhatsappStatusUseCase } from "../../usecase/notification/get-whatsapp-status.usecase";
 import { AuthUserPayload } from "../types/auth.types";
+import { ownerOnlyMiddleware } from "../middleware/owner-only.middleware";
 import {
     connectWhatsappSchema,
     getWhatsappStatusSchema,
@@ -36,12 +37,12 @@ export class WhatsappController {
                     message: "Could not generate QR Code. Please try again later." 
                 });
             }
-        }, connectWhatsappSchema, []);
+        }, connectWhatsappSchema, ownerOnlyMiddleware);
 
         this.fastify.addProtectedRoute("GET", "/whatsapp/status", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
             return await this.getStatusUseCase.execute(user.companyId!);
-        }, getWhatsappStatusSchema, []);
+        }, getWhatsappStatusSchema, ownerOnlyMiddleware);
 
         this.fastify.addProtectedRoute("DELETE", "/whatsapp/disconnect", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
@@ -57,6 +58,6 @@ export class WhatsappController {
                     message: "There was an error while trying to disconnect WhatsApp." 
                 });
             }
-        }, disconnectWhatsappSchema, []);
+        }, disconnectWhatsappSchema, ownerOnlyMiddleware);
     }
 }

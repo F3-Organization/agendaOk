@@ -10,4 +10,5 @@ export interface IScheduleRepository {
     update(id: string, data: Partial<Schedule>): Promise<void>;
     delete(id: string): Promise<void>;
     countMonthlyNotifications(companyId: string, start: Date, end: Date): Promise<number>;
+    countByStatus(companyId: string, status: import("../../infra/database/entities/schedule.entity").ScheduleStatus, start: Date, end: Date): Promise<number>;
 }

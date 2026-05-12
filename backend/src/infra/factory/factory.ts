@@ -138,7 +138,8 @@ const getUseCase = {
     checkUsageLimit: () => new CheckUsageLimitUseCase(
         getRepo.subscription(),
         getRepo.company(),
-        getRepo.plan()
+        getRepo.plan(),
+        getRepo.schedule()
     ),
 
     confirmAppointment: () => new ConfirmAppointmentUseCase(getRepo.schedule()),
@@ -226,7 +227,7 @@ const getUseCase = {
     verify2FA: () => new Verify2FAUseCase(getRepo.user()),
     validate2FA: () => new Validate2FAUseCase(getRepo.user()),
 
-    getDashboardStats: () => new GetDashboardStatsUseCase(getRepo.companyConfig()),
+    getDashboardStats: () => new GetDashboardStatsUseCase(getRepo.companyConfig(), getRepo.schedule()),
 
     registerUser: () => new RegisterUserUseCase(getRepo.user()),
     login: () => new LoginUseCase(getRepo.user()),
@@ -237,7 +238,8 @@ const getUseCase = {
         getRepo.subscription(),
         getRepo.company(),
         getRepo.companyConfig(),
-        getRepo.plan()
+        getRepo.plan(),
+        getRepo.schedule()
     ),
 
     createCompany: () => new CreateCompanyUseCase(getRepo.company(), getRepo.companyConfig(), getRepo.subscription()),

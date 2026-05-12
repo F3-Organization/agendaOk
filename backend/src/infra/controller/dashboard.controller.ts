@@ -2,6 +2,7 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { FastifyAdapter } from "../adapters/fastfy.adapter";
 import { GetDashboardStatsUseCase } from "../../usecase/dashboard/get-dashboard-stats.usecase";
 import { getDashboardStatsSchema } from "./schemas/dashboard.swagger";
+import { ownerOnlyMiddleware } from "../middleware/owner-only.middleware";
 
 export class DashboardController {
     constructor(
@@ -19,6 +20,6 @@ export class DashboardController {
             const stats = await this.getStats.execute(companyId);
 
             return reply.send(stats);
-        }, getDashboardStatsSchema);
+        }, getDashboardStatsSchema, ownerOnlyMiddleware);
     }
 }

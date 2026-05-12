@@ -6,6 +6,7 @@ import { SelectCompanyUseCase } from "../../usecase/company/select-company.useca
 import { UpdateCompanyUseCase } from "../../usecase/company/update-company.usecase";
 import { DeleteCompanyUseCase } from "../../usecase/company/delete-company.usecase";
 import { AuthUserPayload } from "../types/auth.types";
+import { ownerOnlyMiddleware } from "../middleware/owner-only.middleware";
 import { z } from "zod";
 import {
     listCompaniesSchema,
@@ -63,7 +64,7 @@ export class CompanyController {
             } catch (error: any) {
                 reply.code(400).send({ error: "Failed to create company", message: error.message });
             }
-        }, createCompanySchema);
+        }, createCompanySchema, ownerOnlyMiddleware);
 
         // POST /companies/:id/select - Select a company context
         this.fastify.addProtectedRoute("POST", "/companies/:id/select", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -117,7 +118,7 @@ export class CompanyController {
                 }
                 reply.code(400).send({ error: "Failed to update company", message: error.message });
             }
-        }, updateCompanySchema);
+        }, updateCompanySchema, ownerOnlyMiddleware);
 
         // DELETE /companies/:id - Delete company
         this.fastify.addProtectedRoute("DELETE", "/companies/:id", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -139,6 +140,6 @@ export class CompanyController {
                 }
                 reply.code(400).send({ error: "Failed to delete company", message: error.message });
             }
-        }, deleteCompanySchema);
+        }, deleteCompanySchema, ownerOnlyMiddleware);
     }
 }

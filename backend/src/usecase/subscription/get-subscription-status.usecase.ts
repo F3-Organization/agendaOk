@@ -3,6 +3,7 @@ import { ISubscriptionRepository } from "../repositories/isubscription-repositor
 import { ICompanyRepository } from "../repositories/icompany-repository";
 import { ICompanyConfigRepository } from "../repositories/icompany-config-repository";
 import { IPlanRepository } from "../repositories/iplan-repository";
+import { IScheduleRepository } from "../repositories/ischedule-repository";
 
 export interface SubscriptionStatusResponse {
     status: SubscriptionStatus;
@@ -23,7 +24,8 @@ export class GetSubscriptionStatusUseCase {
         private readonly subscriptionRepo: ISubscriptionRepository,
         private readonly companyRepo: ICompanyRepository,
         private readonly companyConfigRepo: ICompanyConfigRepository,
-        private readonly planRepo: IPlanRepository
+        private readonly planRepo: IPlanRepository,
+        private readonly scheduleRepo: IScheduleRepository
     ) {}
 
     async execute(userId: string): Promise<SubscriptionStatusResponse> {
@@ -38,8 +40,16 @@ export class GetSubscriptionStatusUseCase {
         const planSlug = subscription?.plan || "FREE";
         const planDef = await this.planRepo.findBySlug(planSlug);
 
+        let messageCount = 0;
+        if (primaryCompany) {
+            const now = new Date();
+            const start = new Date(now.getFullYear(), now.getMonth(), 1);
+            const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+            messageCount = await this.scheduleRepo.countMonthlyNotifications(primaryCompany.id, start, end);
+        }
+
         const baseResponse = {
-            messageCount: 0,
+            messageCount,
             messageLimit: planDef != null ? planDef.messageLimit : 50,
             taxId: companyConfig?.taxId,
             whatsappNumber: companyConfig?.whatsappNumber,

@@ -6,6 +6,7 @@ import { CreateAppointmentUseCase } from "../../usecase/appointment/create-appoi
 import { UpdateAppointmentUseCase } from "../../usecase/appointment/update-appointment.usecase";
 import { DeleteAppointmentUseCase } from "../../usecase/appointment/delete-appointment.usecase";
 import { AuthUserPayload } from "../types/auth.types";
+import { ownerOnlyMiddleware } from "../middleware/owner-only.middleware";
 import { ScheduleStatus } from "../database/entities/schedule.entity";
 
 const AppointmentBodySchema = z.object({
@@ -49,7 +50,6 @@ export class AppointmentController {
             async (request: FastifyRequest, reply: FastifyReply) => {
                 const user = request.user as AuthUserPayload;
                 if (!user.companyId) return reply.code(400).send({ error: "No company selected" });
-                if (user.role === "PROFESSIONAL") return reply.code(403).send({ error: "Professionals cannot create appointments" });
 
                 const parseResult = AppointmentBodySchema.safeParse(request.body);
                 if (!parseResult.success) {
@@ -68,7 +68,9 @@ export class AppointmentController {
                     ...(professionalId ? { professionalId } : {}),
                 });
                 return reply.code(201).send(appointment);
-            }
+            },
+            undefined,
+            ownerOnlyMiddleware
         );
 
         this.fastify.addProtectedRoute(
@@ -77,7 +79,6 @@ export class AppointmentController {
             async (request: FastifyRequest, reply: FastifyReply) => {
                 const user = request.user as AuthUserPayload;
                 if (!user.companyId) return reply.code(400).send({ error: "No company selected" });
-                if (user.role === "PROFESSIONAL") return reply.code(403).send({ error: "Professionals cannot edit appointments" });
 
                 const { id } = request.params as { id: string };
                 const schema = AppointmentBodySchema.partial().extend({
@@ -97,7 +98,9 @@ export class AppointmentController {
                 if (pid) updateData.professionalId = pid;
                 await this.updateAppointment.execute(id, user.companyId, updateData as any);
                 return reply.send({ message: "Appointment updated" });
-            }
+            },
+            undefined,
+            ownerOnlyMiddleware
         );
 
         this.fastify.addProtectedRoute(
@@ -106,12 +109,13 @@ export class AppointmentController {
             async (request: FastifyRequest, reply: FastifyReply) => {
                 const user = request.user as AuthUserPayload;
                 if (!user.companyId) return reply.code(400).send({ error: "No company selected" });
-                if (user.role === "PROFESSIONAL") return reply.code(403).send({ error: "Professionals cannot delete appointments" });
 
                 const { id } = request.params as { id: string };
                 await this.deleteAppointment.execute(id, user.companyId);
                 return reply.code(204).send();
-            }
+            },
+            undefined,
+            ownerOnlyMiddleware
         );
     }
 }

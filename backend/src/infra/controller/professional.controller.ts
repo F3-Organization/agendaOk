@@ -5,6 +5,7 @@ import { ManageProfessionalsUseCase } from "../../usecase/company/manage-profess
 import { ManageBotConfigUseCase } from "../../usecase/company/manage-bot-config.usecase";
 import { InviteProfessionalUserUseCase } from "../../usecase/appointment/invite-professional-user.usecase";
 import { AuthUserPayload } from "../types/auth.types";
+import { ownerOnlyMiddleware } from "../middleware/owner-only.middleware";
 import {
     createProfessionalSchema,
     updateProfessionalSchema,
@@ -40,7 +41,7 @@ export class ProfessionalController {
     private registerRoutes() {
         // ── Professionals ──────────────────────────
 
-        // GET /company/professionals
+        // GET /company/professionals (owners only — professionals see only their own appointments)
         this.fastify.addProtectedRoute("GET", "/company/professionals", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
             if (!user.companyId) return reply.code(400).send({ error: "Company not selected" });
@@ -50,9 +51,9 @@ export class ProfessionalController {
             } catch (error: any) {
                 reply.code(500).send({ error: "Failed to list professionals", message: error.message });
             }
-        }, listProfessionalsSchema);
+        }, listProfessionalsSchema, ownerOnlyMiddleware);
 
-        // POST /company/professionals
+        // POST /company/professionals (owners only)
         this.fastify.addProtectedRoute("POST", "/company/professionals", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
             if (!user.companyId) return reply.code(400).send({ error: "Company not selected" });
@@ -74,9 +75,9 @@ export class ProfessionalController {
             } catch (error: any) {
                 reply.code(400).send({ error: "Failed to create professional", message: error.message });
             }
-        }, createProfessionalSwaggerSchema);
+        }, createProfessionalSwaggerSchema, ownerOnlyMiddleware);
 
-        // PUT /company/professionals/:id
+        // PUT /company/professionals/:id (owners only)
         this.fastify.addProtectedRoute("PUT", "/company/professionals/:id", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
             if (!user.companyId) return reply.code(400).send({ error: "Company not selected" });
@@ -103,9 +104,9 @@ export class ProfessionalController {
                 }
                 reply.code(400).send({ error: "Failed to update professional", message: error.message });
             }
-        }, updateProfessionalSwaggerSchema);
+        }, updateProfessionalSwaggerSchema, ownerOnlyMiddleware);
 
-        // POST /company/professionals/:id/invite
+        // POST /company/professionals/:id/invite (owners only)
         this.fastify.addProtectedRoute("POST", "/company/professionals/:id/invite", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
             if (!user.companyId) return reply.code(400).send({ error: "Company not selected" });
@@ -123,9 +124,9 @@ export class ProfessionalController {
                 const status = error.statusCode ?? 400;
                 reply.code(status).send({ error: error.message });
             }
-        });
+        }, undefined, ownerOnlyMiddleware);
 
-        // DELETE /company/professionals/:id
+        // DELETE /company/professionals/:id (owners only)
         this.fastify.addProtectedRoute("DELETE", "/company/professionals/:id", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
             if (!user.companyId) return reply.code(400).send({ error: "Company not selected" });
@@ -140,11 +141,11 @@ export class ProfessionalController {
                 }
                 reply.code(400).send({ error: "Failed to delete professional", message: error.message });
             }
-        }, deleteProfessionalSchema);
+        }, deleteProfessionalSchema, ownerOnlyMiddleware);
 
         // ── Bot Config ──────────────────────────
 
-        // GET /company/bot-config
+        // GET /company/bot-config (owners only)
         this.fastify.addProtectedRoute("GET", "/company/bot-config", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
             if (!user.companyId) return reply.code(400).send({ error: "Company not selected" });
@@ -154,9 +155,9 @@ export class ProfessionalController {
             } catch (error: any) {
                 reply.code(500).send({ error: "Failed to get bot config", message: error.message });
             }
-        }, getBotConfigSchema);
+        }, getBotConfigSchema, ownerOnlyMiddleware);
 
-        // PUT /company/bot-config
+        // PUT /company/bot-config (owners only)
         this.fastify.addProtectedRoute("PUT", "/company/bot-config", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
             if (!user.companyId) return reply.code(400).send({ error: "Company not selected" });
@@ -176,6 +177,6 @@ export class ProfessionalController {
             } catch (error: any) {
                 reply.code(400).send({ error: error.message });
             }
-        }, updateBotConfigSwaggerSchema);
+        }, updateBotConfigSwaggerSchema, ownerOnlyMiddleware);
     }
 }

@@ -74,4 +74,14 @@ export class ScheduleRepository implements IScheduleRepository {
             },
         });
     }
+
+    async countByStatus(companyId: string, status: ScheduleStatus, start: Date, end: Date): Promise<number> {
+        return await this.repository.count({
+            where: {
+                companyId,
+                status,
+                startAt: Between(start, end),
+            },
+        });
+    }
 }

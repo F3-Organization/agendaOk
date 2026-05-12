@@ -11,6 +11,7 @@ import { IPaymentGateway } from "../../usecase/ports/ipayment-gateway";
 import { IPlanRepository } from "../../usecase/repositories/iplan-repository";
 import { PaymentMethodRepository } from "../database/repositories/payment-method.repository";
 import { AuthUserPayload } from "../types/auth.types";
+import { ownerOnlyMiddleware } from "../middleware/owner-only.middleware";
 import { env } from "../config/configs";
 import { createHmac } from "crypto";
 import { z } from "zod";
@@ -78,7 +79,7 @@ export class SubscriptionController {
                 this.fastify.logInfo("[SubscriptionController] Checkout failed", { error: error.message });
                 reply.code(500).send({ error: "Checkout creation failed", message: error.message });
             }
-        }, createCheckoutSchema);
+        }, createCheckoutSchema, ownerOnlyMiddleware);
 
         // 3. Ver Status da Assinatura
         this.fastify.addProtectedRoute("GET", "/subscription/status", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -92,7 +93,7 @@ export class SubscriptionController {
                 this.fastify.logInfo("[SubscriptionController] Failed to get status", { error: error.message });
                 reply.code(500).send({ error: "Status retrieval failed" });
             }
-        }, getSubscriptionStatusSchema);
+        }, getSubscriptionStatusSchema, ownerOnlyMiddleware);
 
         // 4. Histórico de Pagamentos
         this.fastify.addProtectedRoute("GET", "/subscription/payments", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -106,7 +107,7 @@ export class SubscriptionController {
                 this.fastify.logInfo("[SubscriptionController] Failed to get history", { error: error.message });
                 reply.code(500).send({ error: "History retrieval failed" });
             }
-        }, getPaymentHistorySchema);
+        }, getPaymentHistorySchema, ownerOnlyMiddleware);
 
         // 5. Download PDF da Fatura
         this.fastify.addProtectedRoute("GET", "/subscription/payments/:id/pdf", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -123,7 +124,7 @@ export class SubscriptionController {
                 this.fastify.logInfo("[SubscriptionController] PDF generation failed", { error: error.message });
                 reply.code(500).send({ error: "PDF generation failed" });
             }
-        }, downloadInvoicePdfSchema);
+        }, downloadInvoicePdfSchema, ownerOnlyMiddleware);
 
         // 6. Criar PIX Transparente (checkout inline)
         this.fastify.addProtectedRoute("POST", "/subscription/pix", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -134,7 +135,7 @@ export class SubscriptionController {
             } catch (error: any) {
                 reply.code(400).send({ error: "PIX creation failed", message: error.message });
             }
-        }, createPixSchema);
+        }, createPixSchema, ownerOnlyMiddleware);
 
         // 7. Verificar status do PIX
         this.fastify.addProtectedRoute("GET", "/subscription/pix/:id/status", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -145,7 +146,7 @@ export class SubscriptionController {
             } catch {
                 reply.code(500).send({ error: "Status check failed" });
             }
-        }, getPixStatusSchema);
+        }, getPixStatusSchema, ownerOnlyMiddleware);
 
         // 8. Cancelar Assinatura
         this.fastify.addProtectedRoute("POST", "/subscription/cancel", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -156,7 +157,7 @@ export class SubscriptionController {
             } catch (error: any) {
                 reply.code(400).send({ error: "Cancellation failed", message: error.message });
             }
-        }, cancelSubscriptionSchema);
+        }, cancelSubscriptionSchema, ownerOnlyMiddleware);
 
         // 9. Webhook do Abacate Pay (Público)
         this.fastify.addRoute("POST", "/webhook/abacatepay", async (request: FastifyRequest, reply: FastifyReply) => {

@@ -149,7 +149,7 @@ export class ProfessionalController {
             const user = request.user as AuthUserPayload;
             if (!user.companyId) return reply.code(400).send({ error: "Company not selected" });
             try {
-                const config = await this.manageBotConfig.get(user.companyId);
+                const config = await this.manageBotConfig.get(user.companyId, (request as any).locale);
                 reply.send(config || {});
             } catch (error: any) {
                 reply.code(500).send({ error: "Failed to get bot config", message: error.message });

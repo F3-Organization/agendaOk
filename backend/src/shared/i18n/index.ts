@@ -2,9 +2,33 @@ import { pt } from "./locales/pt";
 import { en } from "./locales/en";
 
 export type Locale = "pt" | "en";
-export type TranslationKey = keyof typeof pt;
 
-const translations: Record<Locale, Record<string, string>> = { pt, en };
+/** Flattens a nested object into dot-notation keys: { auth: { x: "y" } } → { "auth.x": "y" } */
+function flatten(obj: Record<string, unknown>, prefix = ""): Record<string, string> {
+    const result: Record<string, string> = {};
+
+    for (const [key, value] of Object.entries(obj)) {
+        const path = prefix ? `${prefix}.${key}` : key;
+
+        if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+            Object.assign(result, flatten(value as Record<string, unknown>, path));
+        } else {
+            result[path] = String(value);
+        }
+    }
+
+    return result;
+}
+
+const flatPt = flatten(pt);
+const flatEn = flatten(en);
+
+const translations: Record<Locale, Record<string, string>> = {
+    pt: flatPt,
+    en: flatEn,
+};
+
+export type TranslationKey = keyof typeof flatPt;
 
 /**
  * Translates a key to the given locale with optional interpolation.
@@ -15,7 +39,7 @@ const translations: Record<Locale, Record<string, string>> = { pt, en };
  */
 export function t(
     locale: Locale,
-    key: TranslationKey,
+    key: string,
     params?: Record<string, string | number>
 ): string {
     const dict = translations[locale] || translations.pt;
@@ -39,8 +63,6 @@ export function parseLocale(acceptLanguage?: string): Locale {
 
     const normalized = acceptLanguage.toLowerCase();
 
-    // Check for explicit English preference before Portuguese
-    // Accept-Language: en-US,en;q=0.9,pt-BR;q=0.8
     const parts = normalized.split(",").map((p) => {
         const [lang, qStr] = p.trim().split(";q=");
         const q = qStr ? parseFloat(qStr) : 1.0;

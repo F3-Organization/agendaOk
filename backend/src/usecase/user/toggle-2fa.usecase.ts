@@ -28,7 +28,7 @@ export class Toggle2FAUseCase {
         // If already enabled, we don't allow "peeking" the current secret.
         // The user must disable it first to regenerate a new one.
         if (user.twoFactorEnabled) {
-            throw new Error(t(locale, "user.2faAlreadyActive"));
+            throw new Error(t(locale, "user.twoFactorAlreadyActive"));
         }
 
         // If enabling (setup mode), always generate a fresh secret

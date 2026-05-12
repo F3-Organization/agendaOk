@@ -15,23 +15,20 @@ interface UpdateBotConfigInput {
     botEnabled?: boolean | undefined;
 }
 
-const DEFAULT_BOT_GREETING = "Olá! 👋 Seja bem-vindo(a)! Como posso ajudá-lo(a) hoje?";
-const DEFAULT_BOT_INSTRUCTIONS = "Seja cordial e atencioso. Ajude o cliente com informações sobre serviços, horários e agendamentos.";
-
 export class ManageBotConfigUseCase {
     constructor(
         private readonly companyConfigRepository: ICompanyConfigRepository
     ) {}
 
-    async get(companyId: string): Promise<Record<string, unknown> | null> {
+    async get(companyId: string, locale: Locale = "pt"): Promise<Record<string, unknown> | null> {
         const config = await this.companyConfigRepository.findByCompanyId(companyId);
         if (!config) return null;
 
         return {
             businessType: config.businessType || "",
             businessDescription: config.businessDescription || "",
-            botGreeting: config.botGreeting || DEFAULT_BOT_GREETING,
-            botInstructions: config.botInstructions || DEFAULT_BOT_INSTRUCTIONS,
+            botGreeting: config.botGreeting || t(locale, "bot.defaultGreeting"),
+            botInstructions: config.botInstructions || t(locale, "bot.defaultInstructions"),
             address: config.address || "",
             workingHours: config.workingHours || {},
             servicesOffered: config.servicesOffered || [],

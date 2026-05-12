@@ -82,7 +82,7 @@ export class AdminController {
                     recentUsers,
                     activeProSubscriptions: activeProSubs,
                     estimatedMRR: activeProSubs * 10,
-                });``
+                });
             },
             adminStatsSchema,
             adminMiddleware

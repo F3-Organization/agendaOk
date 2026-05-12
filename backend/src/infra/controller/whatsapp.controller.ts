@@ -5,6 +5,7 @@ import { DisconnectWhatsappUseCase } from "../../usecase/notification/disconnect
 import { GetWhatsappStatusUseCase } from "../../usecase/notification/get-whatsapp-status.usecase";
 import { AuthUserPayload } from "../types/auth.types";
 import { ownerOnlyMiddleware } from "../middleware/owner-only.middleware";
+import { t } from "../../shared/i18n";
 import {
     connectWhatsappSchema,
     getWhatsappStatusSchema,
@@ -26,15 +27,16 @@ export class WhatsappController {
         this.fastify.addProtectedRoute("POST", "/whatsapp/connect", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
             const userId = user.companyId!;
+            const locale = (request as any).locale ?? "pt";
             
             try {
-                const qr = await this.connectUseCase.execute(userId);
+                const qr = await this.connectUseCase.execute(userId, locale);
                 return reply.send(qr);
             } catch (error: any) {
                 this.fastify.logInfo("[WhatsappController] Connection Error", { error: error.message });
                 return reply.code(error.status || 500).send({ 
-                    error: "Connection Error", 
-                    message: "Could not generate QR Code. Please try again later." 
+                    error: t(locale, "whatsapp.connectionError"), 
+                    message: t(locale, "whatsapp.connectionErrorMessage") 
                 });
             }
         }, connectWhatsappSchema, ownerOnlyMiddleware);
@@ -47,15 +49,16 @@ export class WhatsappController {
         this.fastify.addProtectedRoute("DELETE", "/whatsapp/disconnect", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
             const userId = user.companyId!;
+            const locale = (request as any).locale ?? "pt";
             
             try {
                 await this.disconnectUseCase.execute(userId);
-                return reply.send({ status: "success", message: "WhatsApp disconnected successfully." });
+                return reply.send({ status: "success", message: t(locale, "whatsapp.disconnected") });
             } catch (error: any) {
                 this.fastify.logInfo("[WhatsappController] Disconnection Error", { error: error.message });
                 return reply.code(500).send({ 
-                    error: "Disconnection Error", 
-                    message: "There was an error while trying to disconnect WhatsApp." 
+                    error: t(locale, "whatsapp.disconnectionError"), 
+                    message: t(locale, "whatsapp.disconnectionErrorMessage") 
                 });
             }
         }, disconnectWhatsappSchema, ownerOnlyMiddleware);

@@ -97,15 +97,15 @@ export class UserController {
     async updateUserConfig(request: FastifyRequest, reply: FastifyReply): Promise<void> {
         const user = request.user as any;
         const userId = user.id;
+        const locale = (request as any).locale ?? "pt";
         let companyId = user.companyId;
         if (!companyId) {
             const companies = await this.companyRepo.findByOwnerId(userId);
             companyId = companies[0]?.id;
         }
         if (!companyId) {
-            return reply.code(400).send({ error: "No company found for user." });
+            return reply.code(400).send({ error: t(locale, "user.noCompanyFound") });
         }
-        const locale = (request as any).locale ?? "pt";
         const data = updateUserConfigSchema.parse(request.body);
 
         await this.updateUserConfigUseCase.execute(userId, companyId, data, locale);
@@ -132,7 +132,7 @@ export class UserController {
 
         try {
             const locale = (request as any).locale ?? "pt";
-            await this.setPasswordUseCase.execute(userId, data);
+            await this.setPasswordUseCase.execute(userId, data, locale);
             reply.status(200).send({ message: t(locale, "user.passwordSet") });
         } catch (error: any) {
             reply.status(error.statusCode || 400).send({ error: error.message });
@@ -149,7 +149,8 @@ export class UserController {
     async verify2FA(req: FastifyRequest, reply: FastifyReply) {
         const userId = (req.user as { id: string }).id;
         const { token } = verify2FASchema.parse(req.body);
-        await this.verify2FAUseCase.execute(userId, token);
+        const locale = (req as any).locale ?? "pt";
+        await this.verify2FAUseCase.execute(userId, token, locale);
         return reply.status(204).send();
     }
 }

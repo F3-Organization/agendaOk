@@ -12,12 +12,18 @@ export const en = {
     user: {
         notFound: "User not found",
         twoFactorAlreadyActive: "2FA is already active. Disable it first to reconfigure.",
+        twoFactorNotConfigured: "2FA is not configured for this user",
+        invalidToken: "Invalid token",
         currentPasswordRequired: "Current password is required to change the existing password",
         currentPasswordIncorrect: "Current password is incorrect",
+        passwordAlreadySet: "The user already has a password set. Use the change password feature.",
+        userIdRequired: "User ID is required",
         configNotFound: "User configuration not found",
         configUpdated: "Settings updated successfully",
         passwordChanged: "Password changed successfully",
         passwordSet: "Password set successfully",
+        noCompanyFound: "No company found for user.",
+        professionalNotLinked: "Professional account not linked to any professional.",
     },
 
     company: {
@@ -40,11 +46,14 @@ export const en = {
 
     professional: {
         notFound: "Professional not found",
+        alreadyLinked: "Professional already has a linked account",
+        emailAlreadyExists: "This email already belongs to an existing account",
         updated: "Professional updated successfully",
         deleted: "Professional deleted successfully",
     },
 
     appointment: {
+        notFound: "Appointment not found",
         noPending: "No pending appointment found for this client",
         updated: "Appointment updated successfully",
     },
@@ -58,6 +67,15 @@ export const en = {
         missingBillingInfo: "User must configure WhatsApp Number and Tax ID (CPF/CNPJ) before checkout.",
         paymentNotFound: "Payment not found",
         userNotFound: "User not found",
+        failedToFetchPlans: "Failed to fetch plans",
+        failedToFetchPaymentMethods: "Failed to fetch payment methods",
+        checkoutFailed: "Checkout creation failed",
+        statusRetrievalFailed: "Status retrieval failed",
+        historyRetrievalFailed: "History retrieval failed",
+        pdfGenerationFailed: "PDF generation failed",
+        pixCreationFailed: "PIX creation failed",
+        statusCheckFailed: "Status check failed",
+        cancellationFailed: "Cancellation failed",
     },
 
     notification: {
@@ -68,9 +86,37 @@ export const en = {
         internal: "Internal server error",
         companyNotSelected: "Company not selected",
         validationFailed: "Validation failed",
+        invalidRequest: "Invalid request",
+        authenticationFailure: "Authentication failure",
+        registrationFailed: "Registration failed",
+        verificationFailed: "Verification failed",
+        failedToSendVerificationEmail: "Failed to send verification email",
+        failedToUpdateConfig: "Failed to update configuration",
+        failedToListCompanies: "Failed to list companies",
+        failedToCreateCompany: "Failed to create company",
+        failedToSelectCompany: "Failed to select company",
+        failedToUpdateCompany: "Failed to update company",
+        failedToDeleteCompany: "Failed to delete company",
+        failedToListProfessionals: "Failed to list professionals",
+        failedToCreateProfessional: "Failed to create professional",
+        failedToUpdateProfessional: "Failed to update professional",
+        failedToDeleteProfessional: "Failed to delete professional",
+        failedToGetBotConfig: "Failed to get bot config",
+        noAccessToCompany: "You don't have access to this company",
+    },
+
+    admin: {
+        userNotFound: "User not found",
+        planNotFound: "Plan not found",
+        planSlugExists: "Plan with this slug already exists",
     },
 
     whatsapp: {
+        connectionError: "Connection Error",
+        connectionErrorMessage: "Could not generate QR Code. Please try again later.",
+        disconnected: "WhatsApp disconnected successfully.",
+        disconnectionError: "Disconnection Error",
+        disconnectionErrorMessage: "There was an error while trying to disconnect WhatsApp.",
         appointmentReminder:
             "🔔 *Appointment Reminder*\n\n" +
             "Hello, *{clientName}*! You have an appointment scheduled:\n\n" +

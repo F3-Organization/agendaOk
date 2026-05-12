@@ -3,6 +3,7 @@ import { ISubscriptionPaymentRepository } from '../repositories/isubscription-pa
 import { IUserRepository } from '../repositories/iuser-repository';
 import { CompanyConfigRepository } from '../../infra/database/repositories/company-config.repository';
 import { env } from '../../infra/config/configs';
+import { t, type Locale } from '../../shared/i18n';
 
 const BRAND_COLOR = '#16a34a';
 const BRAND_LIGHT = '#dcfce7';
@@ -71,12 +72,12 @@ export class GenerateInvoicePdfUseCase {
         return map[method] ?? method;
     }
 
-    async execute(paymentId: string, userId: string): Promise<Buffer> {
+    async execute(paymentId: string, userId: string, locale: Locale = "pt"): Promise<Buffer> {
         const payment = await this.paymentRepository.findById(paymentId);
-        if (!payment) throw new Error("Payment not found");
+        if (!payment) throw new Error(t(locale, "subscription.paymentNotFound"));
 
         const user = await this.userRepository.findById(userId);
-        if (!user) throw new Error("User not found");
+        if (!user) throw new Error(t(locale, "subscription.userNotFound"));
 
         const userConfig = await this.companyConfigRepository.findByCompanyId(userId);
 

@@ -7,9 +7,8 @@ import { Company } from "../database/entities/company.entity";
 import { Subscription } from "../database/entities/subscription.entity";
 import { Professional } from "../database/entities/professional.entity";
 import { Plan } from "../database/entities/plan.entity";
-import { ILike } from "typeorm";
-import { env } from "../config/configs";
 import { z } from "zod";
+import { t } from "../../shared/i18n";
 import {
     adminStatsSchema,
     adminListUsersSchema,
@@ -152,7 +151,7 @@ export class AdminController {
                 const companyRepo = AppDataSource.getRepository(Company);
 
                 const user = await userRepo.findOneBy({ id });
-                if (!user) return reply.code(404).send({ error: "Usuário não encontrado" });
+                if (!user) return reply.code(404).send({ error: t((request as any).locale, "admin.userNotFound") });
 
                 const subscription = await subRepo.findOne({ where: { userId: user.id }, order: { createdAt: "DESC" } });
                 const companies = await companyRepo.find({ where: { ownerId: user.id } });
@@ -185,7 +184,7 @@ export class AdminController {
                 const subRepo = AppDataSource.getRepository(Subscription);
 
                 const user = await userRepo.findOneBy({ id });
-                if (!user) return reply.code(404).send({ error: "Usuário não encontrado" });
+                if (!user) return reply.code(404).send({ error: t((request as any).locale, "admin.userNotFound") });
 
                 if (role && (role === "ADMIN" || role === "USER")) {
                     await userRepo.update(id, { role: role as "ADMIN" | "USER" });
@@ -222,7 +221,7 @@ export class AdminController {
                 const companyRepo = AppDataSource.getRepository(Company);
 
                 const user = await userRepo.findOneBy({ id });
-                if (!user) return reply.code(404).send({ error: "Usuário não encontrado" });
+                if (!user) return reply.code(404).send({ error: t((request as any).locale, "admin.userNotFound") });
 
                 const companies = await companyRepo.find({ where: { ownerId: user.id }, order: { createdAt: "ASC" } });
                 const firstCompany = companies[0];
@@ -332,12 +331,12 @@ export class AdminController {
             async (request: FastifyRequest, reply: FastifyReply) => {
                 const parseResult = PlanBodySchema.required({ slug: true }).safeParse(request.body);
                 if (!parseResult.success) {
-                    return reply.code(400).send({ error: "Validation failed", details: parseResult.error.format() });
+                    return reply.code(400).send({ error: t((request as any).locale, "error.validationFailed"), details: parseResult.error.format() });
                 }
 
                 const planRepo = AppDataSource.getRepository(Plan);
                 const existing = await planRepo.findOne({ where: { slug: parseResult.data.slug } });
-                if (existing) return reply.code(409).send({ error: "Plan with this slug already exists" });
+                if (existing) return reply.code(409).send({ error: t((request as any).locale, "admin.planSlugExists") });
 
                 const plan = await planRepo.save(planRepo.create(parseResult.data as any));
                 return reply.code(201).send(plan);
@@ -353,12 +352,12 @@ export class AdminController {
                 const { id } = request.params as { id: string };
                 const parseResult = PlanBodySchema.partial().safeParse(request.body);
                 if (!parseResult.success) {
-                    return reply.code(400).send({ error: "Validation failed", details: parseResult.error.format() });
+                    return reply.code(400).send({ error: t((request as any).locale, "error.validationFailed"), details: parseResult.error.format() });
                 }
 
                 const planRepo = AppDataSource.getRepository(Plan);
                 const plan = await planRepo.findOneBy({ id });
-                if (!plan) return reply.code(404).send({ error: "Plan not found" });
+                if (!plan) return reply.code(404).send({ error: t((request as any).locale, "admin.planNotFound") });
 
                 await planRepo.save({ ...plan, ...(parseResult.data as any) });
                 return reply.send(await planRepo.findOneBy({ id }));
@@ -374,7 +373,7 @@ export class AdminController {
                 const { id } = request.params as { id: string };
                 const planRepo = AppDataSource.getRepository(Plan);
                 const plan = await planRepo.findOneBy({ id });
-                if (!plan) return reply.code(404).send({ error: "Plan not found" });
+                if (!plan) return reply.code(404).send({ error: t((request as any).locale, "admin.planNotFound") });
 
                 await planRepo.remove(plan);
                 return reply.code(204).send();

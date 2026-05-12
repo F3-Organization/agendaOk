@@ -16,7 +16,7 @@ export class UpdateUserConfigUseCase {
 
     async execute(userId: string, companyId: string, data: UpdateUserConfigDTO, locale: Locale = "pt"): Promise<void> {
         if (!userId) {
-            throw new AppError("ID do usuário é obrigatório", 400);
+            throw new AppError(t(locale, "user.userIdRequired"), 400);
         }
 
         // 1. Update User Profile (Name/Email) if provided

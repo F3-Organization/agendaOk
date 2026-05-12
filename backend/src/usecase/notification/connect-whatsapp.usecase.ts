@@ -2,6 +2,7 @@ import { IEvolutionService, EvolutionConnectResponse } from "../ports/ievolution
 import { ICompanyConfigRepository } from "../repositories/icompany-config-repository";
 import { env } from "../../infra/config/configs";
 import { encrypt } from "../../shared/utils/cryptography";
+import { t, type Locale } from "../../shared/i18n";
 
 export class ConnectWhatsappUseCase {
     constructor(
@@ -9,10 +10,10 @@ export class ConnectWhatsappUseCase {
         private readonly evolutionService: IEvolutionService
     ) { }
 
-    async execute(companyId: string): Promise<EvolutionConnectResponse> {
+    async execute(companyId: string, locale: Locale = "pt"): Promise<EvolutionConnectResponse> {
         const config = await this.companyConfigRepository.findByCompanyId(companyId);
         if (!config) {
-            throw new Error("User configuration not found");
+            throw new Error(t(locale, "user.configNotFound"));
         }
 
         const instanceName = `agent_${companyId.replace(/-/g, "").substring(0, 10)}`;

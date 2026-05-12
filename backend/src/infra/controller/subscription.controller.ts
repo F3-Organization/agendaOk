@@ -15,6 +15,7 @@ import { ownerOnlyMiddleware } from "../middleware/owner-only.middleware";
 import { env } from "../config/configs";
 import { createHmac } from "crypto";
 import { z } from "zod";
+import { t } from "../../shared/i18n";
 import {
     listPlansSchema,
     listPaymentMethodsSchema,
@@ -53,7 +54,7 @@ export class SubscriptionController {
                 const plans = await this.planRepository.findActive();
                 reply.send(plans);
             } catch (error: any) {
-                reply.code(500).send({ error: "Failed to fetch plans" });
+                reply.code(500).send({ error: t((_request as any).locale, "subscription.failedToFetchPlans") });
             }
         }, listPlansSchema);
 
@@ -63,7 +64,7 @@ export class SubscriptionController {
                 const methods = await this.paymentMethodRepository.findAll();
                 reply.send(methods);
             } catch (error: any) {
-                reply.code(500).send({ error: "Failed to fetch payment methods" });
+                reply.code(500).send({ error: t((_request as any).locale, "subscription.failedToFetchPaymentMethods") });
             }
         }, listPaymentMethodsSchema);
 
@@ -77,7 +78,7 @@ export class SubscriptionController {
                 reply.send(result);
             } catch (error: any) {
                 this.fastify.logInfo("[SubscriptionController] Checkout failed", { error: error.message });
-                reply.code(500).send({ error: "Checkout creation failed", message: error.message });
+                reply.code(500).send({ error: t((request as any).locale, "subscription.checkoutFailed"), message: error.message });
             }
         }, createCheckoutSchema, ownerOnlyMiddleware);
 
@@ -91,7 +92,7 @@ export class SubscriptionController {
                 reply.send(status);
             } catch (error: any) {
                 this.fastify.logInfo("[SubscriptionController] Failed to get status", { error: error.message });
-                reply.code(500).send({ error: "Status retrieval failed" });
+                reply.code(500).send({ error: t((request as any).locale, "subscription.statusRetrievalFailed") });
             }
         }, getSubscriptionStatusSchema, ownerOnlyMiddleware);
 
@@ -105,7 +106,7 @@ export class SubscriptionController {
                 reply.send(history);
             } catch (error: any) {
                 this.fastify.logInfo("[SubscriptionController] Failed to get history", { error: error.message });
-                reply.code(500).send({ error: "History retrieval failed" });
+                reply.code(500).send({ error: t((request as any).locale, "subscription.historyRetrievalFailed") });
             }
         }, getPaymentHistorySchema, ownerOnlyMiddleware);
 
@@ -122,7 +123,7 @@ export class SubscriptionController {
                      .send(pdfBuffer);
             } catch (error: any) {
                 this.fastify.logInfo("[SubscriptionController] PDF generation failed", { error: error.message });
-                reply.code(500).send({ error: "PDF generation failed" });
+                reply.code(500).send({ error: t((request as any).locale, "subscription.pdfGenerationFailed") });
             }
         }, downloadInvoicePdfSchema, ownerOnlyMiddleware);
 
@@ -133,7 +134,7 @@ export class SubscriptionController {
                 const result = await this.createPixUseCase.execute(user.id, (request as any).locale);
                 reply.send(result);
             } catch (error: any) {
-                reply.code(400).send({ error: "PIX creation failed", message: error.message });
+                reply.code(400).send({ error: t((request as any).locale, "subscription.pixCreationFailed"), message: error.message });
             }
         }, createPixSchema, ownerOnlyMiddleware);
 
@@ -144,7 +145,7 @@ export class SubscriptionController {
                 const status = await this.paymentGateway.getTransparentPix(id);
                 reply.send(status ?? { id, status: "UNKNOWN" });
             } catch {
-                reply.code(500).send({ error: "Status check failed" });
+                reply.code(500).send({ error: t((request as any).locale, "subscription.statusCheckFailed") });
             }
         }, getPixStatusSchema, ownerOnlyMiddleware);
 
@@ -155,7 +156,7 @@ export class SubscriptionController {
                 await this.cancelSubscriptionUseCase.execute(user.id, (request as any).locale);
                 reply.send({ status: "cancelled" });
             } catch (error: any) {
-                reply.code(400).send({ error: "Cancellation failed", message: error.message });
+                reply.code(400).send({ error: t((request as any).locale, "subscription.cancellationFailed"), message: error.message });
             }
         }, cancelSubscriptionSchema, ownerOnlyMiddleware);
 

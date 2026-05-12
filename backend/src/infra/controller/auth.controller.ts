@@ -16,7 +16,7 @@ import { LoginVerify2FAUseCase } from "../../usecase/auth/login-verify-2fa.useca
 import { AuthUserPayload } from "../types/auth.types";
 import { User } from "../database/entities/user.entity";
 import { z } from "zod";
-import { t } from "../../shared/i18n";
+import { t, type Locale } from "../../shared/i18n";
 import { 
     LoginInputSchema, 
     RegisterInputSchema, 
@@ -69,7 +69,7 @@ export class AuthController {
 
             if (!parseResult.success) {
                 return reply.code(400).send({
-                    error: "Invalid request",
+                    error: t((request as any).locale, "error.invalidRequest"),
                     details: parseResult.error.format()
                 });
             }
@@ -78,11 +78,11 @@ export class AuthController {
 
             try {
                 const { user, companyId } = await this.authenticateGoogle.execute(code);
-                return this.sendAuthResponse(reply, user, "Authentication successful!", companyId ?? undefined);
+                return this.sendAuthResponse(reply, user, "Authentication successful!", companyId ?? undefined, (request as any).locale);
             } catch (error: any) {
                 this.fastify.logInfo("[AuthController] Authentication failed:", { error: error.message });
                 reply.code(500).send({
-                    error: "Authentication failure",
+                    error: t((request as any).locale, "error.authenticationFailure"),
                     message: error.message
                 });
             }
@@ -120,14 +120,14 @@ export class AuthController {
         this.fastify.addRoute("POST", "/auth/register", async (request: FastifyRequest, reply: FastifyReply) => {
             const parseResult = RegisterInputSchema.safeParse(request.body);
             if (!parseResult.success) {
-                return reply.code(400).send({ error: "Validation failed", details: parseResult.error.format() });
+                return reply.code(400).send({ error: t((request as any).locale, "error.validationFailed"), details: parseResult.error.format() });
             }
 
             const { name, email, password, whatsappNumber } = parseResult.data;
 
             try {
                 const user = await this.registerUser.execute({ name, email, password, whatsappNumber, locale: (request as any).locale });
-                return this.sendAuthResponse(reply, user, "Registration successful");
+                return this.sendAuthResponse(reply, user, "Registration successful", undefined, (request as any).locale);
             } catch (error: any) {
                 if (error.message === t((request as any).locale || 'pt', 'auth.userAlreadyExists') || error.message === 'User already exists') {
                     // Try to send verification email for users without password (Google-only users)
@@ -138,10 +138,10 @@ export class AuthController {
                             message: "Email verification code sent. Please verify your email to set a password."
                         });
                     } catch (mailError: any) {
-                        return reply.code(500).send({ error: "Failed to send verification email", message: mailError.message });
+                        return reply.code(500).send({ error: t((request as any).locale, "error.failedToSendVerificationEmail"), message: mailError.message });
                     }
                 }
-                return reply.code(400).send({ error: "Registration failed", message: error.message });
+                return reply.code(400).send({ error: t((request as any).locale, "error.registrationFailed"), message: error.message });
             }
         }, registerSchema);
 
@@ -149,16 +149,16 @@ export class AuthController {
         this.fastify.addRoute("POST", "/auth/register/verify", async (request: FastifyRequest, reply: FastifyReply) => {
             const parseResult = VerifyRegistrationInputSchema.safeParse(request.body);
             if (!parseResult.success) {
-                return reply.code(400).send({ error: "Validation failed", details: parseResult.error.format() });
+                return reply.code(400).send({ error: t((request as any).locale, "error.validationFailed"), details: parseResult.error.format() });
             }
 
             const { email, code, password } = parseResult.data;
 
             try {
                 const user = await this.verifyEmailSetPassword.execute(email, code, password, (request as any).locale);
-                return this.sendAuthResponse(reply, user, "Email verified and password set successfully");
+                return this.sendAuthResponse(reply, user, "Email verified and password set successfully", undefined, (request as any).locale);
             } catch (error: any) {
-                return reply.code(400).send({ error: "Verification failed", message: error.message });
+                return reply.code(400).send({ error: t((request as any).locale, "error.verificationFailed"), message: error.message });
             }
         }, registerVerifySchema);
 
@@ -166,16 +166,16 @@ export class AuthController {
         this.fastify.addRoute("POST", "/auth/login", async (request: FastifyRequest, reply: FastifyReply) => {
             const parseResult = LoginInputSchema.safeParse(request.body);
             if (!parseResult.success) {
-                return reply.code(400).send({ error: "Validation failed", details: parseResult.error.format() });
+                return reply.code(400).send({ error: t((request as any).locale, "error.validationFailed"), details: parseResult.error.format() });
             }
 
             const { email, password } = parseResult.data;
 
             try {
                 const user = await this.login.execute(email, password, (request as any).locale);
-                return this.sendAuthResponse(reply, user, "Login successful");
+                return this.sendAuthResponse(reply, user, "Login successful", undefined, (request as any).locale);
             } catch (error: any) {
-                return reply.code(401).send({ error: "Invalid credentials" });
+                return reply.code(401).send({ error: t((request as any).locale, "auth.invalidCredentials") });
             }
         }, loginSchema);
 
@@ -192,24 +192,25 @@ export class AuthController {
 
             const parseResult = schema.safeParse(request.body);
             if (!parseResult.success) {
-                return reply.code(400).send({ error: "Validation failed", details: parseResult.error.format() });
+                return reply.code(400).send({ error: t((request as any).locale, "error.validationFailed"), details: parseResult.error.format() });
             }
 
             try {
                 // Resolve real companyId — never fallback to userId
+                const locale = (request as any).locale ?? "pt";
                 let companyId = user.companyId;
                 if (!companyId) {
                     const companies = await this.companyRepo.findByOwnerId(user.id);
                     companyId = companies[0]?.id;
                 }
                 if (!companyId) {
-                    return reply.code(400).send({ error: "No company found for user. Please re-login." });
+                    return reply.code(400).send({ error: t(locale, "user.noCompanyFound") });
                 }
-                const locale = (request as any).locale ?? "pt";
                 await this.updateUserConfig.execute(user.id, companyId, parseResult.data, locale);
                 reply.send({ message: t(locale, "user.configUpdated") });
             } catch (error: any) {
-                reply.code(500).send({ error: "Failed to update configuration", message: error.message });
+                const locale = (request as any).locale ?? "pt";
+                reply.code(500).send({ error: t(locale, "error.failedToUpdateConfig"), message: error.message });
             }
         }, authConfigSchema);
 
@@ -221,7 +222,7 @@ export class AuthController {
 
             const parseResult = schema.safeParse(request.body);
             if (!parseResult.success) {
-                return reply.code(400).send({ error: "Validation failed", details: parseResult.error.format() });
+                return reply.code(400).send({ error: t((request as any).locale, "error.validationFailed"), details: parseResult.error.format() });
             }
 
             const { tempToken, code } = parseResult.data;
@@ -261,7 +262,7 @@ export class AuthController {
         }, login2FAVerifySchema);
     }
 
-    private async sendAuthResponse(reply: FastifyReply, user: User, message: string, companyId?: string) {
+    private async sendAuthResponse(reply: FastifyReply, user: User, message: string, companyId?: string, locale: Locale = "pt") {
         if (user.twoFactorEnabled) {
             const tempToken = this.fastify.sign({
                 id: user.id,
@@ -290,7 +291,7 @@ export class AuthController {
             }
 
             if (professionals.length === 0) {
-                return reply.code(403).send({ error: "Conta profissional não vinculada a nenhum profissional." });
+                return reply.code(403).send({ error: t(locale ?? "pt", "user.professionalNotLinked") });
             }
 
             // Single company: auto-select

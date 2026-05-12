@@ -3,6 +3,7 @@ import { ICompanyRepository } from "../repositories/icompany-repository";
 import { ICompanyConfigRepository } from "../repositories/icompany-config-repository";
 import { AppError } from "../../shared/errors/app-error";
 import { UserConfigDTO } from "../../../../shared/schemas/user.schema";
+import { t, type Locale } from "../../shared/i18n";
 
 export class GetUserConfigUseCase {
     constructor(
@@ -11,10 +12,10 @@ export class GetUserConfigUseCase {
         private readonly companyConfigRepo: ICompanyConfigRepository
     ) {}
 
-    async execute(userId: string, companyId?: string): Promise<UserConfigDTO> {
+    async execute(userId: string, companyId?: string, locale: Locale = "pt"): Promise<UserConfigDTO> {
         const user = await this.userRepo.findById(userId);
         if (!user) {
-            throw new AppError("Usuário não encontrado", 404);
+            throw new AppError(t(locale, "user.notFound"), 404);
         }
 
         // If no companyId given, resolve from user's companies

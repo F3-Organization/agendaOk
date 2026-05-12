@@ -1,9 +1,11 @@
 import { ICompanyRepository } from "../repositories/icompany-repository";
 import { ICompanyConfigRepository } from "../repositories/icompany-config-repository";
+import { t, type Locale } from "../../shared/i18n";
 
 interface DeleteCompanyInput {
     userId: string;
     companyId: string;
+    locale?: Locale;
 }
 
 export class DeleteCompanyUseCase {
@@ -13,13 +15,14 @@ export class DeleteCompanyUseCase {
     ) {}
 
     async execute(input: DeleteCompanyInput): Promise<void> {
+        const locale = input.locale ?? "pt";
         const company = await this.companyRepository.findById(input.companyId);
         if (!company) {
-            throw new Error("Company not found");
+            throw new Error(t(locale, "company.notFound"));
         }
 
         if (company.ownerId !== input.userId) {
-            throw new Error("Forbidden");
+            throw new Error(t(locale, "company.forbidden"));
         }
 
         // Delete company config first (FK constraint)

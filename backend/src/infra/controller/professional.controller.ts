@@ -45,23 +45,23 @@ export class ProfessionalController {
         // GET /company/professionals (owners only — professionals see only their own appointments)
         this.fastify.addProtectedRoute("GET", "/company/professionals", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
-            if (!user.companyId) return reply.code(400).send({ error: "Company not selected" });
+            if (!user.companyId) return reply.code(400).send({ error: t((request as any).locale, "error.companyNotSelected") });
             try {
                 const professionals = await this.manageProfessionals.list(user.companyId);
                 reply.send(professionals);
             } catch (error: any) {
-                reply.code(500).send({ error: "Failed to list professionals", message: error.message });
+                reply.code(500).send({ error: t((request as any).locale, "error.failedToListProfessionals"), message: error.message });
             }
         }, listProfessionalsSchema, ownerOnlyMiddleware);
 
         // POST /company/professionals (owners only)
         this.fastify.addProtectedRoute("POST", "/company/professionals", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
-            if (!user.companyId) return reply.code(400).send({ error: "Company not selected" });
+            if (!user.companyId) return reply.code(400).send({ error: t((request as any).locale, "error.companyNotSelected") });
 
             const parseResult = createProfessionalSchema.safeParse(request.body);
             if (!parseResult.success) {
-                return reply.code(400).send({ error: "Validation failed", details: parseResult.error.format() });
+                return reply.code(400).send({ error: t((request as any).locale, "error.validationFailed"), details: parseResult.error.format() });
             }
 
             try {
@@ -74,19 +74,19 @@ export class ProfessionalController {
                 });
                 reply.code(201).send(professional);
             } catch (error: any) {
-                reply.code(400).send({ error: "Failed to create professional", message: error.message });
+                reply.code(400).send({ error: t((request as any).locale, "error.failedToCreateProfessional"), message: error.message });
             }
         }, createProfessionalSwaggerSchema, ownerOnlyMiddleware);
 
         // PUT /company/professionals/:id (owners only)
         this.fastify.addProtectedRoute("PUT", "/company/professionals/:id", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
-            if (!user.companyId) return reply.code(400).send({ error: "Company not selected" });
+            if (!user.companyId) return reply.code(400).send({ error: t((request as any).locale, "error.companyNotSelected") });
             const { id } = request.params as { id: string };
 
             const parseResult = updateProfessionalSchema.safeParse(request.body);
             if (!parseResult.success) {
-                return reply.code(400).send({ error: "Validation failed", details: parseResult.error.format() });
+                return reply.code(400).send({ error: t((request as any).locale, "error.validationFailed"), details: parseResult.error.format() });
             }
 
             try {
@@ -104,23 +104,23 @@ export class ProfessionalController {
                 if (error.statusCode === 404) {
                     return reply.code(404).send({ error: error.message });
                 }
-                reply.code(400).send({ error: "Failed to update professional", message: error.message });
+                reply.code(400).send({ error: t((request as any).locale, "error.failedToUpdateProfessional"), message: error.message });
             }
         }, updateProfessionalSwaggerSchema, ownerOnlyMiddleware);
 
         // POST /company/professionals/:id/invite (owners only)
         this.fastify.addProtectedRoute("POST", "/company/professionals/:id/invite", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
-            if (!user.companyId) return reply.code(400).send({ error: "Company not selected" });
+            if (!user.companyId) return reply.code(400).send({ error: t((request as any).locale, "error.companyNotSelected") });
             const { id } = request.params as { id: string };
 
             const parseResult = z.object({ email: z.string().email() }).safeParse(request.body);
             if (!parseResult.success) {
-                return reply.code(400).send({ error: "Validation failed", details: parseResult.error.format() });
+                return reply.code(400).send({ error: t((request as any).locale, "error.validationFailed"), details: parseResult.error.format() });
             }
 
             try {
-                const result = await this.inviteProfessionalUser.execute(id, user.companyId, parseResult.data.email);
+                const result = await this.inviteProfessionalUser.execute(id, user.companyId, parseResult.data.email, (request as any).locale);
                 reply.send(result);
             } catch (error: any) {
                 const status = error.statusCode ?? 400;
@@ -131,7 +131,7 @@ export class ProfessionalController {
         // DELETE /company/professionals/:id (owners only)
         this.fastify.addProtectedRoute("DELETE", "/company/professionals/:id", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
-            if (!user.companyId) return reply.code(400).send({ error: "Company not selected" });
+            if (!user.companyId) return reply.code(400).send({ error: t((request as any).locale, "error.companyNotSelected") });
             const { id } = request.params as { id: string };
 
             try {
@@ -141,7 +141,7 @@ export class ProfessionalController {
                 if (error.statusCode === 404) {
                     return reply.code(404).send({ error: error.message });
                 }
-                reply.code(400).send({ error: "Failed to delete professional", message: error.message });
+                reply.code(400).send({ error: t((request as any).locale, "error.failedToDeleteProfessional"), message: error.message });
             }
         }, deleteProfessionalSchema, ownerOnlyMiddleware);
 
@@ -150,23 +150,23 @@ export class ProfessionalController {
         // GET /company/bot-config (owners only)
         this.fastify.addProtectedRoute("GET", "/company/bot-config", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
-            if (!user.companyId) return reply.code(400).send({ error: "Company not selected" });
+            if (!user.companyId) return reply.code(400).send({ error: t((request as any).locale, "error.companyNotSelected") });
             try {
                 const config = await this.manageBotConfig.get(user.companyId, (request as any).locale);
                 reply.send(config || {});
             } catch (error: any) {
-                reply.code(500).send({ error: "Failed to get bot config", message: error.message });
+                reply.code(500).send({ error: t((request as any).locale, "error.failedToGetBotConfig"), message: error.message });
             }
         }, getBotConfigSchema, ownerOnlyMiddleware);
 
         // PUT /company/bot-config (owners only)
         this.fastify.addProtectedRoute("PUT", "/company/bot-config", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
-            if (!user.companyId) return reply.code(400).send({ error: "Company not selected" });
+            if (!user.companyId) return reply.code(400).send({ error: t((request as any).locale, "error.companyNotSelected") });
 
             const parseResult = updateBotConfigSchema.safeParse(request.body);
             if (!parseResult.success) {
-                return reply.code(400).send({ error: "Validation failed", details: parseResult.error.format() });
+                return reply.code(400).send({ error: t((request as any).locale, "error.validationFailed"), details: parseResult.error.format() });
             }
 
             try {

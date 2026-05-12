@@ -37,7 +37,7 @@ export class AppointmentController {
             "/appointments",
             async (request: FastifyRequest, reply: FastifyReply) => {
                 const user = request.user as AuthUserPayload;
-                if (!user.companyId) return reply.code(400).send({ error: "No company selected" });
+                if (!user.companyId) return reply.code(400).send({ error: t((request as any).locale, "error.companyNotSelected") });
 
                 const professionalId = user.role === "PROFESSIONAL" ? user.professionalId : undefined;
                 const appointments = await this.getAppointments.execute(user.companyId, professionalId);
@@ -50,11 +50,11 @@ export class AppointmentController {
             "/appointments",
             async (request: FastifyRequest, reply: FastifyReply) => {
                 const user = request.user as AuthUserPayload;
-                if (!user.companyId) return reply.code(400).send({ error: "No company selected" });
+                if (!user.companyId) return reply.code(400).send({ error: t((request as any).locale, "error.companyNotSelected") });
 
                 const parseResult = AppointmentBodySchema.safeParse(request.body);
                 if (!parseResult.success) {
-                    return reply.code(400).send({ error: "Validation failed", details: parseResult.error.format() });
+                    return reply.code(400).send({ error: t((request as any).locale, "error.validationFailed"), details: parseResult.error.format() });
                 }
 
                 const { clientName, clientPhone, title, startAt, endAt, notes, professionalId } = parseResult.data;
@@ -79,7 +79,7 @@ export class AppointmentController {
             "/appointments/:id",
             async (request: FastifyRequest, reply: FastifyReply) => {
                 const user = request.user as AuthUserPayload;
-                if (!user.companyId) return reply.code(400).send({ error: "No company selected" });
+                if (!user.companyId) return reply.code(400).send({ error: t((request as any).locale, "error.companyNotSelected") });
 
                 const { id } = request.params as { id: string };
                 const schema = AppointmentBodySchema.partial().extend({
@@ -88,7 +88,7 @@ export class AppointmentController {
 
                 const parseResult = schema.safeParse(request.body);
                 if (!parseResult.success) {
-                    return reply.code(400).send({ error: "Validation failed", details: parseResult.error.format() });
+                    return reply.code(400).send({ error: t((request as any).locale, "error.validationFailed"), details: parseResult.error.format() });
                 }
 
                 const { startAt: rawStart, endAt: rawEnd, professionalId: pid, ...rest } = parseResult.data;
@@ -97,7 +97,7 @@ export class AppointmentController {
                 if (rawStart) updateData.startAt = new Date(rawStart);
                 if (rawEnd) updateData.endAt = new Date(rawEnd);
                 if (pid) updateData.professionalId = pid;
-                await this.updateAppointment.execute(id, user.companyId, updateData as any);
+                await this.updateAppointment.execute(id, user.companyId, updateData as any, (request as any).locale);
                 return reply.send({ message: t((request as any).locale, "appointment.updated") });
             },
             undefined,
@@ -109,10 +109,10 @@ export class AppointmentController {
             "/appointments/:id",
             async (request: FastifyRequest, reply: FastifyReply) => {
                 const user = request.user as AuthUserPayload;
-                if (!user.companyId) return reply.code(400).send({ error: "No company selected" });
+                if (!user.companyId) return reply.code(400).send({ error: t((request as any).locale, "error.companyNotSelected") });
 
                 const { id } = request.params as { id: string };
-                await this.deleteAppointment.execute(id, user.companyId);
+                await this.deleteAppointment.execute(id, user.companyId, (request as any).locale);
                 return reply.code(204).send();
             },
             undefined,

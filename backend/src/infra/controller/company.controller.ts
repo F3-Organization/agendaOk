@@ -39,7 +39,7 @@ export class CompanyController {
                 const result = await this.listCompanies.execute(user.id);
                 reply.send(result);
             } catch (error: any) {
-                reply.code(500).send({ error: "Failed to list companies", message: error.message });
+                reply.code(500).send({ error: t((request as any).locale, "error.failedToListCompanies"), message: error.message });
             }
         }, listCompaniesSchema);
 
@@ -52,7 +52,7 @@ export class CompanyController {
 
             const parseResult = schema.safeParse(request.body);
             if (!parseResult.success) {
-                return reply.code(400).send({ error: "Validation failed", details: parseResult.error.format() });
+                return reply.code(400).send({ error: t((request as any).locale, "error.validationFailed"), details: parseResult.error.format() });
             }
 
             try {
@@ -63,7 +63,7 @@ export class CompanyController {
                 });
                 reply.code(201).send(company);
             } catch (error: any) {
-                reply.code(400).send({ error: "Failed to create company", message: error.message });
+                reply.code(400).send({ error: t((request as any).locale, "error.failedToCreateCompany"), message: error.message });
             }
         }, createCompanySchema, ownerOnlyMiddleware);
 
@@ -76,17 +76,15 @@ export class CompanyController {
                 const result = await this.selectCompany.execute({
                     userId: user.id,
                     userRole: user.role,
-                    companyId: id
+                    companyId: id,
+                    locale: (request as any).locale,
                 });
                 reply.send(result);
             } catch (error: any) {
-                if (error.message === "Forbidden") {
-                    return reply.code(403).send({ error: "Forbidden", message: "You don't have access to this company" });
-                }
-                if (error.message === "Company not found") {
-                    return reply.code(404).send({ error: "Company not found" });
-                }
-                reply.code(500).send({ error: "Failed to select company", message: error.message });
+                const status = error.message?.includes("Forbidden") || error.message?.includes("Acesso negado") ? 403
+                    : error.message?.includes("not found") || error.message?.includes("não encontrad") ? 404
+                    : 500;
+                reply.code(status).send({ error: error.message });
             }
         }, selectCompanySchema);
 
@@ -100,24 +98,22 @@ export class CompanyController {
 
             const parseResult = schema.safeParse(request.body);
             if (!parseResult.success) {
-                return reply.code(400).send({ error: "Validation failed", details: parseResult.error.format() });
+                return reply.code(400).send({ error: t((request as any).locale, "error.validationFailed"), details: parseResult.error.format() });
             }
 
             try {
                 await this.updateCompany.execute({
                     userId: user.id,
                     companyId: id,
-                    name: parseResult.data.name
+                    name: parseResult.data.name,
+                    locale: (request as any).locale,
                 });
                 reply.send({ message: t((request as any).locale, "company.updated") });
             } catch (error: any) {
-                if (error.message === "Forbidden") {
-                    return reply.code(403).send({ error: "Forbidden", message: "You don't have access to this company" });
-                }
-                if (error.message === "Company not found") {
-                    return reply.code(404).send({ error: "Company not found" });
-                }
-                reply.code(400).send({ error: "Failed to update company", message: error.message });
+                const status = error.message?.includes("Forbidden") || error.message?.includes("Acesso negado") ? 403
+                    : error.message?.includes("not found") || error.message?.includes("não encontrad") ? 404
+                    : 400;
+                reply.code(status).send({ error: error.message });
             }
         }, updateCompanySchema, ownerOnlyMiddleware);
 
@@ -129,17 +125,15 @@ export class CompanyController {
             try {
                 await this.deleteCompanyUc.execute({
                     userId: user.id,
-                    companyId: id
+                    companyId: id,
+                    locale: (request as any).locale,
                 });
                 reply.send({ message: t((request as any).locale, "company.deleted") });
             } catch (error: any) {
-                if (error.message === "Forbidden") {
-                    return reply.code(403).send({ error: "Forbidden", message: "You don't have access to this company" });
-                }
-                if (error.message === "Company not found") {
-                    return reply.code(404).send({ error: "Company not found" });
-                }
-                reply.code(400).send({ error: "Failed to delete company", message: error.message });
+                const status = error.message?.includes("Forbidden") || error.message?.includes("Acesso negado") ? 403
+                    : error.message?.includes("not found") || error.message?.includes("não encontrad") ? 404
+                    : 400;
+                reply.code(status).send({ error: error.message });
             }
         }, deleteCompanySchema, ownerOnlyMiddleware);
     }

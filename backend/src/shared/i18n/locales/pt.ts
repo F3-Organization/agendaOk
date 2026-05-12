@@ -12,12 +12,18 @@ export const pt = {
     user: {
         notFound: "Usuário não encontrado",
         twoFactorAlreadyActive: "2FA já está ativo. Desative primeiro para reconfigurar.",
+        twoFactorNotConfigured: "2FA não configurado para este usuário",
+        invalidToken: "Token inválido",
         currentPasswordRequired: "Senha atual é obrigatória para alterar a senha existente",
         currentPasswordIncorrect: "Senha atual incorreta",
+        passwordAlreadySet: "O usuário já possui uma senha definida. Use o recurso de alterar senha.",
+        userIdRequired: "ID do usuário é obrigatório",
         configNotFound: "Configuração do usuário não encontrada",
         configUpdated: "Configurações atualizadas com sucesso",
         passwordChanged: "Senha alterada com sucesso",
         passwordSet: "Senha definida com sucesso",
+        noCompanyFound: "Nenhuma empresa encontrada para o usuário.",
+        professionalNotLinked: "Conta profissional não vinculada a nenhum profissional.",
     },
 
     company: {
@@ -40,11 +46,14 @@ export const pt = {
 
     professional: {
         notFound: "Profissional não encontrado",
+        alreadyLinked: "Profissional já possui conta vinculada",
+        emailAlreadyExists: "Este email já pertence a uma conta existente",
         updated: "Profissional atualizado com sucesso",
         deleted: "Profissional excluído com sucesso",
     },
 
     appointment: {
+        notFound: "Agendamento não encontrado",
         noPending: "Nenhum agendamento pendente encontrado para este cliente",
         updated: "Agendamento atualizado com sucesso",
     },
@@ -58,6 +67,15 @@ export const pt = {
         missingBillingInfo: "É necessário configurar o número de WhatsApp e CPF/CNPJ antes do checkout.",
         paymentNotFound: "Pagamento não encontrado",
         userNotFound: "Usuário não encontrado",
+        failedToFetchPlans: "Falha ao buscar planos",
+        failedToFetchPaymentMethods: "Falha ao buscar métodos de pagamento",
+        checkoutFailed: "Falha ao criar checkout",
+        statusRetrievalFailed: "Falha ao recuperar status",
+        historyRetrievalFailed: "Falha ao recuperar histórico",
+        pdfGenerationFailed: "Falha ao gerar PDF",
+        pixCreationFailed: "Falha ao criar PIX",
+        statusCheckFailed: "Falha ao verificar status",
+        cancellationFailed: "Falha no cancelamento",
     },
 
     notification: {
@@ -68,9 +86,37 @@ export const pt = {
         internal: "Erro interno do servidor",
         companyNotSelected: "Empresa não selecionada",
         validationFailed: "Falha na validação",
+        invalidRequest: "Requisição inválida",
+        authenticationFailure: "Falha na autenticação",
+        registrationFailed: "Falha no registro",
+        verificationFailed: "Falha na verificação",
+        failedToSendVerificationEmail: "Falha ao enviar email de verificação",
+        failedToUpdateConfig: "Falha ao atualizar configuração",
+        failedToListCompanies: "Falha ao listar empresas",
+        failedToCreateCompany: "Falha ao criar empresa",
+        failedToSelectCompany: "Falha ao selecionar empresa",
+        failedToUpdateCompany: "Falha ao atualizar empresa",
+        failedToDeleteCompany: "Falha ao excluir empresa",
+        failedToListProfessionals: "Falha ao listar profissionais",
+        failedToCreateProfessional: "Falha ao criar profissional",
+        failedToUpdateProfessional: "Falha ao atualizar profissional",
+        failedToDeleteProfessional: "Falha ao excluir profissional",
+        failedToGetBotConfig: "Falha ao obter configuração do bot",
+        noAccessToCompany: "Você não tem acesso a esta empresa",
+    },
+
+    admin: {
+        userNotFound: "Usuário não encontrado",
+        planNotFound: "Plano não encontrado",
+        planSlugExists: "Plano com este slug já existe",
     },
 
     whatsapp: {
+        connectionError: "Erro de conexão",
+        connectionErrorMessage: "Não foi possível gerar o QR Code. Tente novamente mais tarde.",
+        disconnected: "WhatsApp desconectado com sucesso.",
+        disconnectionError: "Erro ao desconectar",
+        disconnectionErrorMessage: "Ocorreu um erro ao tentar desconectar o WhatsApp.",
         appointmentReminder:
             "🔔 *Lembrete de Agendamento*\n\n" +
             "Olá, *{clientName}*! Você tem um agendamento marcado:\n\n" +

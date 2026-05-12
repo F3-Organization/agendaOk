@@ -23,7 +23,7 @@ export class LoginVerify2FAUseCase {
             throw new Error(t(locale, "auth.invalidTokenStructure"));
         }
 
-        const isValid = await this.validate2FA.execute(decoded.id, code);
+        const isValid = await this.validate2FA.execute(decoded.id, code, locale);
         if (!isValid) {
             throw new Error(t(locale, "auth.invalid2FACode"));
         }

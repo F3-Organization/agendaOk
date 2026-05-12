@@ -115,7 +115,9 @@ export const getBotConfigSchema = {
                 address: { type: "string" as const, nullable: true },
                 workingHours: { ...workingHoursResponseSchema },
                 servicesOffered: { type: "array" as const, items: { type: "string" as const }, nullable: true },
-                botEnabled: { type: "boolean" as const }
+                botEnabled: { type: "boolean" as const },
+                hasWhatsappNumber: { type: "boolean" as const },
+                hasBusinessDescription: { type: "boolean" as const },
             }
         },
         400: errorResponse("Company not selected"),

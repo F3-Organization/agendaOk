@@ -87,6 +87,12 @@ export const WhatsAppPage = () => {
   }, []);
 
   useEffect(() => {
+    if (isConnected) {
+      queryClient.invalidateQueries({ queryKey: ['bot-config'] });
+    }
+  }, [isConnected]);
+
+  useEffect(() => {
     if (user?.config) {
       setSilentWindowStart(user.config.silentWindowStart);
       setSilentWindowEnd(user.config.silentWindowEnd);

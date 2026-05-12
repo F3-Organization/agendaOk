@@ -56,6 +56,7 @@ export const BotConfigPage = () => {
   const { data: config, isLoading } = useQuery({
     queryKey: ['bot-config'],
     queryFn: professionalService.getBotConfig,
+    staleTime: 0,
   });
 
   useEffect(() => {

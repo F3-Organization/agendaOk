@@ -1,4 +1,11 @@
 export const pt = {
+  sidebar: {
+    sections: {
+      overview: 'Visão geral',
+      tools: 'Ferramentas',
+      account: 'Conta',
+    },
+  },
   common: {
     dashboard: 'Painel',
     appointments: 'Agendamentos',

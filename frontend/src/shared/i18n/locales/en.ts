@@ -1,4 +1,11 @@
 export const en = {
+  sidebar: {
+    sections: {
+      overview: 'Overview',
+      tools: 'Tools',
+      account: 'Account',
+    },
+  },
   common: {
     dashboard: 'Dashboard',
     appointments: 'Appointments',

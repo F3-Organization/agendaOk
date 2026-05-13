@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Menu, Zap } from 'lucide-react';
-import { Sidebar } from './Sidebar';
+import { Sidebar } from './sidebar';
 import { subscriptionService } from '../../features/subscription/subscription.service';
 import { UsageBanner } from './UsageBanner';
 

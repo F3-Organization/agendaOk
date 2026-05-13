@@ -3,12 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronsUpDown, Check, Plus, Loader2 } from 'lucide-react';
 import { useAuthStore } from '../../features/auth/auth.store';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { cn } from '../utils/cn';
 
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
 
 export const CompanySwitcher = () => {
   const { t } = useTranslation();

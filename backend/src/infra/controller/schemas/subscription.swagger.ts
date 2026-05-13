@@ -116,14 +116,17 @@ export const getSubscriptionStatusSchema = {
         200: {
             type: "object" as const,
             properties: {
-                status: { type: "string" as const, enum: ["active", "inactive", "pending"] },
+                status: { type: "string" as const },
                 plan: { type: "string" as const },
-                currentPeriodEnd: { type: "string" as const, format: "date-time" },
-                checkoutUrl: { type: "string" as const },
-                amount: { type: "number" as const },
-                planName: { type: "string" as const },
+                messageCount: { type: "number" as const },
+                messageLimit: { type: "number" as const, nullable: true },
+                currentPeriodEnd: { type: "string" as const, format: "date-time", nullable: true },
+                checkoutUrl: { type: "string" as const, nullable: true },
+                amount: { type: "number" as const, nullable: true },
+                planName: { type: "string" as const, nullable: true },
                 taxId: { type: "string" as const, nullable: true },
-                whatsappNumber: { type: "string" as const, nullable: true }
+                whatsappNumber: { type: "string" as const, nullable: true },
+                trialEndsAt: { type: "string" as const, format: "date-time", nullable: true }
             }
         },
         500: errorResponse("Status retrieval failed")

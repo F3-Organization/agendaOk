@@ -1,6 +1,7 @@
 import { ICompanyRepository } from "../repositories/icompany-repository";
 import { IUserRepository } from "../repositories/iuser-repository";
 import { IProfessionalRepository } from "../repositories/iprofessional-repository";
+import { ICompanyMemberRepository } from "../repositories/icompany-member-repository";
 import { ITokenService } from "../ports/itoken-service";
 import { t, type Locale } from "../../shared/i18n";
 
@@ -21,7 +22,8 @@ export class SelectCompanyUseCase {
         private readonly companyRepository: ICompanyRepository,
         private readonly tokenService: ITokenService,
         private readonly userRepository?: IUserRepository,
-        private readonly professionalRepository?: IProfessionalRepository
+        private readonly professionalRepository?: IProfessionalRepository,
+        private readonly companyMemberRepository?: ICompanyMemberRepository
     ) {}
 
     async execute(input: SelectCompanyInput): Promise<SelectCompanyOutput> {
@@ -43,6 +45,22 @@ export class SelectCompanyUseCase {
                 role: "PROFESSIONAL",
                 companyId: company.id,
                 professionalId: professional.id,
+            }, { expiresIn: "7d" });
+
+            return { token, company: { id: company.id, name: company.name, slug: company.slug } };
+        }
+
+        if (input.userRole === "ATTENDANT") {
+            if (!this.companyMemberRepository) throw new Error(t(locale, "error.internal"));
+            const member = await this.companyMemberRepository.findByUserIdAndCompanyId(input.userId, input.companyId);
+            if (!member) throw new Error(t(locale, "company.forbidden"));
+
+            const token = this.tokenService.sign({
+                id: input.userId,
+                email: user?.email,
+                name: user?.name,
+                role: "ATTENDANT",
+                companyId: company.id,
             }, { expiresIn: "7d" });
 
             return { token, company: { id: company.id, name: company.name, slug: company.slug } };

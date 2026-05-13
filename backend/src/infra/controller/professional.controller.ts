@@ -4,6 +4,7 @@ import { FastifyAdapter } from "../adapters/fastfy.adapter";
 import { ManageProfessionalsUseCase } from "../../usecase/company/manage-professionals.usecase";
 import { ManageBotConfigUseCase } from "../../usecase/company/manage-bot-config.usecase";
 import { InviteProfessionalUserUseCase } from "../../usecase/appointment/invite-professional-user.usecase";
+import { InviteAttendantUseCase } from "../../usecase/appointment/invite-attendant.usecase";
 import { AuthUserPayload } from "../types/auth.types";
 import { ownerOnlyMiddleware } from "../middleware/owner-only.middleware";
 import { t } from "../../shared/i18n";
@@ -34,7 +35,8 @@ export class ProfessionalController {
         private readonly fastify: FastifyAdapter,
         private readonly manageProfessionals: ManageProfessionalsUseCase,
         private readonly manageBotConfig: ManageBotConfigUseCase,
-        private readonly inviteProfessionalUser: InviteProfessionalUserUseCase
+        private readonly inviteProfessionalUser: InviteProfessionalUserUseCase,
+        private readonly inviteAttendant: InviteAttendantUseCase
     ) {
         this.fastify.logInfo("[ProfessionalController] Initializing...");
         this.registerRoutes();
@@ -181,5 +183,45 @@ export class ProfessionalController {
                 reply.code(400).send({ error: error.message });
             }
         }, updateBotConfigSwaggerSchema, ownerOnlyMiddleware);
+
+        // ── Attendants ──────────────────────────
+
+        // POST /company/attendants/invite (owners only)
+        this.fastify.addProtectedRoute("POST", "/company/attendants/invite", async (request: FastifyRequest, reply: FastifyReply) => {
+            const user = request.user as AuthUserPayload;
+            if (!user.companyId) return reply.code(400).send({ error: t((request as any).locale, "error.companyNotSelected") });
+
+            const parseResult = z.object({ email: z.string().email() }).safeParse(request.body);
+            if (!parseResult.success) {
+                return reply.code(400).send({ error: t((request as any).locale, "error.validationFailed"), details: parseResult.error.format() });
+            }
+
+            try {
+                const result = await this.inviteAttendant.execute(user.companyId, parseResult.data.email, (request as any).locale);
+                reply.send(result);
+            } catch (error: any) {
+                const status = error.statusCode ?? 400;
+                reply.code(status).send({ error: error.message });
+            }
+        }, {
+            tags: ["Professional"],
+            summary: "Convida atendente por e-mail",
+            description: "Envia um convite para um atendente vincular sua conta de usuário à empresa.",
+            body: {
+                type: "object" as const,
+                required: ["email"],
+                properties: {
+                    email: { type: "string" as const, format: "email" }
+                }
+            },
+            response: {
+                200: {
+                    type: "object" as const,
+                    properties: {
+                        status: { type: "string" as const }
+                    }
+                }
+            }
+        }, ownerOnlyMiddleware);
     }
 }

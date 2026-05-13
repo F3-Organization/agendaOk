@@ -29,7 +29,9 @@ export const AppRouter = () => {
   const user = useAuthStore((state) => state.user);
   const isAdmin = isAuthenticated && user?.role === 'ADMIN';
   const isProfessional = isAuthenticated && user?.role === 'PROFESSIONAL';
-  const hasCompany = !!selectedCompany || isProfessional;
+  const isAttendant = isAuthenticated && user?.role === 'ATTENDANT';
+  const isLimitedRole = isProfessional || isAttendant;
+  const hasCompany = !!selectedCompany || isLimitedRole;
 
   return (
     <Routes>
@@ -62,7 +64,7 @@ export const AppRouter = () => {
         path="/dashboard"
         element={
           isAuthenticated
-            ? isProfessional
+            ? isLimitedRole
               ? <Navigate to="/appointments" />
               : hasCompany
                 ? <DashboardPage />
@@ -84,7 +86,7 @@ export const AppRouter = () => {
         path="/whatsapp"
         element={
           isAuthenticated
-            ? isProfessional
+            ? isLimitedRole
               ? <Navigate to="/appointments" />
               : hasCompany
                 ? <WhatsAppPage />
@@ -96,7 +98,7 @@ export const AppRouter = () => {
         path="/subscription"
         element={
           isAuthenticated
-            ? isProfessional
+            ? isLimitedRole
               ? <Navigate to="/appointments" />
               : hasCompany
                 ? <SubscriptionPage />
@@ -108,7 +110,7 @@ export const AppRouter = () => {
         path="/settings"
         element={
           isAuthenticated
-            ? isProfessional
+            ? isLimitedRole
               ? <Navigate to="/appointments" />
               : hasCompany
                 ? <SettingsPage />
@@ -120,7 +122,7 @@ export const AppRouter = () => {
         path="/company/settings"
         element={
           isAuthenticated
-            ? isProfessional
+            ? isLimitedRole
               ? <Navigate to="/appointments" />
               : hasCompany
                 ? <CompanySettingsPage />
@@ -132,7 +134,7 @@ export const AppRouter = () => {
         path="/professionals"
         element={
           isAuthenticated
-            ? isProfessional
+            ? isLimitedRole
               ? <Navigate to="/appointments" />
               : hasCompany
                 ? <ProfessionalsPage />
@@ -144,7 +146,7 @@ export const AppRouter = () => {
         path="/bot-config"
         element={
           isAuthenticated
-            ? isProfessional
+            ? isLimitedRole
               ? <Navigate to="/appointments" />
               : hasCompany
                 ? <BotConfigPage />

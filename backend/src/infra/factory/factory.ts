@@ -30,6 +30,7 @@ import { UserConfigRepository } from "../database/repositories/user-config.repos
 import { SubscriptionRepository } from "../database/repositories/subscription.repository";
 import { SubscriptionPaymentRepository } from "../database/repositories/subscription-payment.repository";
 import { ProfessionalRepository } from "../database/repositories/professional.repository";
+import { CompanyMemberRepository } from "../database/repositories/company-member.repository";
 import { PlanRepository } from "../database/repositories/plan.repository";
 import { PaymentMethodRepository } from "../database/repositories/payment-method.repository";
 import { WebhookAuditLogRepository } from "../database/repositories/webhook-audit-log.repository";
@@ -55,6 +56,8 @@ import { ConfirmAppointmentUseCase } from "../../usecase/appointment/confirm-app
 import { CancelAppointmentUseCase } from "../../usecase/appointment/cancel-appointment.usecase";
 import { NotifyUpcomingAppointmentsUseCase } from "../../usecase/appointment/notify-upcoming-appointments.usecase";
 import { InviteProfessionalUserUseCase } from "../../usecase/appointment/invite-professional-user.usecase";
+import { InviteAttendantUseCase } from "../../usecase/appointment/invite-attendant.usecase";
+import { ResolveAuthContextUseCase } from "../../usecase/auth/resolve-auth-context.usecase";
 import { RegisterUserUseCase } from "../../usecase/auth/register-user.usecase";
 import { LoginUseCase } from "../../usecase/auth/login.usecase";
 import { AuthenticateGoogleUseCase } from "../../usecase/auth/authenticate-google.usecase";
@@ -120,6 +123,7 @@ let userConfigRepository: UserConfigRepository;
 let subscriptionRepository: SubscriptionRepository;
 let subscriptionPaymentRepository: SubscriptionPaymentRepository;
 let professionalRepository: ProfessionalRepository;
+let companyMemberRepository: CompanyMemberRepository;
 let planRepository: PlanRepository;
 let paymentMethodRepository: PaymentMethodRepository;
 let webhookAuditLogRepository: WebhookAuditLogRepository;
@@ -137,6 +141,7 @@ const getRepo = {
     subscription: () => subscriptionRepository || (subscriptionRepository = new SubscriptionRepository()),
     subscriptionPayment: () => subscriptionPaymentRepository || (subscriptionPaymentRepository = new SubscriptionPaymentRepository()),
     professional: () => professionalRepository || (professionalRepository = new ProfessionalRepository()),
+    companyMember: () => companyMemberRepository || (companyMemberRepository = new CompanyMemberRepository()),
     plan: () => planRepository || (planRepository = new PlanRepository()),
     paymentMethod: () => paymentMethodRepository || (paymentMethodRepository = new PaymentMethodRepository()),
     webhookAuditLog: () => webhookAuditLogRepository || (webhookAuditLogRepository = new WebhookAuditLogRepository()),
@@ -269,6 +274,12 @@ const getUseCase = {
     login: () => new LoginUseCase(getRepo.user()),
     authenticateGoogle: () => new AuthenticateGoogleUseCase(googleAuthAdapter, getRepo.user(), getRepo.company()),
     loginVerify2FA: () => new LoginVerify2FAUseCase(getRepo.user(), adapterInstance, getUseCase.validate2FA()),
+    resolveAuthContext: () => new ResolveAuthContextUseCase(
+        adapterInstance,
+        getRepo.company(),
+        getRepo.professional(),
+        getRepo.companyMember()
+    ),
 
     getSubscriptionStatus: () => new GetSubscriptionStatusUseCase(
         getRepo.subscription(),
@@ -280,7 +291,7 @@ const getUseCase = {
 
     createCompany: () => new CreateCompanyUseCase(getRepo.company(), getRepo.companyConfig(), getRepo.subscription()),
     listCompanies: () => new ListCompaniesUseCase(getRepo.company(), getRepo.subscription()),
-    selectCompany: () => new SelectCompanyUseCase(getRepo.company(), adapterInstance, getRepo.user(), getRepo.professional()),
+    selectCompany: () => new SelectCompanyUseCase(getRepo.company(), adapterInstance, getRepo.user(), getRepo.professional(), getRepo.companyMember()),
     updateCompany: () => new UpdateCompanyUseCase(getRepo.company()),
     deleteCompany: () => new DeleteCompanyUseCase(getRepo.company(), getRepo.companyConfig()),
 
@@ -288,6 +299,11 @@ const getUseCase = {
     manageBotConfig: () => new ManageBotConfigUseCase(getRepo.companyConfig()),
     inviteProfessionalUser: () => new InviteProfessionalUserUseCase(
         getRepo.professional(),
+        getRepo.user(),
+        getUseCase.sendEmailVerification()
+    ),
+    inviteAttendant: () => new InviteAttendantUseCase(
+        getRepo.companyMember(),
         getRepo.user(),
         getUseCase.sendEmailVerification()
     ),
@@ -324,15 +340,14 @@ export const factory = {
             getUseCase.authenticateGoogle(),
             getUseCase.registerUser(),
             getUseCase.login(),
-            getUseCase.validate2FA(),
             getUseCase.loginVerify2FA(),
             getUseCase.sendEmailVerification(),
             getUseCase.verifyEmailSetPassword(),
             getUseCase.updateUserConfig(),
+            getUseCase.resolveAuthContext(),
             getRepo.user(),
             getRepo.company(),
-            getRepo.companyConfig(),
-            getRepo.professional()
+            getRepo.companyConfig()
         ),
         company: () => new CompanyController(
             adapterInstance,
@@ -388,7 +403,8 @@ export const factory = {
             adapterInstance,
             getUseCase.manageProfessionals(),
             getUseCase.manageBotConfig(),
-            getUseCase.inviteProfessionalUser()
+            getUseCase.inviteProfessionalUser(),
+            getUseCase.inviteAttendant()
         ),
         admin: () => new AdminController(adapterInstance),
     },

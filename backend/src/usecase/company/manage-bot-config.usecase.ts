@@ -4,14 +4,14 @@ import { t, type Locale } from "../../shared/i18n";
 
 interface UpdateBotConfigInput {
     companyId: string;
-    locale?: Locale;
-    businessType?: string | null;
-    businessDescription?: string | null;
-    botGreeting?: string | null;
-    botInstructions?: string | null;
-    address?: string | null;
-    workingHours?: Record<string, Array<{ start: string; end: string }>> | null;
-    servicesOffered?: string[] | null;
+    locale?: Locale | undefined;
+    businessType?: string | null | undefined;
+    businessDescription?: string | null | undefined;
+    botGreeting?: string | null | undefined;
+    botInstructions?: string | null | undefined;
+    address?: string | null | undefined;
+    workingHours?: Partial<Record<string, Array<{ start: string; end: string }>>> | null | undefined;
+    servicesOffered?: string[] | null | undefined;
     botEnabled?: boolean | undefined;
 }
 

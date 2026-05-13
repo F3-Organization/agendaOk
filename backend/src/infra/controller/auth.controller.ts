@@ -2,7 +2,6 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { ICompanyConfigRepository } from "../../usecase/repositories/icompany-config-repository";
 import { ICompanyRepository } from "../../usecase/repositories/icompany-repository";
 import { IUserRepository } from "../../usecase/repositories/iuser-repository";
-import { IProfessionalRepository } from "../../usecase/repositories/iprofessional-repository";
 import { FastifyAdapter } from "../adapters/fastfy.adapter";
 import { GenerateGoogleAuthUrlUseCase } from "../../usecase/auth/generate-google-auth-url.usecase";
 import { AuthenticateGoogleUseCase } from "../../usecase/auth/authenticate-google.usecase";
@@ -11,8 +10,8 @@ import { LoginUseCase } from "../../usecase/auth/login.usecase";
 import { SendEmailVerificationUseCase } from "../../usecase/auth/send-email-verification.usecase";
 import { VerifyEmailSetPasswordUseCase } from "../../usecase/auth/verify-email-set-password.usecase";
 import { UpdateUserConfigUseCase } from "../../usecase/user/update-user-config.usecase";
-import { Validate2FAUseCase } from "../../usecase/user/validate-2fa.usecase";
 import { LoginVerify2FAUseCase } from "../../usecase/auth/login-verify-2fa.usecase";
+import { ResolveAuthContextUseCase } from "../../usecase/auth/resolve-auth-context.usecase";
 import { AuthUserPayload } from "../types/auth.types";
 import { User } from "../database/entities/user.entity";
 import { z } from "zod";
@@ -40,15 +39,14 @@ export class AuthController {
         private readonly authenticateGoogle: AuthenticateGoogleUseCase,
         private readonly registerUser: RegisterUserUseCase,
         private readonly login: LoginUseCase,
-        private readonly validate2FA: Validate2FAUseCase,
         private readonly loginVerify2FA: LoginVerify2FAUseCase,
         private readonly sendEmailVerification: SendEmailVerificationUseCase,
         private readonly verifyEmailSetPassword: VerifyEmailSetPasswordUseCase,
         private readonly updateUserConfig: UpdateUserConfigUseCase,
+        private readonly resolveAuthContext: ResolveAuthContextUseCase,
         private readonly userRepo: IUserRepository,
         private readonly companyRepo: ICompanyRepository,
-        private readonly companyConfigRepo: ICompanyConfigRepository,
-        private readonly professionalRepo: IProfessionalRepository
+        private readonly companyConfigRepo: ICompanyConfigRepository
     ) {
         this.fastify.logInfo("[AuthController] Initializing...");
         this.registerRoutes();
@@ -229,32 +227,12 @@ export class AuthController {
 
             try {
                 const user = await this.loginVerify2FA.execute(tempToken, code, (request as any).locale);
-                const companies = await this.companyRepo.findByOwnerId(user.id);
-                const resolvedCompanyId = companies[0]?.id;
-
-                const token = this.fastify.sign({
-                    id: user.id,
-                    email: user.email,
-                    name: user.name,
-                    role: user.role,
-                    companyId: resolvedCompanyId || undefined
-                });
-
-                reply.send({
+                const result = await this.resolveAuthContext.execute({
+                    user,
                     message: "2FA verification successful",
-                    token,
-                    user: {
-                        id: user.id,
-                        name: user.name,
-                        email: user.email,
-                        role: user.role,
-                        hasPassword: !!user.password
-                    },
-                    companies: companies.map(c => ({
-                        id: c.id,
-                        name: c.name,
-                    }))
+                    locale: (request as any).locale,
                 });
+                reply.send(result);
             } catch (error: any) {
                 this.fastify.logInfo("[AuthController] 2FA verification failed:", { error: error.message });
                 reply.code(401).send({ error: error.message });
@@ -263,116 +241,12 @@ export class AuthController {
     }
 
     private async sendAuthResponse(reply: FastifyReply, user: User, message: string, companyId?: string, locale: Locale = "pt") {
-        if (user.twoFactorEnabled) {
-            const tempToken = this.fastify.sign({
-                id: user.id,
-                is2FAPending: true
-            }, { expiresIn: "5m" });
-
-            return reply.send({
-                status: "2FA_REQUIRED",
-                message: "Two-Factor Authentication required",
-                tempToken
-            });
+        try {
+            const result = await this.resolveAuthContext.execute({ user, message, companyId, locale });
+            return reply.send(result);
+        } catch (error: any) {
+            const status = error.statusCode ?? 403;
+            return reply.code(status).send({ error: error.message });
         }
-
-        // PROFESSIONAL: resolve all linked professional records
-        if (user.role === "PROFESSIONAL") {
-            let professionals = await this.professionalRepo.findAllByUserId(user.id);
-
-            // First login: link userId to all professionals matching the invited email
-            if (professionals.length === 0) {
-                const byEmail = await this.professionalRepo.findAllByInvitedEmail(user.email);
-                for (const p of byEmail) {
-                    await this.professionalRepo.update(p.id, p.companyId, { userId: user.id });
-                    p.userId = user.id;
-                }
-                professionals = byEmail;
-            }
-
-            if (professionals.length === 0) {
-                return reply.code(403).send({ error: t(locale ?? "pt", "user.professionalNotLinked") });
-            }
-
-            // Single company: auto-select
-            if (professionals.length === 1) {
-                const professional = professionals[0]!;
-                const token = this.fastify.sign({
-                    id: user.id,
-                    email: user.email,
-                    name: user.name,
-                    role: user.role,
-                    companyId: professional.companyId,
-                    professionalId: professional.id,
-                });
-                return reply.send({
-                    message,
-                    token,
-                    user: {
-                        id: user.id,
-                        name: user.name,
-                        email: user.email,
-                        role: user.role,
-                        hasPassword: !!user.password,
-                        companyId: professional.companyId,
-                        professionalId: professional.id,
-                    },
-                    companies: [],
-                });
-            }
-
-            // Multiple companies: return partial token + list for selection
-            const partialToken = this.fastify.sign({
-                id: user.id,
-                email: user.email,
-                name: user.name,
-                role: user.role,
-            });
-            return reply.send({
-                status: "SELECT_PROFESSIONAL_CONTEXT",
-                token: partialToken,
-                user: {
-                    id: user.id,
-                    name: user.name,
-                    email: user.email,
-                    role: user.role,
-                    hasPassword: !!user.password,
-                },
-                companies: professionals.map(p => ({
-                    id: p.companyId,
-                    name: p.company?.name ?? p.companyId,
-                    professionalId: p.id,
-                })),
-            });
-        }
-
-        // Regular USER / ADMIN
-        const companies = await this.companyRepo.findByOwnerId(user.id);
-        const resolvedCompanyId = companyId || companies[0]?.id;
-
-        const token = this.fastify.sign({
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            role: user.role,
-            companyId: resolvedCompanyId || undefined
-        });
-
-        return reply.send({
-            message,
-            token,
-            user: {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                hasPassword: !!user.password,
-                companyId: resolvedCompanyId || undefined
-            },
-            companies: companies.map(c => ({
-                id: c.id,
-                name: c.name,
-            }))
-        });
     }
 }

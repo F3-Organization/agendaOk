@@ -9,6 +9,7 @@ A ConfirmaZap é uma plataforma **SaaS Multi-Tenant** com dois níveis de entida
 - Cada Profissional possui uma conta (`User`) com email, senha e/ou login via Google.
 - A **assinatura** (`Subscription`) pertence ao **User**, não à Company.
 - O plano PRO dá direito a até **3 empresas** (Companies) = até **3 atendentes WhatsApp** distintos.
+- **Roles disponíveis:** `ADMIN`, `USER` (owner), `PROFESSIONAL`, `ATTENDANT`.
 
 ### Nível Empresa (Company)
 - Cada User pode criar uma ou mais **Companies** (empresas/negócios).
@@ -137,6 +138,24 @@ O sistema mantém o Profissional informado através de e-mails automáticos:
 - Cada profissional possui: `name`, `specialty`, `workingHours`, `appointmentDuration` e `active`.
 - Os horários de trabalho são armazenados como JSON: `Record<'mon'|'tue'|...|'sun', Array<{start: string, end: string}>>`.
 - Profissionais são isolados por `companyId`.
+
+## 11. Gestão de Atendentes (Attendant)
+- O **Atendente** é um papel com acesso restrito ao CRUD de agendamentos.
+- Diferente do **Professional**, o atendente pode **criar, editar, deletar e confirmar** agendamentos para **qualquer profissional** da empresa.
+- O atendente vê **todos** os agendamentos da empresa (não filtrado por profissional).
+- **Não tem acesso** a: Dashboard, Settings, WhatsApp, Bot Config, Subscription, Professionals Management.
+- **Convite:** O owner convida o atendente via `POST /company/attendants/invite` com o email. O sistema cria um `User` com role `ATTENDANT` e um `CompanyMember` vinculando-o à empresa.
+- **Login:** O atendente faz login normalmente (email/senha ou Google) e é redirecionado diretamente para a tela de agendamentos.
+- **Tabela de vínculo:** `company_members` (similar à `professionals` para o role `PROFESSIONAL`).
+
+### Comparação: PROFESSIONAL vs ATTENDANT
+| Aspecto | PROFESSIONAL | ATTENDANT |
+|---|---|---|
+| Vinculação | Via tabela `professionals` | Via tabela `company_members` |
+| Agendamentos visíveis | Apenas os seus | Todos da empresa |
+| CRUD de agendamentos | ❌ Não | ✅ Sim |
+| Acesso ao Dashboard | ❌ | ❌ |
+| Acesso a Settings/WhatsApp/Bot | ❌ | ❌ |
 
 ---
 

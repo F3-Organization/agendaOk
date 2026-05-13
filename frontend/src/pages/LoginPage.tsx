@@ -49,13 +49,14 @@ export const LoginPage = () => {
 
       setAuth(response.user as AuthUser, response.token as string);
 
-      if (response.status === 'SELECT_PROFESSIONAL_CONTEXT') {
+      if (response.status === 'SELECT_PROFESSIONAL_CONTEXT' || response.status === 'SELECT_ATTENDANT_CONTEXT') {
         setCompanies(response.companies ?? []);
         navigate('/select-company');
         return;
       }
 
-      navigate((response.user as any)?.role === 'PROFESSIONAL' ? '/appointments' : '/select-company');
+      const role = (response.user as any)?.role;
+      navigate(role === 'PROFESSIONAL' || role === 'ATTENDANT' ? '/appointments' : '/select-company');
     } catch (err: any) {
       setError(err.response?.data?.error || t('common.loginFailed'));
     } finally {
@@ -98,13 +99,13 @@ export const LoginPage = () => {
 
         setAuth(user as AuthUser, token as string);
 
-        if (status === 'SELECT_PROFESSIONAL_CONTEXT') {
+        if (status === 'SELECT_PROFESSIONAL_CONTEXT' || status === 'SELECT_ATTENDANT_CONTEXT') {
           setCompanies(companies ?? []);
           navigate('/select-company');
           return;
         }
 
-        navigate(user?.role === 'PROFESSIONAL' ? '/appointments' : '/select-company');
+        navigate(user?.role === 'PROFESSIONAL' || user?.role === 'ATTENDANT' ? '/appointments' : '/select-company');
       }
     };
     window.addEventListener('message', handleMessage);

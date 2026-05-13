@@ -14,9 +14,10 @@ interface SidebarProps {
 export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const user = useAuthStore((state) => state.user);
   const isProfessional = user?.role === 'PROFESSIONAL';
+  const isAttendant = user?.role === 'ATTENDANT';
   const isAdmin = user?.role === 'ADMIN';
 
-  const sections = isProfessional ? professionalNavSections : ownerNavSections;
+  const sections = (isProfessional || isAttendant) ? professionalNavSections : ownerNavSections;
 
   return (
     <>

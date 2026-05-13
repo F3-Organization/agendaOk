@@ -79,7 +79,8 @@ export const AppointmentsPage = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const user = useAuthStore((state) => state.user);
-  const isProfessional = user?.role === 'PROFESSIONAL';
+  const isReadOnly = user?.role === 'PROFESSIONAL';
+  const isProfessional = isReadOnly;
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | AppointmentStatus>('ALL');

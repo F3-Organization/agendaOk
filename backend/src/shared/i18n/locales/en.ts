@@ -24,6 +24,7 @@ export const en = {
         passwordSet: "Password set successfully",
         noCompanyFound: "No company found for user.",
         professionalNotLinked: "Professional account not linked to any professional.",
+        attendantNotLinked: "Attendant account not linked to any company.",
     },
 
     company: {
@@ -50,6 +51,11 @@ export const en = {
         emailAlreadyExists: "This email already belongs to an existing account",
         updated: "Professional updated successfully",
         deleted: "Professional deleted successfully",
+    },
+
+    attendant: {
+        emailAlreadyExists: "This email already belongs to an existing account",
+        alreadyMember: "This attendant is already linked to this company",
     },
 
     appointment: {

@@ -6,7 +6,7 @@ import { CreateAppointmentUseCase } from "../../usecase/appointment/create-appoi
 import { UpdateAppointmentUseCase } from "../../usecase/appointment/update-appointment.usecase";
 import { DeleteAppointmentUseCase } from "../../usecase/appointment/delete-appointment.usecase";
 import { AuthUserPayload } from "../types/auth.types";
-import { ownerOnlyMiddleware } from "../middleware/owner-only.middleware";
+import { appointmentWriteMiddleware } from "../middleware/appointment-write.middleware";
 import { ScheduleStatus } from "../database/entities/schedule.entity";
 import { t } from "../../shared/i18n";
 import {
@@ -78,7 +78,7 @@ export class AppointmentController {
                 return reply.code(201).send(appointment);
             },
             createAppointmentSchema,
-            ownerOnlyMiddleware
+            appointmentWriteMiddleware
         );
 
         this.fastify.addProtectedRoute(
@@ -108,7 +108,7 @@ export class AppointmentController {
                 return reply.send({ message: t((request as any).locale, "appointment.updated") });
             },
             updateAppointmentSchema,
-            ownerOnlyMiddleware
+            appointmentWriteMiddleware
         );
 
         this.fastify.addProtectedRoute(
@@ -123,7 +123,7 @@ export class AppointmentController {
                 return reply.code(204).send();
             },
             deleteAppointmentSchema,
-            ownerOnlyMiddleware
+            appointmentWriteMiddleware
         );
     }
 }

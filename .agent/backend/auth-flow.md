@@ -41,8 +41,9 @@ interface AuthUserPayload {
     id: string;       // userId — identifica o profissional
     email: string;
     name: string;
-    role: "ADMIN" | "USER";
+    role: "ADMIN" | "USER" | "PROFESSIONAL" | "ATTENDANT";
     companyId?: string; // empresa ativa selecionada (opcional)
+    professionalId?: string; // apenas para PROFESSIONAL
 }
 ```
 

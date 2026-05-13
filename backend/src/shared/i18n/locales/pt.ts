@@ -24,6 +24,7 @@ export const pt = {
         passwordSet: "Senha definida com sucesso",
         noCompanyFound: "Nenhuma empresa encontrada para o usuário.",
         professionalNotLinked: "Conta profissional não vinculada a nenhum profissional.",
+        attendantNotLinked: "Conta de atendente não vinculada a nenhuma empresa.",
     },
 
     company: {
@@ -50,6 +51,11 @@ export const pt = {
         emailAlreadyExists: "Este email já pertence a uma conta existente",
         updated: "Profissional atualizado com sucesso",
         deleted: "Profissional excluído com sucesso",
+    },
+
+    attendant: {
+        emailAlreadyExists: "Este email já pertence a uma conta existente",
+        alreadyMember: "Este atendente já está vinculado a esta empresa",
     },
 
     appointment: {

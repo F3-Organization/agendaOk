@@ -14,7 +14,7 @@ export const CompanySwitcher = () => {
   const maxCompanies = useAuthStore((state) => state.maxCompanies);
   const selectedCompany = useAuthStore((state) => state.selectedCompany);
   const selectCompany = useAuthStore((state) => state.selectCompany);
-  const isProfessional = user?.role === 'PROFESSIONAL';
+  const isProfessional = user?.role === 'PROFESSIONAL' || user?.role === 'ATTENDANT';
 
   const [isOpen, setIsOpen] = useState(false);
   const [loadingId, setLoadingId] = useState<string | null>(null);

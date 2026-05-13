@@ -18,7 +18,7 @@ export const SelectCompanyPage = () => {
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [isLoadingCompanies, setIsLoadingCompanies] = useState(true);
 
-  const isProfessional = user?.role === 'PROFESSIONAL';
+  const isProfessional = user?.role === 'PROFESSIONAL' || user?.role === 'ATTENDANT';
   const afterSelectPath = isProfessional ? '/appointments' : '/dashboard';
 
   useEffect(() => {

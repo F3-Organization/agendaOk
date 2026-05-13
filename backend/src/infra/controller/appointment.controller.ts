@@ -9,13 +9,19 @@ import { AuthUserPayload } from "../types/auth.types";
 import { ownerOnlyMiddleware } from "../middleware/owner-only.middleware";
 import { ScheduleStatus } from "../database/entities/schedule.entity";
 import { t } from "../../shared/i18n";
+import {
+    listAppointmentsSchema,
+    createAppointmentSchema,
+    updateAppointmentSchema,
+    deleteAppointmentSchema,
+} from "./schemas/appointment.swagger";
 
 const AppointmentBodySchema = z.object({
     clientName: z.string().min(1),
     clientPhone: z.string().min(8),
     title: z.string().min(1),
-    startAt: z.string().datetime(),
-    endAt: z.string().datetime().optional(),
+    startAt: z.iso.datetime(),
+    endAt: z.iso.datetime().optional(),
     notes: z.string().optional(),
     professionalId: z.string().uuid().optional(),
 });
@@ -42,7 +48,8 @@ export class AppointmentController {
                 const professionalId = user.role === "PROFESSIONAL" ? user.professionalId : undefined;
                 const appointments = await this.getAppointments.execute(user.companyId, professionalId);
                 return reply.send(appointments);
-            }
+            },
+            listAppointmentsSchema
         );
 
         this.fastify.addProtectedRoute(
@@ -70,7 +77,7 @@ export class AppointmentController {
                 });
                 return reply.code(201).send(appointment);
             },
-            undefined,
+            createAppointmentSchema,
             ownerOnlyMiddleware
         );
 
@@ -100,7 +107,7 @@ export class AppointmentController {
                 await this.updateAppointment.execute(id, user.companyId, updateData as any, (request as any).locale);
                 return reply.send({ message: t((request as any).locale, "appointment.updated") });
             },
-            undefined,
+            updateAppointmentSchema,
             ownerOnlyMiddleware
         );
 
@@ -115,7 +122,7 @@ export class AppointmentController {
                 await this.deleteAppointment.execute(id, user.companyId, (request as any).locale);
                 return reply.code(204).send();
             },
-            undefined,
+            deleteAppointmentSchema,
             ownerOnlyMiddleware
         );
     }

@@ -147,3 +147,28 @@ export const updateBotConfigSwaggerSchema = {
         400: errorResponse("Failed to update bot config")
     }
 };
+
+export const inviteProfessionalSchema = {
+    tags: ["Professional"],
+    summary: "Convida profissional por e-mail",
+    description: "Envia um convite para um profissional vincular sua conta de usuário.",
+    params: uuidParam,
+    body: {
+        type: "object" as const,
+        required: ["email"],
+        properties: {
+            email: { type: "string" as const, format: "email" }
+        }
+    },
+    response: {
+        200: {
+            type: "object" as const,
+            properties: {
+                message: { type: "string" as const },
+                invitedEmail: { type: "string" as const }
+            }
+        },
+        400: errorResponse("Validation failed"),
+        404: errorResponse("Professional not found")
+    }
+};

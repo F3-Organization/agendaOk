@@ -19,6 +19,7 @@ import {
     deleteProfessionalSchema,
     getBotConfigSchema,
     updateBotConfigSwaggerSchema,
+    inviteProfessionalSchema,
 } from "./schemas/professional.swagger";
 
 type TimeSlot = { start: string; end: string };
@@ -126,7 +127,7 @@ export class ProfessionalController {
                 const status = error.statusCode ?? 400;
                 reply.code(status).send({ error: error.message });
             }
-        }, undefined, ownerOnlyMiddleware);
+        }, inviteProfessionalSchema, ownerOnlyMiddleware);
 
         // DELETE /company/professionals/:id (owners only)
         this.fastify.addProtectedRoute("DELETE", "/company/professionals/:id", async (request: FastifyRequest, reply: FastifyReply) => {

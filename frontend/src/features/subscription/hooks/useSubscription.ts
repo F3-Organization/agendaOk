@@ -83,6 +83,9 @@ export const useSubscription = () => {
     }
   });
 
+  // Track which action to resume after billing modal saves
+  const [pendingAction, setPendingAction] = useState<'checkout' | 'pix' | null>(null);
+
   const updateBillingConfigMutation = useMutation({
     mutationFn: authService.updateConfig,
     onSuccess: async () => {
@@ -94,8 +97,13 @@ export const useSubscription = () => {
       
       setShowBillingModal(false);
       
-      // Após salvar e atualizar o estado local, dispara o checkout se for o plano PRO
-      checkoutMutation.mutate();
+      // Resume the action that was blocked by missing billing info
+      if (pendingAction === 'pix') {
+        pixMutation.mutate();
+      } else {
+        checkoutMutation.mutate();
+      }
+      setPendingAction(null);
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || t('common.error'));
@@ -138,29 +146,48 @@ export const useSubscription = () => {
     setTimeout(() => setShowSuccessBanner(false), 30000);
   };
 
+  /**
+   * Guard: checks billing info and loading states before proceeding.
+   * Opens BillingInfoModal if data is missing and stores which action to resume.
+   */
+  const guardBillingInfo = (action: 'checkout' | 'pix'): boolean => {
+    if (isStatusLoading || isStatusFetching) return false;
+    if (isMissingBillingInfo) {
+      setPendingAction(action);
+      setShowBillingModal(true);
+      return false;
+    }
+    return true;
+  };
+
+  const handleCheckoutAction = () => {
+    if (!guardBillingInfo('checkout')) return;
+
+    if (subStatus?.status === 'PENDING' && subStatus.checkoutUrl) {
+      const proPlan = plans.find(p => p.isPurchasable);
+      navigate('/checkout', {
+        state: {
+          checkoutUrl: subStatus.checkoutUrl,
+          planName: subStatus.planName || proPlan?.name,
+          amount: subStatus.amount || proPlan?.priceInCents,
+          billingCycle: 'MONTHLY'
+        }
+      });
+    } else {
+      checkoutMutation.mutate();
+    }
+  };
+
+  const handlePixAction = () => {
+    if (!guardBillingInfo('pix')) return;
+    pixMutation.mutate();
+  };
+
   const handlePlanAction = (planSlug: string) => {
     const plan = plans.find(p => p.slug === planSlug);
 
     if (plan?.isPurchasable) {
-      if (isStatusLoading || isStatusFetching) return;
-
-      if (isMissingBillingInfo) {
-        setShowBillingModal(true);
-        return;
-      }
-
-      if (subStatus?.status === 'PENDING' && subStatus.checkoutUrl) {
-        navigate('/checkout', {
-          state: {
-            checkoutUrl: subStatus.checkoutUrl,
-            planName: subStatus.planName || plan.name,
-            amount: subStatus.amount || plan.priceInCents,
-            billingCycle: 'MONTHLY'
-          }
-        });
-      } else {
-        checkoutMutation.mutate();
-      }
+      handleCheckoutAction();
     } else if (plan && !plan.isPurchasable && plan.slug !== 'FREE') {
       const message = encodeURIComponent(t('subscription.enterpriseMessage'));
       window.open(`https://wa.me/${SUPPORT_WHATSAPP}?text=${message}`, '_blank');
@@ -216,6 +243,8 @@ export const useSubscription = () => {
     plans: mappedPlans,
     checkoutMutation,
     handlePlanAction,
+    handleCheckoutAction,
+    handlePixAction,
     handleDownloadPdf,
     setShowSuccessBanner,
     isMissingBillingInfo,

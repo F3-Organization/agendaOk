@@ -13,8 +13,27 @@ export const listCompaniesSchema = {
     description: "Retorna todas as empresas que o usuário autenticado possui.",
     response: {
         200: {
-            type: "array" as const,
-            items: { type: "object" as const, properties: companyProperties }
+            type: "object" as const,
+            properties: {
+                companies: {
+                    type: "array" as const,
+                    items: {
+                        type: "object" as const,
+                        properties: {
+                            ...companyProperties,
+                            subscription: {
+                                type: "object" as const,
+                                nullable: true,
+                                properties: {
+                                    plan: { type: "string" as const },
+                                    status: { type: "string" as const }
+                                }
+                            }
+                        }
+                    }
+                },
+                maxCompanies: { type: "number" as const }
+            }
         },
         500: errorResponse("Failed to list companies")
     }

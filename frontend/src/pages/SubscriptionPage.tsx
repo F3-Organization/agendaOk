@@ -56,6 +56,8 @@ export const SubscriptionPage = () => {
     plans,
     checkoutMutation,
     handlePlanAction,
+    handleCheckoutAction,
+    handlePixAction,
     handleDownloadPdf,
     setShowSuccessBanner,
     showBillingModal,
@@ -222,7 +224,7 @@ export const SubscriptionPage = () => {
                 <Button
                   variant="ghost"
                   className="h-14 px-6 text-[10px] font-black tracking-[0.2em] uppercase gap-2"
-                  onClick={() => pixMutation.mutate()}
+                  onClick={handlePixAction}
                   disabled={pixMutation.isPending}
                 >
                   {pixMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <QrCode className="w-3.5 h-3.5" />}
@@ -231,7 +233,7 @@ export const SubscriptionPage = () => {
                 <Button
                   variant={isAtLimit ? 'primary' : 'secondary'}
                   className={`h-14 px-10 text-[10px] font-black tracking-[0.2em] uppercase shadow-2xl transition-all ${isAtLimit ? 'shadow-red-500/20 active:scale-95' : 'shadow-primary/10'}`}
-                  onClick={() => checkoutMutation.mutate()}
+                  onClick={handleCheckoutAction}
                   disabled={checkoutMutation.isPending}
                 >
                   {checkoutMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Zap className="w-3 h-3 mr-3 fill-current" />}

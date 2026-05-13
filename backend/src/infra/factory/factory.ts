@@ -69,6 +69,14 @@ import { DeleteCompanyUseCase } from "../../usecase/company/delete-company.useca
 import { ManageProfessionalsUseCase } from "../../usecase/company/manage-professionals.usecase";
 import { ManageBotConfigUseCase } from "../../usecase/company/manage-bot-config.usecase";
 import { ConversationService } from "../../usecase/chatbot/conversation.service";
+import { MessageParserService } from "../../usecase/chatbot/message-parser.service";
+import { KeywordDetectorService } from "../../usecase/chatbot/keyword-detector.service";
+import { SilentWindowService } from "../../usecase/chatbot/silent-window.service";
+import { PhoneNormalizerService } from "../../usecase/chatbot/phone-normalizer.service";
+import { ConnectionUpdateHandler } from "../../usecase/chatbot/handlers/connection-update.handler";
+import { SystemBotHandler } from "../../usecase/chatbot/handlers/system-bot.handler";
+import { AIResponseHandler } from "../../usecase/chatbot/handlers/ai-response.handler";
+import { UserMessageHandler } from "../../usecase/chatbot/handlers/user-message.handler";
 
 import { NotifyQueue } from "../queue/notify.queue";
 import { NotifyWorker } from "../queue/notify.worker";
@@ -97,6 +105,10 @@ const geminiAdapter = new GeminiAdapter();
 const mailAdapter = new NodemailerAdapter();
 const redisService = new RedisService();
 const conversationService = new ConversationService(redisService);
+const messageParser = new MessageParserService();
+const keywordDetector = new KeywordDetectorService();
+const silentWindowService = new SilentWindowService();
+const phoneNormalizer = new PhoneNormalizerService();
 
 // Lazy Instances
 let userRepository: UserRepository;
@@ -155,17 +167,41 @@ const getUseCase = {
         evolutionAdapter
     ),
 
-    handleEvolutionWebhook: () => new HandleEvolutionWebhookUseCase(
-        getRepo.companyConfig(),
-        getUseCase.confirmAppointment(),
-        getUseCase.cancelAppointment(),
-        evolutionAdapter,
-        getUseCase.checkUsageLimit(),
-        geminiAdapter,
-        conversationService,
-        getRepo.professional(),
-        getRepo.company()
-    ),
+    handleEvolutionWebhook: () => {
+        const connectionHandler = new ConnectionUpdateHandler(
+            getRepo.companyConfig(),
+            phoneNormalizer
+        );
+        const aiHandler = new AIResponseHandler(
+            getRepo.company(),
+            getRepo.professional(),
+            evolutionAdapter,
+            geminiAdapter,
+            conversationService
+        );
+        const systemHandler = new SystemBotHandler(
+            getRepo.companyConfig(),
+            evolutionAdapter,
+            keywordDetector,
+            phoneNormalizer
+        );
+        const userHandler = new UserMessageHandler(
+            getRepo.companyConfig(),
+            evolutionAdapter,
+            getUseCase.checkUsageLimit(),
+            getUseCase.confirmAppointment(),
+            getUseCase.cancelAppointment(),
+            keywordDetector,
+            silentWindowService,
+            aiHandler
+        );
+        return new HandleEvolutionWebhookUseCase(
+            messageParser,
+            connectionHandler,
+            userHandler,
+            systemHandler
+        );
+    },
 
     createSubscriptionCheckout: () => new CreateSubscriptionCheckoutUseCase(
         getRepo.user(),

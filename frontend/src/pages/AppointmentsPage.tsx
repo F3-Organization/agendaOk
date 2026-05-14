@@ -385,9 +385,9 @@ export const AppointmentsPage = () => {
                     </td>
                     <td className="px-6 py-5">
                       {apt.isNotified ? (
-                        <Bell className="w-4 h-4 text-primary" title={t('appointmentsPage.notified')} />
+                        <span title={t('appointmentsPage.notified')}><Bell className="w-4 h-4 text-primary" /></span>
                       ) : (
-                        <BellOff className="w-4 h-4 text-muted-foreground/40" title={t('appointmentsPage.notNotified')} />
+                        <span title={t('appointmentsPage.notNotified')}><BellOff className="w-4 h-4 text-muted-foreground/40" /></span>
                       )}
                     </td>
                     {!isProfessional && (

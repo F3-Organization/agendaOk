@@ -203,7 +203,7 @@ export const useSubscription = () => {
     }
   };
 
-  const isTrialOrActive = subStatus?.status === 'ACTIVE' || subStatus?.status === 'TRIAL';
+
 
   const mappedPlans = plans.map((plan: Plan) => {
     const isCurrent = subStatus?.plan === plan.slug || (!subStatus && plan.slug === 'FREE');

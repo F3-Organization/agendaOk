@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Zap, Check, ArrowRight, MessageSquare, BarChart3, ShieldCheck, ZapOff, Sparkles, Bot, Brain, Clock, Users, MessageCircle, Send } from 'lucide-react';
+import { Zap, Check, ArrowRight, MessageSquare, BarChart3, ShieldCheck, ZapOff, Sparkles, Bot, Brain, Clock, Users, Send } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { Button } from '../shared/ui/Button';

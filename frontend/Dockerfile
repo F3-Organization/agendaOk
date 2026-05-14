@@ -23,6 +23,9 @@ RUN npm install
 COPY frontend/ ./
 COPY shared/ ../shared/
 
+# Symlink zod para que ../shared/ resolva zod do node_modules do frontend
+RUN ln -s /app/node_modules /shared/node_modules
+
 RUN npm run build
 
 # Stage 2: Serve with Nginx for production feel

@@ -35,7 +35,7 @@ export interface AdminCompany {
   professionalsCount: number;
 }
 
-export interface PaginatedResponse<T> {
+export interface PaginatedResponse {
   pagination: { page: number; limit: number; total: number; totalPages: number };
   [key: string]: any;
 }
@@ -47,7 +47,7 @@ export const adminService = {
   },
 
   listUsers: async (params?: { search?: string; page?: number; limit?: number }) => {
-    const { data } = await apiClient.get<{ users: AdminUser[]; pagination: PaginatedResponse<AdminUser>['pagination'] }>('/admin/users', { params });
+    const { data } = await apiClient.get<{ users: AdminUser[]; pagination: PaginatedResponse['pagination'] }>('/admin/users', { params });
     return data;
   },
 
@@ -67,7 +67,7 @@ export const adminService = {
   },
 
   listCompanies: async (params?: { search?: string; page?: number; limit?: number }) => {
-    const { data } = await apiClient.get<{ companies: AdminCompany[]; pagination: PaginatedResponse<AdminCompany>['pagination'] }>('/admin/companies', { params });
+    const { data } = await apiClient.get<{ companies: AdminCompany[]; pagination: PaginatedResponse['pagination'] }>('/admin/companies', { params });
     return data;
   },
 

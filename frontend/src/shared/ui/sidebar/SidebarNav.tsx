@@ -22,7 +22,7 @@ export const SidebarNav = ({ sections, isAdmin, onNavigate }: SidebarNavProps) =
           {/* Section header */}
           {section.labelKey && (
             <p className="px-4 mb-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/50 select-none">
-              {t(section.labelKey, section.labelFallback)}
+              {t(section.labelKey, section.labelFallback ?? '')}
             </p>
           )}
 

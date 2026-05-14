@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Users, Search, Loader2, Eye, UserCog, Crown, Mail, Globe, Shield, ChevronLeft, ChevronRight, Building2 } from 'lucide-react';
+import { Search, Loader2, Eye, UserCog, Crown, Mail, Globe, Shield, ChevronLeft, ChevronRight, Building2 } from 'lucide-react';
 import { AdminLayout } from '../../shared/ui/AdminLayout';
 import { Card } from '../../shared/ui/Card';
 import { Modal } from '../../shared/ui/Modal';
@@ -125,9 +125,9 @@ export const AdminUsersPage = () => {
                       </td>
                       <td className="px-4 py-4">
                         {user.authMethod === 'google' ? (
-                          <Globe className="w-4 h-4 text-blue-500" title="Google" />
+                          <span title="Google"><Globe className="w-4 h-4 text-blue-500" /></span>
                         ) : (
-                          <Mail className="w-4 h-4 text-muted-foreground" title="Email" />
+                          <span title="Email"><Mail className="w-4 h-4 text-muted-foreground" /></span>
                         )}
                       </td>
                       <td className="px-4 py-4">

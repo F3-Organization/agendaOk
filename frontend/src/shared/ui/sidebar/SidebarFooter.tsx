@@ -4,7 +4,7 @@ import { useThemeStore } from '../theme.store';
 import { SidebarUserCard } from './SidebarUserCard';
 
 export const SidebarFooter = () => {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const { theme, toggleTheme } = useThemeStore();
 
   const toggleLanguage = () => {

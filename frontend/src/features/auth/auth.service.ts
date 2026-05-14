@@ -1,9 +1,14 @@
 import { apiClient } from '../../shared/api/api-client';
-import { type LoginInput, type RegisterInput, type AuthUser, type LoginResponse, type VerifyRegistrationInput } from '@shared/schemas/auth.schema';
+import { type LoginInput, type RegisterInput, type AuthUser, type VerifyRegistrationInput } from '@shared/schemas/auth.schema';
 import type { Company } from '../company/company.types';
 import { companyService } from '../company/company.service';
 
-export interface LoginResponseWithCompanies extends LoginResponse {
+export interface LoginResponseWithCompanies {
+  message: string;
+  token?: string;
+  user?: AuthUser;
+  status?: string;
+  tempToken?: string;
   companies?: Company[];
 }
 

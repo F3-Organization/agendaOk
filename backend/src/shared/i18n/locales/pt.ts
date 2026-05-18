@@ -43,6 +43,7 @@ export const pt = {
         defaultGreeting: "Olá! 👋 Seja bem-vindo(a)! Como posso ajudá-lo(a) hoje?",
         defaultInstructions: "Seja cordial e atencioso. Ajude o cliente com informações sobre serviços, horários e agendamentos.",
         updated: "Configuração do bot atualizada com sucesso",
+        textOnly: "Desculpe, no momento só consigo processar mensagens de texto. 😊 Poderia digitar sua mensagem, por favor?",
     },
 
     professional: {
@@ -62,6 +63,8 @@ export const pt = {
         notFound: "Agendamento não encontrado",
         noPending: "Nenhum agendamento pendente encontrado para este cliente",
         updated: "Agendamento atualizado com sucesso",
+        conflict: "Já existe um agendamento neste horário. Por favor, escolha outro horário.",
+        reactivated: "Agendamento reativado com sucesso",
     },
 
     subscription: {

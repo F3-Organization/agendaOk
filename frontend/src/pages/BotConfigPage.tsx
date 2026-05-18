@@ -24,12 +24,14 @@ import {
   MoreHorizontal,
   AlertTriangle,
   Phone,
+  Crown,
 } from 'lucide-react';
 import { PageLayout } from '../shared/ui/PageLayout';
 import { Card } from '../shared/ui/Card';
 import { Button } from '../shared/ui/Button';
 import { useNavigate } from 'react-router-dom';
 import { professionalService, type BotConfig } from '../features/company/professional.service';
+import { useAuthStore } from '../features/auth/auth.store';
 
 const BUSINESS_TYPES = [
   { value: 'clinic', label: 'Clínica / Consultório', icon: Stethoscope },
@@ -44,6 +46,8 @@ export const BotConfigPage = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const selectedCompany = useAuthStore((state) => state.selectedCompany);
+  const isFreePlan = !selectedCompany?.subscription?.plan || selectedCompany.subscription.plan === 'FREE';
   const [form, setForm] = useState<BotConfig>({});
   const [newService, setNewService] = useState('');
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -113,7 +117,7 @@ export const BotConfigPage = () => {
     return missing;
   }, [config?.hasWhatsappNumber, form.businessDescription, t, navigate]);
 
-  const canEnableBot = missingPrerequisites.length === 0;
+  const canEnableBot = missingPrerequisites.length === 0 && !isFreePlan;
 
   const addService = () => {
     if (newService.trim()) {
@@ -166,13 +170,19 @@ export const BotConfigPage = () => {
               <button
                 type="button"
                 onClick={() => {
-                  if (!form.botEnabled && !canEnableBot) {
-                    showToast('error', t('botConfig.prerequisites.cannotEnable', 'Configure os itens obrigatórios antes de ativar o bot.'));
+                  if (!form.botEnabled && isFreePlan) {
+                    showToast('error', t('botConfig.plan.upgradeRequired'));
                     return;
                   }
-                  setForm({ ...form, botEnabled: !form.botEnabled });
+                  if (!form.botEnabled && !canEnableBot) {
+                    showToast('error', t('botConfig.prerequisites.cannotEnable'));
+                    return;
+                  }
+                  const toggled = { ...form, botEnabled: !form.botEnabled };
+                  setForm(toggled);
+                  saveMutation.mutate(toggled);
                 }}
-                className={`transition-transform hover:scale-110 ${!canEnableBot && !form.botEnabled ? 'opacity-40 cursor-not-allowed' : ''}`}
+                className={`transition-transform hover:scale-110 ${(!canEnableBot || isFreePlan) && !form.botEnabled ? 'opacity-40 cursor-not-allowed' : ''}`}
               >
                 {form.botEnabled ? (
                   <ToggleRight className="w-10 h-10 text-green-500" />
@@ -182,7 +192,34 @@ export const BotConfigPage = () => {
               </button>
             </div>
 
-            {!form.botEnabled && !canEnableBot && (
+            {!form.botEnabled && isFreePlan && (
+              <div className="mt-6 p-5 rounded-xl bg-gradient-to-r from-violet-500/10 to-amber-500/10 border border-violet-500/20 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                    <Crown className="w-5 h-5 text-violet-500" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-bold text-violet-500 mb-1">
+                      {t('botConfig.plan.proRequired', 'Recurso exclusivo do Plano PRO')}
+                    </h4>
+                    <p className="text-xs text-muted-foreground mb-4">
+                      {t('botConfig.plan.proDescription', 'O Bot de Autoatendimento com Inteligência Artificial está disponível apenas no plano PRO. Faça upgrade para ativar respostas automáticas, atendimento 24h e muito mais.')}
+                    </p>
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="gap-2 bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold uppercase tracking-widest px-6 h-9 rounded-lg"
+                      onClick={() => navigate('/subscription')}
+                    >
+                      <Crown className="w-3.5 h-3.5" />
+                      {t('botConfig.plan.upgrade', 'Fazer upgrade para PRO')}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {!form.botEnabled && !isFreePlan && !canEnableBot && (
               <div className="mt-6 p-5 rounded-xl bg-amber-500/10 border border-amber-500/20 animate-in fade-in slide-in-from-bottom-2 duration-300">
                 <div className="flex items-start gap-4">
                   <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center shrink-0 mt-0.5">

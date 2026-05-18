@@ -43,6 +43,7 @@ export const en = {
         defaultGreeting: "Hello! 👋 Welcome! How can I help you today?",
         defaultInstructions: "Be friendly and attentive. Help the customer with information about services, schedules, and appointments.",
         updated: "Bot configuration updated successfully",
+        textOnly: "Sorry, I can only process text messages at the moment. 😊 Could you please type your message?",
     },
 
     professional: {
@@ -62,6 +63,8 @@ export const en = {
         notFound: "Appointment not found",
         noPending: "No pending appointment found for this client",
         updated: "Appointment updated successfully",
+        conflict: "There is already an appointment at this time. Please choose another time.",
+        reactivated: "Appointment reactivated successfully",
     },
 
     subscription: {

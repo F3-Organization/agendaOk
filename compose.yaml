@@ -43,7 +43,7 @@ services:
       - redis_data:/data
 
   evolution-api:
-    image: atendai/evolution-api:v2.2.3
+    image: evoapicloud/evolution-api:v2.3.7
     restart: always
     ports:
       - '8080:8080'
@@ -69,6 +69,7 @@ services:
       - DATABASE_SAVE_DATA_LABELS=true
       - DATABASE_SAVE_DATA_HISTORIC=true
       - DEL_INSTANCE=false
+      - WPP_LID_MODE=false
       - CONFIG_SESSION_PHONE_VERSION=${CONFIG_SESSION_PHONE_VERSION}
     depends_on:
       - database

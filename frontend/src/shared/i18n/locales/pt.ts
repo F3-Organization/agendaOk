@@ -638,6 +638,39 @@ export const pt = {
     },
   },
   botConfig: {
+    title: 'Configuração do Bot',
+    subtitle: 'Personalize o bot de atendimento da sua empresa no WhatsApp.',
+    enable: {
+      title: 'Bot de Autoatendimento',
+      description: 'Quando ativado, o bot responderá automaticamente mensagens dos clientes no WhatsApp usando inteligência artificial.',
+    },
+    plan: {
+      upgradeRequired: 'O Bot IA é exclusivo do plano PRO. Faça upgrade para ativar.',
+      proRequired: 'Recurso exclusivo do Plano PRO',
+      proDescription: 'O Bot de Autoatendimento com Inteligência Artificial está disponível apenas no plano PRO. Faça upgrade para ativar respostas automáticas, atendimento 24h e muito mais.',
+      upgrade: 'Fazer upgrade para PRO',
+    },
+    prerequisites: {
+      title: 'Pré-requisitos para ativar o bot',
+      subtitle: 'Para ativar o bot de autoatendimento, é necessário configurar os seguintes itens:',
+      cannotEnable: 'Configure os itens obrigatórios antes de ativar o bot.',
+      cannotSave: 'Preencha os pré-requisitos obrigatórios antes de ativar o bot.',
+      whatsappNumber: 'Número de WhatsApp da empresa',
+      businessDescription: 'Descrição do negócio',
+      configure: 'Configurar',
+    },
+    business: {
+      title: 'Detalhes da Empresa',
+      description: 'Essas informações serão usadas pelo bot para responder perguntas sobre sua empresa.',
+    },
+    services: {
+      title: 'Serviços Oferecidos',
+      description: 'Liste os serviços que sua empresa oferece. O bot usará isso para orientar os clientes.',
+    },
+    personality: {
+      title: 'Personalidade do Bot',
+      description: 'Defina como o bot se comunica com seus clientes.',
+    },
     businessTypes: {
       clinic: 'Clínica / Consultório',
       salon: 'Salão / Barbearia',

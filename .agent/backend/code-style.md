@@ -36,7 +36,15 @@
 - **Evitar Duplicação (DRY):** Lógicas redundantes entre Use Cases (ex: verificações de horário, formatação complexa) DEVEM ser extraídas para funções auxiliares (Helpers) em `src/shared/utils` para garantir consistência e diminuir boilerplate.
 - **SEM COMENTÁRIOS:** Não deixe comentários no código explicando "o que" ele faz. Se um trecho precisa de explicação, ele deve ser refatorado para ser mais legível. Comentários só são permitidos em casos EXTREMAMENTE raros para explicar o "porquê" de uma decisão técnica obscura ou workaround.
 
-## 6. Segurança e Dados Hardcoded
+## 6. Internacionalização (i18n)
+- **Obrigatório:** Toda mensagem de erro ou sucesso voltada ao usuário (retornada pela API) DEVE utilizar a função `t(locale, 'chave')` do módulo `src/shared/i18n`.
+- **Proibido Hardcode:** Strings em português ou inglês diretamente nos Use Cases para mensagens de erro/sucesso são PROIBIDAS. Use sempre chaves do i18n.
+- **Ambos os Idiomas:** Ao criar uma nova chave, ela DEVE ser adicionada em `src/shared/i18n/locales/pt.ts` E `src/shared/i18n/locales/en.ts`.
+- **Padrão de Chaves:** Use dot-notation agrupada por domínio: `appointment.conflict`, `subscription.notFound`, `error.internal`.
+- **Use Cases:** O `locale` deve ser passado como parâmetro para os Use Cases que retornam mensagens ao usuário (padrão: `"pt"`).
+- **Exceção:** Mensagens internas de log (`console.log`, `console.error`) NÃO precisam de i18n.
+
+## 7. Segurança e Dados Hardcoded
 - **PROIBIDO Placeholder de Produção:** Nunca utilize strings como `"000.000.000-00"`, `"00000000000"`, `"test@test.com"`, ou `"123456"` em código que possa ir para produção. Se um dado é obrigatório mas opcional no cadastro, o Use Case deve validar sua presença e lançar um erro amigável, orientando o usuário a completar o cadastro.
 - **Segredos no `.env`:** Chaves de API, senhas e tokens devem estar EXCLUSIVAMENTE em variáveis de ambiente, acessadas via objeto `env` centralizado em `src/infra/config/configs.ts`.
 - **Sanitização:** Sempre utilize bibliotecas de validação (Zod) para garantir que dados sensíveis sigam o formato esperado.

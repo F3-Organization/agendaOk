@@ -2,6 +2,7 @@ import { ICompanyRepository } from "../repositories/icompany-repository";
 import { IUserRepository } from "../repositories/iuser-repository";
 import { IProfessionalRepository } from "../repositories/iprofessional-repository";
 import { ICompanyMemberRepository } from "../repositories/icompany-member-repository";
+import { ISubscriptionRepository } from "../repositories/isubscription-repository";
 import { ITokenService } from "../ports/itoken-service";
 import { t, type Locale } from "../../shared/i18n";
 
@@ -14,7 +15,7 @@ interface SelectCompanyInput {
 
 interface SelectCompanyOutput {
     token: string;
-    company: { id: string; name: string; slug: string };
+    company: { id: string; name: string; slug: string; subscription?: { plan: string; status: string } | null };
 }
 
 export class SelectCompanyUseCase {
@@ -23,13 +24,21 @@ export class SelectCompanyUseCase {
         private readonly tokenService: ITokenService,
         private readonly userRepository?: IUserRepository,
         private readonly professionalRepository?: IProfessionalRepository,
-        private readonly companyMemberRepository?: ICompanyMemberRepository
+        private readonly companyMemberRepository?: ICompanyMemberRepository,
+        private readonly subscriptionRepository?: ISubscriptionRepository
     ) {}
 
     async execute(input: SelectCompanyInput): Promise<SelectCompanyOutput> {
         const locale = input.locale ?? "pt";
         const company = await this.companyRepository.findById(input.companyId);
         if (!company) throw new Error(t(locale, "company.notFound"));
+
+        const subscription = this.subscriptionRepository
+            ? await this.subscriptionRepository.findByUserId(input.userId)
+            : null;
+        const subscriptionData = subscription
+            ? { plan: subscription.plan, status: subscription.status }
+            : null;
 
         const user = this.userRepository ? await this.userRepository.findById(input.userId) : null;
 
@@ -47,7 +56,7 @@ export class SelectCompanyUseCase {
                 professionalId: professional.id,
             }, { expiresIn: "7d" });
 
-            return { token, company: { id: company.id, name: company.name, slug: company.slug } };
+            return { token, company: { id: company.id, name: company.name, slug: company.slug, subscription: subscriptionData } };
         }
 
         if (input.userRole === "ATTENDANT") {
@@ -76,6 +85,6 @@ export class SelectCompanyUseCase {
             companyId: company.id
         }, { expiresIn: "7d" });
 
-        return { token, company: { id: company.id, name: company.name, slug: company.slug } };
+        return { token, company: { id: company.id, name: company.name, slug: company.slug, subscription: subscriptionData } };
     }
 }

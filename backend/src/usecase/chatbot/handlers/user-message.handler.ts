@@ -8,6 +8,7 @@ import { SilentWindowService } from "../silent-window.service";
 import { AIResponseHandler } from "./ai-response.handler";
 import { env } from "../../../infra/config/configs";
 import { t, type Locale } from "../../../shared/i18n";
+import type { MessageContext } from "../message-parser.service";
 
 export class UserMessageHandler {
     constructor(
@@ -25,7 +26,8 @@ export class UserMessageHandler {
         instanceName: string,
         senderNumber: string,
         fullJid: string,
-        text: string
+        text: string,
+        mediaType: MessageContext["mediaType"] = "text"
     ): Promise<void> {
         const config = await this.companyConfigRepository.findByInstanceName(instanceName);
         if (!config) return;
@@ -33,14 +35,23 @@ export class UserMessageHandler {
         const usage = await this.checkUsageLimit.execute(config.companyId);
         if (!usage.canSend) return;
 
+        const locale = (config.locale ?? "pt") as Locale;
+
+        // Handle non-text media (audio, video, sticker, etc.)
+        // Images/videos with captions already have text extracted, so only block if no text
+        if (mediaType !== "text" && !text.trim()) {
+            if (usage.plan === "PRO" && config.botEnabled) {
+                await this.evolutionService.sendText(instanceName, fullJid, t(locale, "bot.textOnly"));
+            }
+            return;
+        }
+
         // Direct responses (confirm/cancel) bypass silent window
         const isDirectResponse = this.keywordDetector.isDirectResponse(text);
 
         if (!isDirectResponse && this.silentWindow.isSilent(config)) {
             return;
         }
-
-        const locale = (config.locale ?? "pt") as Locale;
 
         // Handle appointment confirmation
         if (this.keywordDetector.isConfirmation(text)) {

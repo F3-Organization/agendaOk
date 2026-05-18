@@ -80,6 +80,8 @@ import { ConnectionUpdateHandler } from "../../usecase/chatbot/handlers/connecti
 import { SystemBotHandler } from "../../usecase/chatbot/handlers/system-bot.handler";
 import { AIResponseHandler } from "../../usecase/chatbot/handlers/ai-response.handler";
 import { UserMessageHandler } from "../../usecase/chatbot/handlers/user-message.handler";
+import { AvailabilityService } from "../../usecase/chatbot/availability.service";
+import { LidResolverService } from "../../usecase/chatbot/lid-resolver.service";
 
 import { NotifyQueue } from "../queue/notify.queue";
 import { NotifyWorker } from "../queue/notify.worker";
@@ -182,7 +184,10 @@ const getUseCase = {
             getRepo.professional(),
             evolutionAdapter,
             geminiAdapter,
-            conversationService
+            conversationService,
+            new AvailabilityService(getRepo.schedule()),
+            getRepo.schedule(),
+            getUseCase.createAppointment()
         );
         const systemHandler = new SystemBotHandler(
             getRepo.companyConfig(),
@@ -200,11 +205,13 @@ const getUseCase = {
             silentWindowService,
             aiHandler
         );
+        const lidResolver = new LidResolverService(evolutionAdapter, redisService);
         return new HandleEvolutionWebhookUseCase(
             messageParser,
             connectionHandler,
             userHandler,
-            systemHandler
+            systemHandler,
+            lidResolver
         );
     },
 
@@ -291,7 +298,7 @@ const getUseCase = {
 
     createCompany: () => new CreateCompanyUseCase(getRepo.company(), getRepo.companyConfig(), getRepo.subscription()),
     listCompanies: () => new ListCompaniesUseCase(getRepo.company(), getRepo.subscription()),
-    selectCompany: () => new SelectCompanyUseCase(getRepo.company(), adapterInstance, getRepo.user(), getRepo.professional(), getRepo.companyMember()),
+    selectCompany: () => new SelectCompanyUseCase(getRepo.company(), adapterInstance, getRepo.user(), getRepo.professional(), getRepo.companyMember(), getRepo.subscription()),
     updateCompany: () => new UpdateCompanyUseCase(getRepo.company()),
     deleteCompany: () => new DeleteCompanyUseCase(getRepo.company(), getRepo.companyConfig()),
 

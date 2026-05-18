@@ -1,6 +1,7 @@
 import { EvolutionWebhookPayload } from "../../../../shared/schemas/evolution.schema";
 import { env } from "../../infra/config/configs";
 import { MessageParserService } from "../chatbot/message-parser.service";
+import { LidResolverService } from "../chatbot/lid-resolver.service";
 import { ConnectionUpdateHandler } from "../chatbot/handlers/connection-update.handler";
 import { UserMessageHandler } from "../chatbot/handlers/user-message.handler";
 import { SystemBotHandler } from "../chatbot/handlers/system-bot.handler";
@@ -10,7 +11,8 @@ export class HandleEvolutionWebhookUseCase {
         private readonly messageParser: MessageParserService,
         private readonly connectionHandler: ConnectionUpdateHandler,
         private readonly userMessageHandler: UserMessageHandler,
-        private readonly systemBotHandler: SystemBotHandler
+        private readonly systemBotHandler: SystemBotHandler,
+        private readonly lidResolver: LidResolverService
     ) {}
 
     async execute(payload: EvolutionWebhookPayload): Promise<void> {
@@ -30,6 +32,14 @@ export class HandleEvolutionWebhookUseCase {
         const ctx = this.messageParser.parse(payload);
         if (!ctx) return;
 
+        // If remoteJid is a LID, resolve it to the real phone number
+        if (ctx.lid && ctx.senderNumber && !/^\d{10,}$/.test(ctx.senderNumber)) {
+            const resolvedNumber = await this.lidResolver.resolve(instanceName, ctx.lid);
+            if (resolvedNumber) {
+                ctx.senderNumber = resolvedNumber;
+            }
+        }
+
         // Route to the appropriate handler
         if (instanceName === env.evolution.systemBotInstance) {
             await this.systemBotHandler.handle(
@@ -47,7 +57,8 @@ export class HandleEvolutionWebhookUseCase {
             ctx.instanceName,
             ctx.senderNumber,
             ctx.fullJid,
-            ctx.messageText
+            ctx.messageText,
+            ctx.mediaType
         );
     }
 }

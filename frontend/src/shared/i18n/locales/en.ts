@@ -638,6 +638,39 @@ export const en = {
     },
   },
   botConfig: {
+    title: 'Bot Configuration',
+    subtitle: 'Customize your company\'s WhatsApp support bot.',
+    enable: {
+      title: 'Self-Service Bot',
+      description: 'When enabled, the bot will automatically respond to customer messages on WhatsApp using artificial intelligence.',
+    },
+    plan: {
+      upgradeRequired: 'The AI Bot is exclusive to the PRO plan. Upgrade to activate.',
+      proRequired: 'PRO Plan Exclusive Feature',
+      proDescription: 'The AI-powered Self-Service Bot is only available on the PRO plan. Upgrade to enable automatic responses, 24/7 support, and much more.',
+      upgrade: 'Upgrade to PRO',
+    },
+    prerequisites: {
+      title: 'Prerequisites to enable the bot',
+      subtitle: 'To enable the self-service bot, the following items need to be configured:',
+      cannotEnable: 'Configure the required items before enabling the bot.',
+      cannotSave: 'Fill in the required prerequisites before enabling the bot.',
+      whatsappNumber: 'Company WhatsApp number',
+      businessDescription: 'Business description',
+      configure: 'Configure',
+    },
+    business: {
+      title: 'Business Details',
+      description: 'This information will be used by the bot to answer questions about your business.',
+    },
+    services: {
+      title: 'Services Offered',
+      description: 'List the services your company offers. The bot will use this to guide customers.',
+    },
+    personality: {
+      title: 'Bot Personality',
+      description: 'Define how the bot communicates with your customers.',
+    },
     businessTypes: {
       clinic: 'Clinic / Office',
       salon: 'Salon / Barbershop',

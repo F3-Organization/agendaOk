@@ -153,6 +153,60 @@ export class EvolutionApiAdapter implements IEvolutionService {
         await this.request(`/instance/delete/${instanceName}`, "DELETE");
     }
 
+    async findContacts(instanceName: string, jid: string): Promise<{ id: string; pushName?: string; number?: string } | null> {
+        // Strategy 1: /chat/findContacts
+        try {
+            const response = await this.request<any>(`/chat/findContacts/${instanceName}`, "POST", {
+                where: { id: jid }
+            });
+
+            const contacts = Array.isArray(response) ? response : [response];
+            if (contacts.length > 0 && contacts[0]) {
+                const contact = contacts[0];
+                // Check for remoteJidAlt which contains the real phone-based JID
+                const realId = contact.remoteJidAlt || contact.id || contact.remoteJid || jid;
+                const number = contact.number
+                    || (realId.includes("@s.whatsapp.net") ? realId.split("@")[0] : undefined);
+
+                if (number && /^\d{10,}$/.test(number.replace(/\D/g, ""))) {
+                    return {
+                        id: realId,
+                        pushName: contact.pushName || contact.name,
+                        number: number.replace(/\D/g, ""),
+                    };
+                }
+            }
+        } catch {
+            // Strategy 1 failed, try next
+        }
+
+        // Strategy 2: /chat/findMessages — fetch recent messages to find remoteJidAlt
+        try {
+            const response = await this.request<any>(`/chat/findMessages/${instanceName}`, "POST", {
+                where: { key: { remoteJid: jid } },
+                limit: 1
+            });
+
+            const messages = Array.isArray(response) ? response : [response];
+            if (messages.length > 0 && messages[0]) {
+                const msg = messages[0];
+                const altJid = msg.key?.remoteJidAlt || msg.remoteJidAlt;
+                if (altJid && altJid.includes("@s.whatsapp.net")) {
+                    const number = altJid.split("@")[0].replace(/\D/g, "");
+                    return {
+                        id: altJid,
+                        pushName: msg.pushName,
+                        number,
+                    };
+                }
+            }
+        } catch {
+            // Strategy 2 failed
+        }
+
+        return null;
+    }
+
     async health(): Promise<boolean> {
         try {
             await this.request("/instance/fetchInstances", "GET");

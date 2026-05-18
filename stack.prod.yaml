@@ -78,8 +78,6 @@ services:
 
   web:
     image: registry.f3-software.com.br/confirmazap/production/frontend:latest
-    environment:
-      - VITE_API_URL=https://${DOMAIN}/api
     networks:
       - traefik-public
     deploy:

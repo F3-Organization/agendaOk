@@ -68,7 +68,7 @@ export const TermsOfServicePage = () => {
                 <li>Sem acesso ao Bot IA ou gestão de profissionais.</li>
               </ul>
 
-              <h3>3.2 Plano PRO ($49/mês)</h3>
+              <h3>3.2 Plano PRO</h3>
               <ul>
                 <li>Lembretes ilimitados.</li>
                 <li>Até 3 empresas por conta.</li>
@@ -117,7 +117,7 @@ export const TermsOfServicePage = () => {
 
               <h2>7. Propriedade Intelectual</h2>
               <ul>
-                <li>A Plataforma, incluindo código, design, logotipo e marca, são propriedade exclusiva da ConfirmaZap.</li>
+                <li>A Plataforma, incluindo código, design, logotipo e marca, são propriedade exclusiva da F3 Labs.</li>
                 <li>Os dados inseridos pelo Usuário permanecem como propriedade do Usuário.</li>
                 <li>Não adquirimos direitos sobre o conteúdo dos seus agendamentos ou conversas.</li>
               </ul>
@@ -240,7 +240,7 @@ export const TermsOfServicePage = () => {
 
               <h2>7. Intellectual Property</h2>
               <ul>
-                <li>The Platform, including code, design, logo, and brand, is the exclusive property of ConfirmaZap.</li>
+                <li>The Platform, including code, design, logo, and brand, is the exclusive property of F3 Labs.</li>
                 <li>Data entered by the User remains the User's property.</li>
                 <li>We do not acquire rights over the content of your appointments or conversations.</li>
               </ul>
@@ -288,7 +288,7 @@ export const TermsOfServicePage = () => {
       {/* Footer */}
       <footer className="py-12 px-6 border-t border-outline-variant/30">
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-[10px] font-bold tracking-widest uppercase text-muted-foreground/40">
-          <span>© 2026 ConfirmaZap.</span>
+          <span>© 2026 F3 Labs.</span>
           <div className="flex gap-8">
             <button onClick={() => navigate('/privacy')} className="hover:text-foreground transition-colors">{t('common.privacyPolicy')}</button>
             <button onClick={() => navigate('/terms')} className="text-primary-dim">{t('common.termsOfService')}</button>

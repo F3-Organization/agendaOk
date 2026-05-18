@@ -64,7 +64,7 @@ export const env = {
         port: parseInt(process.env.SMTP_PORT || '587'),
         user: process.env.SMTP_USER || '',
         pass: process.env.SMTP_PASS || '',
-        from: process.env.SMTP_FROM || 'no-reply@confirmazap.com.br',
+        from: process.env.SMTP_FROM || 'no-reply@confirmazap.com',
     },
     company: {
         name: process.env.COMPANY_NAME || 'ConfirmaZap',

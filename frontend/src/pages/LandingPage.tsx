@@ -531,7 +531,7 @@ export const LandingPage = () => {
           </div>
 
           <div className="flex flex-col md:flex-row items-center justify-between gap-8 pt-12 border-t border-outline-variant/10 opacity-30 text-[9px] font-bold tracking-widest uppercase">
-            <span>© 2026 ConfirmaZap. {t('landing.footerLegal')} Reservados.</span>
+            <span>© 2026 F3 Labs. {t('landing.footerLegal')} Reservados.</span>
             <div className="flex gap-10">
               <a href="#" className="hover:text-foreground transition-colors">Twitter</a>
               <a href="#" className="hover:text-foreground transition-colors">LinkedIn</a>

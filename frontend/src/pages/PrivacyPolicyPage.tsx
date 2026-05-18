@@ -222,7 +222,7 @@ export const PrivacyPolicyPage = () => {
       {/* Footer */}
       <footer className="py-12 px-6 border-t border-outline-variant/30">
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-[10px] font-bold tracking-widest uppercase text-muted-foreground/40">
-          <span>© 2026 ConfirmaZap.</span>
+          <span>© 2026 F3 Labs.</span>
           <div className="flex gap-8">
             <button onClick={() => navigate('/privacy')} className="text-primary-dim">{t('common.privacyPolicy')}</button>
             <button onClick={() => navigate('/terms')} className="hover:text-foreground transition-colors">{t('common.termsOfService')}</button>

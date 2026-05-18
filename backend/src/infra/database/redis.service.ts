@@ -8,7 +8,21 @@ export class RedisService {
         this.client = new Redis({
             host: env.redis.host,
             port: env.redis.port,
-            password: env.redis.password,
+            password: env.redis.password || undefined,
+            lazyConnect: true,
+            retryStrategy(times) {
+                const delay = Math.min(times * 500, 30_000);
+                return delay;
+            },
+            maxRetriesPerRequest: null,
+        });
+
+        this.client.on("error", (err) => {
+            console.warn(`[Redis] Connection error (will retry): ${err.message}`);
+        });
+
+        this.client.on("connect", () => {
+            console.log("[Redis] Connected successfully");
         });
     }
 
@@ -33,4 +47,3 @@ export class RedisService {
         }
     }
 }
-

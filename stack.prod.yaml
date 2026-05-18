@@ -97,8 +97,6 @@ services:
   redis:
     image: redis:7-alpine
     command: redis-server /etc/redis/redis.conf
-    environment:
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
     configs:
       - source: redis_conf
         target: /etc/redis/redis.conf
@@ -155,8 +153,7 @@ volumes:
 
 configs:
   redis_conf:
-    template_driver: golang
-    file: ./redis.conf
+    external: true
 
 networks:
   internal:

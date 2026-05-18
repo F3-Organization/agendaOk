@@ -1,3 +1,4 @@
+import { env } from "../config/configs";
 import { FastifyAdapter } from "../adapters/fastfy.adapter";
 import { EvolutionApiAdapter } from "../adapters/evolution-api.adapter";
 import { GoogleAuthAdapter } from "../adapters/google-auth.adapter";
@@ -150,7 +151,7 @@ const getRepo = {
 };
 
 const getUseCase = {
-    getHealthStatus: () => new GetHealthStatusUseCase(AppDataSource, redisService, evolutionAdapter),
+    getHealthStatus: () => new GetHealthStatusUseCase(AppDataSource, redisService, evolutionAdapter, env.isProduction()),
 
     generateGoogleAuthUrl: () => new GenerateGoogleAuthUrlUseCase(googleAuthAdapter),
 

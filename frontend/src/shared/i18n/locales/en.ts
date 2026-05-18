@@ -736,6 +736,7 @@ export const en = {
       endBeforeStart: 'End must be after start',
       professionalRequired: 'Professional is required',
     },
+    clickToChangeStatus: 'Click to change status',
   },
   datePicker: {
     placeholder: 'Select date and time',

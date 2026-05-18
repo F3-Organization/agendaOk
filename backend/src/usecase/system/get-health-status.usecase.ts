@@ -13,7 +13,7 @@ export interface HealthStatusResponse {
         redis: "connected" | "disconnected";
         evolutionApi: "connected" | "disconnected";
     };
-    system: {
+    system?: {
         uptime: number;
         memory: {
             heapUsed: string;
@@ -29,7 +29,8 @@ export class GetHealthStatusUseCase {
     constructor(
         private readonly dataSource: DataSource,
         private readonly redisService: RedisService,
-        private readonly evolutionService: IEvolutionService
+        private readonly evolutionService: IEvolutionService,
+        private readonly isProduction: boolean = false
     ) {}
 
     async execute(): Promise<HealthStatusResponse> {
@@ -52,9 +53,7 @@ export class GetHealthStatusUseCase {
             status = isSomethingOk ? "degraded" : "error";
         }
 
-        const memory = process.memoryUsage();
-
-        return {
+        const response: HealthStatusResponse = {
             status,
             timestamp: new Date().toISOString(),
             responseTime,
@@ -63,7 +62,12 @@ export class GetHealthStatusUseCase {
                 redis: redisOk ? "connected" : "disconnected",
                 evolutionApi: evolutionOk ? "connected" : "disconnected"
             },
-            system: {
+        };
+
+        // Only expose system internals in non-production environments
+        if (!this.isProduction) {
+            const memory = process.memoryUsage();
+            response.system = {
                 uptime: process.uptime(),
                 memory: {
                     heapUsed: this.formatBytes(memory.heapUsed),
@@ -72,8 +76,10 @@ export class GetHealthStatusUseCase {
                 },
                 nodeVersion: process.version,
                 platform: process.platform
-            }
-        };
+            };
+        }
+
+        return response;
     }
 
     private async checkDatabase(): Promise<boolean> {
@@ -90,3 +96,4 @@ export class GetHealthStatusUseCase {
         return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
     }
 }
+

@@ -57,6 +57,7 @@ export const en = {
     attendant: {
         emailAlreadyExists: "This email already belongs to an existing account",
         alreadyMember: "This attendant is already linked to this company",
+        removed: "Attendant removed successfully",
     },
 
     appointment: {
@@ -127,21 +128,22 @@ export const en = {
         disconnectionError: "Disconnection Error",
         disconnectionErrorMessage: "There was an error while trying to disconnect WhatsApp.",
         appointmentReminder:
-            "🔔 *Appointment Reminder*\n\n" +
-            "Hello, *{clientName}*! You have an appointment scheduled:\n\n" +
-            "*{title}*\n" +
-            "📅 {date} at {time}\n\n" +
+            "🔔 Appointment reminder\n\n" +
+            "Hi, *{clientName}*!\n\n" +
+            "📋 {title}\n" +
+            "📅 {date}\n" +
+            "🕐 {time}\n\n" +
             "Reply *YES* to confirm or *NO* to cancel.",
-        confirmSuccess: "✅ Great! Your appointment has been confirmed successfully. We look forward to seeing you!",
-        cancelSuccess: "❌ Alright, your appointment has been cancelled. Feel free to contact us to reschedule.",
+        confirmSuccess: "✅ Appointment confirmed!\n\nSee you there! 💜",
+        cancelSuccess: "❌ Appointment cancelled.\n\nNeed to reschedule? Just message us!",
         activationIntro:
-            "🔔 *ConfirmaZap Activation*\n\n" +
-            "Hello! To complete your account link and receive appointment alerts here, we need to validate your account.\n\n" +
-            "👉 *Copy and send the next message below in this chat:*",
-        activationSuccess: "✅ *Account linked successfully!*\n\nYou will now receive notifications directly here.",
+            "🔗 *ConfirmaZap Activation*\n\n" +
+            "To link your account and receive notifications here:\n\n" +
+            "👉 Copy and send the message below in this chat:",
+        activationSuccess: "✅ Account linked!\n\nYou'll receive notifications here. 💜",
         activationInvalid:
-            "❌ *Invalid activation code.*\n\n" +
-            "No account was found with this code. Please check that you copied it correctly from your dashboard and try again.",
+            "❌ Invalid code.\n\n" +
+            "Please check you copied it correctly from the dashboard and try again.",
     },
 
     email: {

@@ -16,7 +16,11 @@ import {
   ArrowRight,
   Building2,
   Trash2,
-  Pencil
+  Pencil,
+  Users,
+  UserPlus,
+  Mail,
+  X
 } from 'lucide-react';
 import { PageLayout } from '../shared/ui/PageLayout';
 import { Card } from '../shared/ui/Card';
@@ -24,6 +28,7 @@ import { Button } from '../shared/ui/Button';
 import { Input } from '../shared/ui/Input';
 import { apiClient } from '../shared/api/api-client';
 import { companyService } from '../features/company/company.service';
+import { attendantService } from '../features/company/professional.service';
 import { useAuthStore } from '../features/auth/auth.store';
 
 export const CompanySettingsPage = () => {
@@ -38,6 +43,9 @@ export const CompanySettingsPage = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [companyName, setCompanyName] = useState(selectedCompany?.name ?? '');
+  const [attendantEmail, setAttendantEmail] = useState('');
+  const [showInviteForm, setShowInviteForm] = useState(false);
+  const [deleteAttendantId, setDeleteAttendantId] = useState<string | null>(null);
 
   const showSuccess = (msg: string) => {
     setSuccessMessage(msg);
@@ -101,6 +109,38 @@ export const CompanySettingsPage = () => {
     onError: (error: any) => {
       showError(error.response?.data?.message || t('company.settings.messages.deleteError'));
       setShowDeleteConfirm(false);
+    },
+  });
+
+  const { data: attendants = [] } = useQuery({
+    queryKey: ['company-attendants'],
+    queryFn: attendantService.list,
+    enabled: !!selectedCompany,
+  });
+
+  const inviteAttendantMutation = useMutation({
+    mutationFn: (email: string) => attendantService.invite(email),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['company-attendants'] });
+      setAttendantEmail('');
+      setShowInviteForm(false);
+      showSuccess(t('company.settings.attendants.inviteSuccess', 'Convite enviado com sucesso!'));
+    },
+    onError: (error: any) => {
+      showError(error.response?.data?.error || t('company.settings.attendants.inviteError', 'Erro ao convidar atendente'));
+    },
+  });
+
+  const removeAttendantMutation = useMutation({
+    mutationFn: (id: string) => attendantService.remove(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['company-attendants'] });
+      setDeleteAttendantId(null);
+      showSuccess(t('company.settings.attendants.removeSuccess', 'Atendente removido'));
+    },
+    onError: (error: any) => {
+      showError(error.response?.data?.error || t('company.settings.attendants.removeError', 'Erro ao remover atendente'));
+      setDeleteAttendantId(null);
     },
   });
 
@@ -345,7 +385,142 @@ export const CompanySettingsPage = () => {
           </section>
         </form>
 
-        {/* Danger Zone */}
+        {/* Attendants Section */}
+        <section className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
+          <div className="space-y-2 px-1">
+            <div className="flex items-center gap-3 text-primary">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
+                <Users className="w-5 h-5" />
+              </div>
+              <h2 className="text-2xl font-black tracking-tight">
+                {t('company.settings.attendants.title', 'Atendentes')}
+              </h2>
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl opacity-70">
+              {t('company.settings.attendants.description', 'Convide pessoas para gerenciar os agendamentos da sua empresa. Atendentes podem visualizar e editar agendamentos, mas não têm acesso a configurações.')}
+            </p>
+          </div>
+
+          <Card variant="glass" className="p-8 space-y-6">
+            {/* Invite button or form */}
+            {!showInviteForm ? (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setShowInviteForm(true)}
+                className="w-full h-14 border border-dashed border-primary/30 text-primary hover:bg-primary/5 hover:border-primary/50 transition-all rounded-xl gap-3 text-xs font-bold uppercase tracking-widest"
+              >
+                <UserPlus className="w-5 h-5" />
+                {t('company.settings.attendants.inviteButton', 'Convidar Atendente')}
+              </Button>
+            ) : (
+              <div className="p-6 rounded-xl bg-primary/5 border border-primary/20 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-bold text-primary flex items-center gap-2">
+                    <UserPlus className="w-4 h-4" />
+                    {t('company.settings.attendants.inviteTitle', 'Convidar por e-mail')}
+                  </h4>
+                  <button
+                    onClick={() => { setShowInviteForm(false); setAttendantEmail(''); }}
+                    className="p-1.5 rounded-lg hover:bg-primary/10 text-muted-foreground/40 hover:text-foreground transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="flex gap-3">
+                  <div className="relative group/input flex-1">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40 group-focus-within/input:text-primary transition-colors" />
+                    <Input
+                      type="email"
+                      value={attendantEmail}
+                      onChange={(e) => setAttendantEmail(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && attendantEmail && inviteAttendantMutation.mutate(attendantEmail)}
+                      placeholder={t('company.settings.attendants.emailPlaceholder', 'nome@email.com')}
+                      className="pl-12 h-12 bg-white border-outline-variant/20 focus:bg-white focus:border-primary/30 transition-all rounded-lg font-medium"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={() => inviteAttendantMutation.mutate(attendantEmail)}
+                    disabled={!attendantEmail || inviteAttendantMutation.isPending}
+                    className="h-12 px-6 bg-primary text-primary-dim rounded-lg gap-2 text-xs font-bold uppercase tracking-widest"
+                  >
+                    {inviteAttendantMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>{t('company.settings.attendants.sendInvite', 'Enviar')}</>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Attendant list */}
+            {attendants.length > 0 ? (
+              <div className="space-y-3">
+                {attendants.map((att) => (
+                  <div
+                    key={att.id}
+                    className="flex items-center justify-between p-4 rounded-xl bg-surface border border-outline-variant/20 group hover:border-primary/20 transition-all"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                        <Users className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-foreground">{att.name}</p>
+                        <p className="text-xs text-muted-foreground/60">{att.email}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {!att.userId && (
+                        <span className="text-[9px] font-black uppercase tracking-widest text-amber-500 bg-amber-500/10 px-3 py-1.5 rounded-full">
+                          {t('company.settings.attendants.pending', 'Pendente')}
+                        </span>
+                      )}
+                      {deleteAttendantId === att.id ? (
+                        <div className="flex gap-2 animate-in fade-in duration-200">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setDeleteAttendantId(null)}
+                            className="h-8 px-3 text-[10px] font-bold uppercase rounded-lg"
+                          >
+                            {t('common.cancel', 'Cancelar')}
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => removeAttendantMutation.mutate(att.id)}
+                            disabled={removeAttendantMutation.isPending}
+                            className="h-8 px-3 bg-red-500 hover:bg-red-600 text-white text-[10px] font-bold uppercase rounded-lg"
+                          >
+                            {removeAttendantMutation.isPending ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              t('common.confirm', 'Confirmar')
+                            )}
+                          </Button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setDeleteAttendantId(att.id)}
+                          className="p-2 rounded-lg text-muted-foreground/30 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : !showInviteForm ? (
+              <p className="text-xs text-muted-foreground/40 italic text-center py-4">
+                {t('company.settings.attendants.empty', 'Nenhum atendente cadastrado. Convide alguém para ajudar a gerenciar os agendamentos.')}
+              </p>
+            ) : null}
+          </Card>
+        </section>
+
         <section className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
           <div className="space-y-2 px-1">
             <div className="flex items-center gap-3 text-red-400">

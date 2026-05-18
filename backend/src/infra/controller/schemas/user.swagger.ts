@@ -82,7 +82,7 @@ export const setPasswordSwaggerSchema = {
 export const toggle2FASwaggerSchema = {
     tags: ["User"],
     summary: "Ativa ou desativa autenticação de dois fatores",
-    description: "Quando ativado, retorna o secret e otpAuthUrl para configurar no app autenticador.",
+    description: "Quando ativado, retorna o secret e otpauthUrl para configurar no app autenticador.",
     body: {
         type: "object" as const,
         required: ["enabled"],
@@ -96,7 +96,7 @@ export const toggle2FASwaggerSchema = {
             properties: {
                 message: { type: "string" as const },
                 secret: { type: "string" as const },
-                otpAuthUrl: { type: "string" as const }
+                otpauthUrl: { type: "string" as const }
             }
         }
     }

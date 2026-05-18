@@ -54,6 +54,7 @@ interface FormState {
   endAt: string;
   notes: string;
   professionalId: string;
+  status: AppointmentStatus;
 }
 
 interface FormErrors {
@@ -73,6 +74,7 @@ const emptyForm: FormState = {
   endAt: '',
   notes: '',
   professionalId: '',
+  status: 'PENDING' as AppointmentStatus,
 };
 
 export const AppointmentsPage = () => {
@@ -155,6 +157,21 @@ export const AppointmentsPage = () => {
     },
   });
 
+  const statusCycleMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: AppointmentStatus }) =>
+      appointmentService.update(id, { status }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+    },
+  });
+
+  const cycleStatus = (apt: Appointment) => {
+    if (isReadOnly) return;
+    const order: AppointmentStatus[] = ['PENDING', 'CONFIRMED', 'CANCELLED'];
+    const next = order[(order.indexOf(apt.status) + 1) % order.length];
+    statusCycleMutation.mutate({ id: apt.id, status: next });
+  };
+
   const openCreate = () => {
     setEditingId(null);
     setForm(emptyForm);
@@ -172,6 +189,7 @@ export const AppointmentsPage = () => {
       endAt: apt.endAt ?? '',
       notes: apt.notes ?? '',
       professionalId: apt.professionalId ?? '',
+      status: apt.status,
     });
     setErrors({});
     setIsModalOpen(true);
@@ -235,7 +253,7 @@ export const AppointmentsPage = () => {
     };
 
     if (editingId) {
-      updateMutation.mutate({ id: editingId, data: payload });
+      updateMutation.mutate({ id: editingId, data: { ...payload, status: form.status } });
     } else {
       createMutation.mutate(payload);
     }
@@ -378,10 +396,16 @@ export const AppointmentsPage = () => {
                       </div>
                     </td>
                     <td className="px-6 py-5">
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${STATUS_COLORS[apt.status]}`}>
+                      <button
+                        type="button"
+                        onClick={() => cycleStatus(apt)}
+                        disabled={isReadOnly}
+                        title={isReadOnly ? undefined : t('appointmentsPage.clickToChangeStatus')}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border transition-all ${STATUS_COLORS[apt.status]} ${!isReadOnly ? 'cursor-pointer hover:opacity-80 hover:scale-105' : ''}`}
+                      >
                         <span className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT[apt.status]}`} />
                         {statusLabel[apt.status]}
-                      </span>
+                      </button>
                     </td>
                     <td className="px-6 py-5">
                       {apt.isNotified ? (
@@ -499,6 +523,20 @@ export const AppointmentsPage = () => {
                   />
                 </div>
               </div>
+              {editingId && (
+                <div className="col-span-2">
+                  <Select
+                    label={t('appointmentsPage.table.status')}
+                    value={form.status}
+                    onChange={(v) => setForm(f => ({ ...f, status: v as AppointmentStatus }))}
+                    options={[
+                      { value: 'PENDING', label: statusLabel.PENDING },
+                      { value: 'CONFIRMED', label: statusLabel.CONFIRMED },
+                      { value: 'CANCELLED', label: statusLabel.CANCELLED },
+                    ]}
+                  />
+                </div>
+              )}
               <div className="flex justify-end gap-3 pt-2">
                 <Button type="button" variant="ghost" onClick={closeModal} disabled={isPending}>
                   {t('common.cancel')}

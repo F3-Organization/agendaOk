@@ -32,7 +32,11 @@ export class InviteProfessionalUserUseCase {
 
         // Overwrite any previous invite — allows correcting a wrong email
         await this.professionalRepository.update(professionalId, companyId, { invitedEmail: email });
-        await this.sendEmailVerification.execute(email);
+
+        // Fire-and-forget: don't block invite on email delivery
+        this.sendEmailVerification.execute(email).catch((err) => {
+            console.warn(`[InviteProfessional] Failed to send email to ${email}:`, err.message);
+        });
 
         return { status: "INVITED" };
     }

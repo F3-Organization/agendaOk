@@ -84,6 +84,7 @@ export class ScheduleRepository implements IScheduleRepository {
         return await this.repository.createQueryBuilder("s")
             .where("s.company_id = :companyId", { companyId })
             .andWhere("s.status = :status", { status: ScheduleStatus.PENDING })
+            .andWhere("s.is_notified = :isNotified", { isNotified: true })
             .andWhere(
                 "REGEXP_REPLACE(s.client_phone, '[^0-9]', '', 'g') LIKE :pattern",
                 { pattern: `%${normalized}` }

@@ -186,6 +186,37 @@ export class ProfessionalController {
 
         // ── Attendants ──────────────────────────
 
+        // GET /company/attendants (owners only)
+        this.fastify.addProtectedRoute("GET", "/company/attendants", async (request: FastifyRequest, reply: FastifyReply) => {
+            const user = request.user as AuthUserPayload;
+            if (!user.companyId) return reply.code(400).send({ error: t((request as any).locale, "error.companyNotSelected") });
+            try {
+                const members = await this.inviteAttendant.list(user.companyId);
+                reply.send(members);
+            } catch (error: any) {
+                reply.code(500).send({ error: error.message });
+            }
+        }, {
+            tags: ["Professional"],
+            summary: "Lista atendentes da empresa",
+            description: "Retorna todos os atendentes vinculados à empresa.",
+            response: {
+                200: {
+                    type: "array" as const,
+                    items: {
+                        type: "object" as const,
+                        properties: {
+                            id: { type: "string" as const },
+                            email: { type: "string" as const },
+                            name: { type: "string" as const },
+                            userId: { type: "string" as const, nullable: true },
+                            createdAt: { type: "string" as const }
+                        }
+                    }
+                }
+            }
+        }, ownerOnlyMiddleware);
+
         // POST /company/attendants/invite (owners only)
         this.fastify.addProtectedRoute("POST", "/company/attendants/invite", async (request: FastifyRequest, reply: FastifyReply) => {
             const user = request.user as AuthUserPayload;
@@ -220,6 +251,33 @@ export class ProfessionalController {
                     properties: {
                         status: { type: "string" as const }
                     }
+                }
+            }
+        }, ownerOnlyMiddleware);
+
+        // DELETE /company/attendants/:id (owners only)
+        this.fastify.addProtectedRoute("DELETE", "/company/attendants/:id", async (request: FastifyRequest, reply: FastifyReply) => {
+            const user = request.user as AuthUserPayload;
+            if (!user.companyId) return reply.code(400).send({ error: t((request as any).locale, "error.companyNotSelected") });
+            const { id } = request.params as { id: string };
+            try {
+                await this.inviteAttendant.remove(id, user.companyId, (request as any).locale);
+                reply.send({ message: t((request as any).locale, "attendant.removed") });
+            } catch (error: any) {
+                const status = error.statusCode ?? 400;
+                reply.code(status).send({ error: error.message });
+            }
+        }, {
+            tags: ["Professional"],
+            summary: "Remove atendente da empresa",
+            params: {
+                type: "object" as const,
+                properties: { id: { type: "string" as const } }
+            },
+            response: {
+                200: {
+                    type: "object" as const,
+                    properties: { message: { type: "string" as const } }
                 }
             }
         }, ownerOnlyMiddleware);

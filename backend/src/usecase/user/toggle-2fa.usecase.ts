@@ -1,5 +1,6 @@
 import { authenticator } from "otplib";
 import { IUserRepository } from "../repositories/iuser-repository";
+import { AppError } from "../../shared/errors/app-error";
 import { t, type Locale } from "../../shared/i18n";
 
 export interface Toggle2FAResponse {
@@ -14,7 +15,7 @@ export class Toggle2FAUseCase {
         const user = await this.userRepo.findById(userId);
         
         if (!user) {
-            throw new Error(t(locale, "user.notFound"));
+            throw new AppError(t(locale, "user.notFound"), 404);
         }
 
         // If disabling, turn it off and CLEAR the secret for security
@@ -28,7 +29,7 @@ export class Toggle2FAUseCase {
         // If already enabled, we don't allow "peeking" the current secret.
         // The user must disable it first to regenerate a new one.
         if (user.twoFactorEnabled) {
-            throw new Error(t(locale, "user.twoFactorAlreadyActive"));
+            throw new AppError(t(locale, "user.twoFactorAlreadyActive"), 400);
         }
 
         // If enabling (setup mode), always generate a fresh secret

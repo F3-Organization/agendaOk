@@ -132,10 +132,11 @@ export class CheckExpiredSubscriptionsUseCase {
                     if (config?.whatsappInstanceName && config?.whatsappNumber) {
                         try {
                             const message =
-                                `⚠️ *Aviso ConfirmaZap*\n\n` +
-                                `Olá, ${user.name}! Seu plano foi rebaixado para FREE por falta de pagamento.\n\n` +
-                                `O bot de autoatendimento foi desativado. Para reativar, renove sua assinatura em:\n` +
-                                `https://${env.domain}/subscription`;
+                                `⚠️ Aviso ConfirmaZap\n\n` +
+                                `Olá, *${user.name}*!\n\n` +
+                                `Seu plano foi alterado para *FREE* por falta de pagamento.\n` +
+                                `🤖 Bot desativado\n\n` +
+                                `Renove em:\nhttps://${env.domain}/subscription`;
 
                             await this.evolutionService.sendText(
                                 config.whatsappInstanceName,

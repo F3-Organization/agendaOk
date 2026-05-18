@@ -138,8 +138,8 @@ export class AIResponseHandler {
             console.error(`[AIResponseHandler] Action ${action.action} failed:`, error?.message);
 
             const errorMsg = error?.message?.includes("Já existe")
-                ? "⚠️ Desculpe, esse horário acabou de ser preenchido por outra pessoa. Poderia escolher outro horário?"
-                : `⚠️ Não foi possível processar a ação. ${error?.message || "Tente novamente."}`;
+                ? "⚠️ Horário acabou de ser preenchido. Poderia escolher outro?"
+                : "⚠️ Não foi possível processar. Tente novamente.";
 
             await this.evolutionService.sendText(instanceName, fullJid, errorMsg);
         }
@@ -186,7 +186,7 @@ export class AIResponseHandler {
 
         if (!appointment) {
             await this.evolutionService.sendText(instanceName, fullJid,
-                "⚠️ Não encontrei o agendamento indicado. Poderia confirmar qual deseja cancelar?"
+                "⚠️ Agendamento não encontrado. Qual deseja cancelar?"
             );
             return;
         }
@@ -209,7 +209,7 @@ export class AIResponseHandler {
 
         if (!appointment) {
             await this.evolutionService.sendText(instanceName, fullJid,
-                "⚠️ Não encontrei o agendamento indicado. Poderia confirmar qual deseja alterar?"
+                "⚠️ Agendamento não encontrado. Qual deseja alterar?"
             );
             return;
         }
@@ -237,7 +237,7 @@ export class AIResponseHandler {
 
         if (hasConflict) {
             await this.evolutionService.sendText(instanceName, fullJid,
-                "⚠️ Esse novo horário já está ocupado. Poderia escolher outro?"
+                "⚠️ Horário ocupado. Poderia escolher outro?"
             );
             return;
         }

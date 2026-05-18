@@ -45,3 +45,21 @@ export const professionalService = {
     await apiClient.put<void>('/company/bot-config', data);
   },
 };
+
+export interface Attendant {
+  id: string;
+  email: string;
+  name: string;
+  userId?: string;
+  createdAt: string;
+}
+
+export const attendantService = {
+  list: async () => {
+    const { data } = await apiClient.get<Attendant[]>('/company/attendants');
+    return data;
+  },
+  invite: (email: string) =>
+    apiClient.post<{ status: string }>('/company/attendants/invite', { email }),
+  remove: (id: string) => apiClient.delete(`/company/attendants/${id}`),
+};

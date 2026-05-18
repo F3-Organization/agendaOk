@@ -57,6 +57,7 @@ export const pt = {
     attendant: {
         emailAlreadyExists: "Este email já pertence a uma conta existente",
         alreadyMember: "Este atendente já está vinculado a esta empresa",
+        removed: "Atendente removido com sucesso",
     },
 
     appointment: {
@@ -127,21 +128,22 @@ export const pt = {
         disconnectionError: "Erro ao desconectar",
         disconnectionErrorMessage: "Ocorreu um erro ao tentar desconectar o WhatsApp.",
         appointmentReminder:
-            "🔔 *Lembrete de Agendamento*\n\n" +
-            "Olá, *{clientName}*! Você tem um agendamento marcado:\n\n" +
-            "*{title}*\n" +
-            "📅 {date} às {time}\n\n" +
+            "🔔 Lembrete de agendamento\n\n" +
+            "Olá, *{clientName}*!\n\n" +
+            "📋 {title}\n" +
+            "📅 {date}\n" +
+            "🕐 {time}\n\n" +
             "Responda *SIM* para confirmar ou *NÃO* para cancelar.",
-        confirmSuccess: "✅ Ótimo! Seu agendamento foi confirmado com sucesso. Te esperamos!",
-        cancelSuccess: "❌ Certo, seu agendamento foi cancelado. Entre em contato para remarcar quando puder.",
+        confirmSuccess: "✅ Agendamento confirmado!\n\nTe esperamos! 💜",
+        cancelSuccess: "❌ Agendamento cancelado.\n\nSe precisar remarcar, é só nos chamar!",
         activationIntro:
-            "🔔 *Ativação ConfirmaZap*\n\n" +
-            "Olá! Para concluir seu vínculo com o sistema e receber alertas de agendamentos e cancelamentos por aqui, precisamos validar sua conta.\n\n" +
-            "👉 *Copie e envie a próxima mensagem abaixo neste chat:*",
-        activationSuccess: "✅ *Vínculo realizado com sucesso!*\n\nAgora você receberá notificações diretamente por aqui.",
+            "🔗 *Ativação ConfirmaZap*\n\n" +
+            "Para vincular sua conta e receber notificações aqui:\n\n" +
+            "👉 Copie e envie a mensagem abaixo neste chat:",
+        activationSuccess: "✅ Conta vinculada!\n\nVocê receberá notificações por aqui. 💜",
         activationInvalid:
-            "❌ *Código de ativação inválido.*\n\n" +
-            "Não encontrei nenhuma conta com este código no sistema. Verifique se copiou corretamente do seu painel e tente novamente.",
+            "❌ Código inválido.\n\n" +
+            "Verifique se copiou corretamente do painel e tente novamente.",
     },
 
     email: {

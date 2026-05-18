@@ -30,4 +30,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD wget -qO- http://localhost:3000/api/health || exit 1
 
 EXPOSE 3000
-CMD ["npm", "start"]
+CMD ["node", "dist/backend/src/bootstrap.js"]

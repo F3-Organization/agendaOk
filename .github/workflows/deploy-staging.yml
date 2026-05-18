@@ -45,5 +45,7 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/confirmazap/homologation/${{ inputs.service }}:latest
             ${{ env.REGISTRY }}/confirmazap/homologation/${{ inputs.service }}:${{ steps.vars.outputs.sha_short }}
+          build-args: |
+            ${{ inputs.service == 'frontend' && format('VITE_API_URL={0}', vars.VITE_API_URL) || '' }}
           cache-from: type=gha,scope=${{ inputs.service }}-staging
           cache-to: type=gha,mode=max,scope=${{ inputs.service }}-staging

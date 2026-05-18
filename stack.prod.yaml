@@ -79,7 +79,7 @@ services:
   web:
     image: registry.f3-software.com.br/confirmazap/production/frontend:latest
     networks:
-      - traefik-public
+      - personal
     deploy:
       replicas: 1
       restart_policy:

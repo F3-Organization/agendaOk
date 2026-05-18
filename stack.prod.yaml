@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   api:
-    image: registry.f3-software.com.br/confirmazap-api
+    image: registry.f3-software.com.br/confirmazap/production/backend:latest
     build:
       context: .
       dockerfile: backend/Dockerfile

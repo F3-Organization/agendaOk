@@ -75,6 +75,7 @@ services:
         max_attempts: 5
       labels:
         - "traefik.enable=true"
+        - "traefik.swarm.network=personal"
         - "traefik.http.routers.confirmazap-api.rule=Host(`confirmazap.f3-software.com.br`)"
         - "traefik.http.routers.confirmazap-api.entrypoints=websecure"
         - "traefik.http.routers.confirmazap-api.tls=true"

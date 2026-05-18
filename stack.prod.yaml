@@ -157,6 +157,7 @@ configs:
 
 networks:
   internal:
-    driver: overlay
+    external: true
+    name: confirmazap_internal
   personal:
     external: true

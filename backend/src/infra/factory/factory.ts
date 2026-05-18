@@ -83,6 +83,8 @@ import { AIResponseHandler } from "../../usecase/chatbot/handlers/ai-response.ha
 import { UserMessageHandler } from "../../usecase/chatbot/handlers/user-message.handler";
 import { AvailabilityService } from "../../usecase/chatbot/availability.service";
 import { LidResolverService } from "../../usecase/chatbot/lid-resolver.service";
+import { LeadController } from "../controller/lead.controller";
+import { LeadRepository } from "../database/repositories/lead.repository";
 
 import { NotifyQueue } from "../queue/notify.queue";
 import { NotifyWorker } from "../queue/notify.worker";
@@ -130,6 +132,7 @@ let companyMemberRepository: CompanyMemberRepository;
 let planRepository: PlanRepository;
 let paymentMethodRepository: PaymentMethodRepository;
 let webhookAuditLogRepository: WebhookAuditLogRepository;
+let leadRepository: LeadRepository;
 
 let notifyQueue: NotifyQueue;
 let subscriptionQueue: SubscriptionQueue;
@@ -148,6 +151,7 @@ const getRepo = {
     plan: () => planRepository || (planRepository = new PlanRepository()),
     paymentMethod: () => paymentMethodRepository || (paymentMethodRepository = new PaymentMethodRepository()),
     webhookAuditLog: () => webhookAuditLogRepository || (webhookAuditLogRepository = new WebhookAuditLogRepository()),
+    lead: () => leadRepository || (leadRepository = new LeadRepository()),
 };
 
 const getUseCase = {
@@ -415,6 +419,7 @@ export const factory = {
             getUseCase.inviteAttendant()
         ),
         admin: () => new AdminController(adapterInstance),
+        lead: () => new LeadController(adapterInstance, getRepo.lead()),
     },
     queues: {
         notify: () => notifyQueue || (notifyQueue = new NotifyQueue()),

@@ -48,6 +48,7 @@ async function bootstrap() {
         factory.controller.user();
         factory.controller.professional();
         factory.controller.admin();
+        factory.controller.lead();
 
         factory.workers.notify();
         factory.workers.subscription();

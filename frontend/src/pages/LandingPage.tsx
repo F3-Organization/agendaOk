@@ -1,13 +1,16 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Zap, Check, ArrowRight, MessageSquare, BarChart3, ShieldCheck, ZapOff, Sparkles, Bot, Brain, Clock, Users, Send } from 'lucide-react';
+import { Zap, Check, ArrowRight, MessageSquare, BarChart3, ShieldCheck, ZapOff, Sparkles, Bot, Brain, Clock, Users, Send, Loader2, CheckCircle2 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { Button } from '../shared/ui/Button';
 import { Card } from '../shared/ui/Card';
 import { useAuthStore } from '../features/auth/auth.store';
 import { subscriptionService } from '../features/subscription/subscription.service';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -99,18 +102,48 @@ export const LandingPage = () => {
   const navigate = useNavigate();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
+  // ── Waitlist form state ──
+  const [leadForm, setLeadForm] = useState({ name: '', email: '', phone: '' });
+  const [leadStatus, setLeadStatus] = useState<'idle' | 'loading' | 'success' | 'already' | 'error'>('idle');
+  const [leadMessage, setLeadMessage] = useState('');
+
+  const handleLeadSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLeadStatus('loading');
+    try {
+      const res = await fetch(`${API_URL}/leads`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(leadForm),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setLeadStatus(data.alreadyRegistered ? 'already' : 'success');
+        setLeadMessage(data.message);
+        if (!data.alreadyRegistered) setLeadForm({ name: '', email: '', phone: '' });
+      } else {
+        setLeadStatus('error');
+        setLeadMessage(data.error || 'Erro ao cadastrar. Tente novamente.');
+      }
+    } catch {
+      setLeadStatus('error');
+      setLeadMessage('Erro de conexão. Tente novamente.');
+    }
+  };
+
+  /* ── Pricing (commented for launch — uncomment when product is live) ──
   const { data: apiPlans = [] } = useQuery({
     queryKey: ['subscription-plans'],
     queryFn: subscriptionService.getPlans,
     staleTime: 5 * 60 * 1000,
   });
-
   const freePlan = apiPlans.find(p => p.slug === 'FREE');
   const proPlan = apiPlans.find(p => p.slug === 'PRO');
   const freePrice = freePlan ? 'R$ 0' : 'R$ 0';
   const proPrice = proPlan ? `R$ ${Math.floor(proPlan.priceInCents / 100)}` : 'R$ 49';
   const freeFeatures = freePlan?.features ?? [];
   const proFeatures = proPlan?.features ?? [];
+  */
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -170,6 +203,7 @@ export const LandingPage = () => {
               </button>
             </div>
 
+            {/* TODO: Uncomment when product launches
             {isAuthenticated ? (
               <Button onClick={() => navigate('/dashboard')} variant="secondary" size="sm" className="font-bold tracking-widest uppercase text-[10px]">
                 {t('common.dashboard')}
@@ -180,6 +214,11 @@ export const LandingPage = () => {
                 {t('common.signIn')}
               </Button>
             )}
+            */}
+            <Button onClick={() => scrollToSection('waitlist')} className="font-bold tracking-widest uppercase text-[10px]">
+              Quero testar
+              <ArrowRight className="w-3 h-3 ml-2" />
+            </Button>
           </div>
         </div>
       </nav>
@@ -203,12 +242,12 @@ export const LandingPage = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row items-start gap-6">
-              <Button size="lg" className="h-14 px-10 text-sm font-bold tracking-wide uppercase group shadow-2xl shadow-primary-dim/30" onClick={() => navigate('/login')}>
-                {t('landing.ctaStartNow')}
+              <Button size="lg" className="h-14 px-10 text-sm font-bold tracking-wide uppercase group shadow-2xl shadow-primary-dim/30" onClick={() => scrollToSection('waitlist')}>
+                Entrar na lista de espera
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
               <div className="text-sm font-bold tracking-widest uppercase text-muted-foreground/60 transition-colors hover:text-muted-foreground flex items-center h-14">
-                {t('landing.ctaNoCard')}
+                Vagas limitadas no lançamento
               </div>
             </div>
 
@@ -374,101 +413,79 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* Pricing Section */}
+      {/* TODO: Uncomment Pricing Section when product launches
       <section id="pricing" className="py-28 px-6 bg-surface-dim/30 border-y border-outline-variant/30">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-20 flex flex-col items-center animate-in fade-in slide-in-from-bottom-6 duration-500">
-            <h2 className="text-4xl md:text-6xl font-extrabold tracking-tighter mb-4">
-              {t('landing.pricingTitle')}
-            </h2>
-            <p className="text-xl text-muted-foreground font-medium max-w-2xl mx-auto leading-relaxed">
-              {t('landing.pricingSubtitle')}
-            </p>
+        ... pricing cards ...
+      </section>
+      */}
+
+      {/* ── Waitlist / Lead Capture ── */}
+      <section id="waitlist" className="py-28 px-6 bg-surface-dim/30 border-y border-outline-variant/30 relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-primary/5 rounded-full blur-[140px] pointer-events-none -z-10" />
+        <div className="max-w-2xl mx-auto text-center animate-in fade-in slide-in-from-bottom-8 duration-700">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary-dim text-[10px] font-bold tracking-widest uppercase mb-8">
+            <Sparkles className="w-3.5 h-3.5 fill-current" />
+            LANÇAMENTO EM BREVE
           </div>
+          <h2 className="text-4xl md:text-6xl font-extrabold tracking-tighter mb-6" style={{ lineHeight: 1.15 }}>
+            Entre na lista de espera
+          </h2>
+          <p className="text-xl text-muted-foreground font-medium mb-12 max-w-xl mx-auto">
+            Seja um dos primeiros a usar o ConfirmaZap. Vagas limitadas no lançamento com condições especiais.
+          </p>
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto relative animate-in fade-in zoom-in-95 duration-700 delay-200">
-            {/* Pulsing glow behind pricing */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-primary/5 rounded-full blur-[140px] pointer-events-none -z-10" />
-
-            {/* Free Plan */}
-            <Card variant="glass" className="p-12 border-outline-variant/40 flex flex-col bg-surface-container-low/20">
-              <div className="mb-10">
-                <h3 className="text-2xl font-bold tracking-tight mb-2 uppercase text-[10px] text-muted-foreground tracking-[5px]">{t('landing.plans.free')}</h3>
-                <div className="mt-8 flex items-baseline gap-1">
-                  <span className="text-6xl font-extrabold tracking-tighter">{freePrice}</span>
-                  <span className="text-muted-foreground font-bold tracking-widest uppercase text-[10px]">{t('subscription.pricing.perMonth')}</span>
-                </div>
-              </div>
-
-              <ul className="space-y-5 mb-12 flex-1">
-                {freeFeatures.length > 0 ? freeFeatures.map((feature, i) => (
-                  <li key={i} className="flex items-center gap-4 text-sm font-medium">
-                    <Check className="w-4 h-4 text-primary flex-shrink-0" /> {feature}
-                  </li>
-                )) : (
-                  <>
-                    <li className="flex items-center gap-4 text-sm font-medium">
-                      <Check className="w-4 h-4 text-primary flex-shrink-0" /> {t('landing.plans.remindersPerMonth')}
-                    </li>
-                    <li className="flex items-center gap-4 text-sm font-medium">
-                      <Check className="w-4 h-4 text-primary flex-shrink-0" /> {t('landing.multiCompanyTitle', '1 empresa')}
-                    </li>
-                    <li className="flex items-center gap-4 text-sm font-medium opacity-20 grayscale">
-                      <ZapOff className="w-4 h-4 flex-shrink-0" /> {t('landing.plans.aiBotFeature')}
-                    </li>
-                    <li className="flex items-center gap-4 text-sm font-medium opacity-20 grayscale">
-                      <ZapOff className="w-4 h-4 flex-shrink-0" /> {t('landing.plans.professionalMgmt')}
-                    </li>
-                  </>
-                )}
-              </ul>
-
-              <Button variant="secondary" className="w-full h-14 font-bold tracking-widest uppercase text-xs" onClick={() => navigate('/login')}>
-                {t('landing.ctaStartNow')}
-              </Button>
+          {leadStatus === 'success' || leadStatus === 'already' ? (
+            <Card variant="glass" className="p-10 border-primary/30 bg-primary/5 max-w-md mx-auto">
+              <CheckCircle2 className="w-12 h-12 text-green-400 mx-auto mb-4" />
+              <p className="text-lg font-bold mb-2">🎉 {leadStatus === 'success' ? 'Cadastro realizado!' : 'Você já está na lista!'}</p>
+              <p className="text-muted-foreground font-medium">{leadMessage}</p>
             </Card>
-
-            {/* Pro Plan */}
-            <Card variant="glass" className="p-12 border-primary/20 relative flex flex-col bg-pulse-gradient/5">
-              <div className="absolute top-0 right-12 px-5 py-2 bg-pulse-gradient rounded-b-2xl text-[10px] font-extrabold tracking-[3px] uppercase text-white shadow-xl shadow-primary-dim/20">
-                RECOMENDADO
-              </div>
-              <div className="mb-10">
-                <h3 className="text-2xl font-bold tracking-tight mb-2 uppercase text-[10px] text-primary-dim tracking-[5px]">{t('landing.plans.pro')}</h3>
-                <div className="mt-8 flex items-baseline gap-1">
-                  <span className="text-6xl font-extrabold tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-primary-dim to-primary-container" style={{ paddingBottom: '0.05em' }}>{proPrice}</span>
-                  <span className="text-muted-foreground font-bold tracking-widest uppercase text-[10px]">{t('subscription.pricing.perMonth')}</span>
-                </div>
-              </div>
-
-              <ul className="space-y-5 mb-12 flex-1">
-                {proFeatures.length > 0 ? proFeatures.map((feature, i) => (
-                  <li key={i} className="flex items-center gap-4 text-sm font-medium">
-                    <Check className="w-4 h-4 text-primary flex-shrink-0" /> {feature}
-                  </li>
-                )) : (
-                  <>
-                    <li className="flex items-center gap-4 text-sm font-bold text-primary-dim italic">
-                      <Sparkles className="w-4 h-4 fill-current flex-shrink-0" /> Everything in Free, plus:
-                    </li>
-                    <li className="flex items-center gap-4 text-sm font-medium">
-                      <Check className="w-4 h-4 text-primary flex-shrink-0" /> {t('landing.plans.unlimitedReminders')}
-                    </li>
-                    <li className="flex items-center gap-4 text-sm font-medium">
-                      <Check className="w-4 h-4 text-primary flex-shrink-0" /> {t('landing.plans.aiBotFeature')}
-                    </li>
-                    <li className="flex items-center gap-4 text-sm font-medium">
-                      <Check className="w-4 h-4 text-primary flex-shrink-0" /> {t('landing.plans.professionalMgmt')}
-                    </li>
-                  </>
+          ) : (
+            <form onSubmit={handleLeadSubmit} className="max-w-md mx-auto space-y-4">
+              <input
+                type="text"
+                placeholder="Seu nome"
+                required
+                minLength={2}
+                value={leadForm.name}
+                onChange={e => setLeadForm(f => ({ ...f, name: e.target.value }))}
+                className="w-full h-14 px-5 rounded-xl bg-surface border border-outline-variant/30 text-foreground placeholder:text-muted-foreground/50 font-medium focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+              />
+              <input
+                type="email"
+                placeholder="Seu melhor e-mail"
+                required
+                value={leadForm.email}
+                onChange={e => setLeadForm(f => ({ ...f, email: e.target.value }))}
+                className="w-full h-14 px-5 rounded-xl bg-surface border border-outline-variant/30 text-foreground placeholder:text-muted-foreground/50 font-medium focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+              />
+              <input
+                type="tel"
+                placeholder="WhatsApp (opcional)"
+                value={leadForm.phone}
+                onChange={e => setLeadForm(f => ({ ...f, phone: e.target.value }))}
+                className="w-full h-14 px-5 rounded-xl bg-surface border border-outline-variant/30 text-foreground placeholder:text-muted-foreground/50 font-medium focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+              />
+              {leadStatus === 'error' && (
+                <p className="text-sm text-red-400 font-medium">{leadMessage}</p>
+              )}
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full h-14 font-bold tracking-widest uppercase text-xs shadow-2xl shadow-primary-dim/30"
+                disabled={leadStatus === 'loading'}
+              >
+                {leadStatus === 'loading' ? (
+                  <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Cadastrando...</>
+                ) : (
+                  <>Quero ser avisado <ArrowRight className="w-4 h-4 ml-2" /></>
                 )}
-              </ul>
-
-              <Button className="w-full h-14 font-bold tracking-widest uppercase text-xs shadow-2xl shadow-primary-dim/30" onClick={() => navigate('/login')}>
-                {t('landing.ctaStartNow')}
               </Button>
-            </Card>
-          </div>
+              <p className="text-[10px] text-muted-foreground/50 font-medium tracking-wider uppercase">
+                Sem spam. Apenas um aviso quando lançarmos.
+              </p>
+            </form>
+          )}
         </div>
       </section>
 
@@ -484,10 +501,10 @@ export const LandingPage = () => {
             Deixe a IA cuidar<br />da sua recepção.
           </h2>
           <p className="text-xl text-muted-foreground font-medium mb-10 max-w-2xl mx-auto">
-            Configure em 5 minutos. Nenhum cartão necessário. Seu bot começa a atender hoje.
+            Seja um dos primeiros a automatizar seu atendimento. Vagas limitadas no lançamento.
           </p>
-          <Button size="lg" className="h-16 px-14 text-base font-bold tracking-wide uppercase group shadow-2xl shadow-primary-dim/30" onClick={() => navigate('/login')}>
-            {t('landing.ctaStartNow')}
+          <Button size="lg" className="h-16 px-14 text-base font-bold tracking-wide uppercase group shadow-2xl shadow-primary-dim/30" onClick={() => scrollToSection('waitlist')}>
+            Entrar na lista de espera
             <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
         </div>

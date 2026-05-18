@@ -36,7 +36,7 @@ services:
       # Evolution API
       - EVO_API_KEY=${EVO_API_KEY}
       - EVOLUTION_API_URL=http://evolution-api:8080
-      - EVO_SERVER_URL=https://${EVO_DOMAIN:-evo.${DOMAIN}}
+      - EVO_SERVER_URL=http://evolution-api:8080
       # Abacate Pay (Pagamentos)
       - ABACATE_PAY_TOKEN=${ABACATE_PAY_TOKEN}
       - ABACATE_PAY_URL=${ABACATE_PAY_URL:-https://api.abacatepay.com/v2}
@@ -47,7 +47,7 @@ services:
       - SMTP_PORT=${SMTP_PORT:-587}
       - SMTP_USER=${SMTP_USER}
       - SMTP_PASS=${SMTP_PASS}
-      - SMTP_FROM=${SMTP_FROM:-no-reply@confirmazap.com.br}
+      - SMTP_FROM=${SMTP_FROM:-no-reply@confirmazap.com}
       # Gemini AI (Bot)
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.0-flash}
@@ -69,9 +69,10 @@ services:
         max_attempts: 5
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.confirmazap-api.rule=Host(`${DOMAIN}`)"
+        - "traefik.http.routers.confirmazap-api.rule=Host(`confirmazap.com`)"
         - "traefik.http.routers.confirmazap-api.entrypoints=websecure"
-        - "traefik.http.routers.confirmazap-api.tls.certresolver=letsencrypt"
+        - "traefik.http.routers.confirmazap-api.tls=true"
+        - "traefik.http.routers.confirmazap-api.tls.certresolver=letsencryptresolver"
         - "traefik.http.services.confirmazap-api.loadbalancer.server.port=${PORT:-3000}"
         # Middleware de rate limit via Traefik (camada extra)
         - "traefik.http.middlewares.confirmazap-ratelimit.ratelimit.average=50"
@@ -93,11 +94,13 @@ services:
         condition: on-failure
 
   evolution-api:
-    image: atendai/evolution-api:v2.2.3
+    image: evoapicloud/evolution-api:v2.3.7
     environment:
       - SERVER_TYPE=http
-      - SERVER_URL=https://${EVO_DOMAIN:-evo.${DOMAIN}}
+      - SERVER_URL=http://evolution-api:8080
       - AUTHENTICATION_API_KEY=${EVO_API_KEY}
+      - AUTHENTICATION_TYPE=apikey
+      - QRCODE_LIMIT=30
       # Database (bare metal no host)
       - DATABASE_ENABLED=true
       - DATABASE_PROVIDER=postgresql
@@ -113,21 +116,19 @@ services:
       - DATABASE_SAVE_MESSAGE_UPDATE=true
       - DATABASE_SAVE_DATA_CONTACTS=true
       - DATABASE_SAVE_DATA_CHATS=true
+      - DATABASE_SAVE_DATA_LABELS=true
+      - DATABASE_SAVE_DATA_HISTORIC=true
+      - DEL_INSTANCE=false
+      - WPP_LID_MODE=false
+      - CONFIG_SESSION_PHONE_VERSION=${CONFIG_SESSION_PHONE_VERSION:-}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
       - internal
-      - traefik-public
     deploy:
       replicas: 1
       restart_policy:
         condition: on-failure
-      labels:
-        - "traefik.enable=true"
-        - "traefik.http.routers.evolution-api.rule=Host(`${EVO_DOMAIN:-evo.${DOMAIN}}`)"
-        - "traefik.http.routers.evolution-api.entrypoints=websecure"
-        - "traefik.http.routers.evolution-api.tls.certresolver=letsencrypt"
-        - "traefik.http.services.evolution-api.loadbalancer.server.port=8080"
     depends_on:
       - redis
 

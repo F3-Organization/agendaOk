@@ -3,10 +3,6 @@ version: "3.8"
 services:
   api:
     image: registry.f3-software.com.br/confirmazap/production/backend:latest
-    build:
-      context: .
-      dockerfile: backend/Dockerfile
-      target: prod
     environment:
       - NODE_ENV=production
       - PORT=${PORT:-3000}
@@ -73,7 +69,6 @@ services:
         - "traefik.http.routers.confirmazap-api.entrypoints=websecure"
         - "traefik.http.routers.confirmazap-api.tls=true"
         - "traefik.http.routers.confirmazap-api.tls.certresolver=letsencryptresolver"
-        - "traefik.http.routers.confirmazap-api.priority=20"
         - "traefik.http.services.confirmazap-api.loadbalancer.server.port=${PORT:-3000}"
         - "traefik.http.middlewares.confirmazap-api-ratelimit.ratelimit.average=50"
         - "traefik.http.middlewares.confirmazap-api-ratelimit.ratelimit.burst=100"
@@ -83,12 +78,8 @@ services:
 
   web:
     image: registry.f3-software.com.br/confirmazap/production/frontend:latest
-    build:
-      context: .
-      dockerfile: frontend/Dockerfile
-      target: prod
-      args:
-        - VITE_API_URL=https://${DOMAIN}/api
+    environment:
+      - VITE_API_URL=https://${DOMAIN}/api
     networks:
       - traefik-public
     deploy:
@@ -99,15 +90,11 @@ services:
         max_attempts: 5
       labels:
         - "traefik.enable=true"
-        # Rota Frontend: catch-all (prioridade menor que /api)
-        - "traefik.http.routers.confirmazap-web.rule=Host(`${DOMAIN}`)"
+        - "traefik.http.routers.confirmazap-web.rule=Host(`confirmazap.com`)"
         - "traefik.http.routers.confirmazap-web.entrypoints=websecure"
         - "traefik.http.routers.confirmazap-web.tls=true"
         - "traefik.http.routers.confirmazap-web.tls.certresolver=letsencryptresolver"
-        - "traefik.http.routers.confirmazap-web.priority=10"
         - "traefik.http.services.confirmazap-web.loadbalancer.server.port=80"
-    depends_on:
-      - api
 
   redis:
     image: redis:7-alpine

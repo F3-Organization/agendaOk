@@ -19,6 +19,8 @@ jobs:
     name: "Build ${{ inputs.service }} (staging)"
     runs-on: ubuntu-latest
     environment: staging
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -49,3 +51,32 @@ jobs:
             ${{ inputs.service == 'frontend' && format('VITE_API_URL={0}', vars.VITE_API_URL) || '' }}
           cache-from: type=gha,scope=${{ inputs.service }}-staging
           cache-to: type=gha,mode=max,scope=${{ inputs.service }}-staging
+
+      - name: Update stack image tag
+        run: |
+          IMAGE="${{ env.REGISTRY }}/confirmazap/homologation/${{ inputs.service }}"
+          TAG="${{ steps.vars.outputs.sha_short }}"
+
+          if [ "${{ inputs.service }}" = "backend" ]; then
+            sed -i "s|image: ${IMAGE}:.*|image: ${IMAGE}:${TAG}|" stack.staging.yaml
+          elif [ "${{ inputs.service }}" = "frontend" ]; then
+            sed -i "s|image: ${IMAGE}:.*|image: ${IMAGE}:${TAG}|" stack.staging.yaml
+          fi
+
+      - name: Commit to dev & merge into main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git fetch origin dev main
+
+          git checkout dev
+          git add stack.staging.yaml
+          git diff --cached --quiet && exit 0
+
+          git commit -m "deploy(${{ inputs.service }}): update staging image to ${{ steps.vars.outputs.sha_short }}"
+          git push origin dev
+
+          git checkout main
+          git merge dev --no-edit
+          git push origin main

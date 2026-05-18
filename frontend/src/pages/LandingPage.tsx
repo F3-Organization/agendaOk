@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { Zap, Check, ArrowRight, MessageSquare, BarChart3, ShieldCheck, ZapOff, Sparkles, Bot, Brain, Clock, Users, Send, Loader2, CheckCircle2 } from 'lucide-react';
+import { Zap, ArrowRight, MessageSquare, BarChart3, ShieldCheck, Sparkles, Bot, Brain, Clock, Users, Send, Loader2, CheckCircle2 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { Button } from '../shared/ui/Button';
 import { Card } from '../shared/ui/Card';
-import { useAuthStore } from '../features/auth/auth.store';
-import { subscriptionService } from '../features/subscription/subscription.service';
+// TODO: Uncomment when product launches
+// import { useQuery } from '@tanstack/react-query';
+// import { Check, ZapOff } from 'lucide-react';
+// import { useAuthStore } from '../features/auth/auth.store';
+// import { subscriptionService } from '../features/subscription/subscription.service';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -100,7 +102,8 @@ const HeroChatDemo = () => (
 export const LandingPage = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  // TODO: Uncomment when product launches
+  // const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   // ── Waitlist form state ──
   const [leadForm, setLeadForm] = useState({ name: '', email: '', phone: '' });

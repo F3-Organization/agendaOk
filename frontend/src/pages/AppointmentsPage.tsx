@@ -253,7 +253,7 @@ export const AppointmentsPage = () => {
     };
 
     if (editingId) {
-      updateMutation.mutate({ id: editingId, data: { ...payload, status: form.status } });
+      updateMutation.mutate({ id: editingId, data: { ...payload, status: form.status } as Partial<AppointmentInput> & { status?: string } });
     } else {
       createMutation.mutate(payload);
     }

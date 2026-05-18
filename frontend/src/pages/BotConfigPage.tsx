@@ -47,7 +47,7 @@ export const BotConfigPage = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const selectedCompany = useAuthStore((state) => state.selectedCompany);
+  const _selectedCompany = useAuthStore((state) => state.selectedCompany);
 
   const { data: subscriptionStatus } = useQuery({
     queryKey: ['subscription-status'],

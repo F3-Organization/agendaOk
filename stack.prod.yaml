@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   api:
-    image: registry.f3-software.com.br/confirmazap/production/backend:1da9d42
+    image: registry.f3-software.com.br/confirmazap/production/backend:7efa760
     environment:
       - NODE_ENV=production
       - PORT=${PORT:-3000}

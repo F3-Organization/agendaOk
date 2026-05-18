@@ -27,7 +27,7 @@ export const AppDataSource = new DataSource({
     logging: env.debug(),
     entities: [User, Company, CompanyConfig, Client, Schedule, UserConfig, Subscription, SubscriptionPayment, Professional, Plan, PaymentMethod, WebhookAuditLog, CompanyMember, Lead],
     subscribers: [],
-    migrations: [],
+    migrations: ["src/infra/database/migrations/*.ts"],
     extra: {
         max: 20,
         min: 2,

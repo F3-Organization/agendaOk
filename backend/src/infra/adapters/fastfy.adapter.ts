@@ -30,7 +30,7 @@ export class FastifyAdapter implements ITokenService {
         // ── Segurança ──────────────────────────────────────────
         await this.app.register(fastifyCors, {
             origin: env.isProduction() 
-                ? [`https://${env.domain}`] 
+                ? [`https://${env.domain}`, env.frontendUrl]
                 : true, // Em dev, reflete a origem. Fundamental para CORS com credentials.
             methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS', 'PATCH'],
             allowedHeaders: ['Content-Type', 'Authorization', 'apikey', 'Accept-Language'],

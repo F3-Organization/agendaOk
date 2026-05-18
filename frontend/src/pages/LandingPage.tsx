@@ -254,20 +254,7 @@ export const LandingPage = () => {
               </div>
             </div>
 
-            {/* Social proof */}
-            <div className="flex items-center gap-4 mt-12 pt-8 border-t border-outline-variant/20 w-full">
-              <div className="flex -space-x-2">
-                {['🩺', '💇‍♀️', '🧘‍♀️', '🏋️'].map((emoji, i) => (
-                  <div key={i} className="w-9 h-9 rounded-full bg-surface-high border-2 border-background flex items-center justify-center text-sm">
-                    {emoji}
-                  </div>
-                ))}
-              </div>
-              <div>
-                <div className="text-xs font-bold text-foreground">+200 profissionais</div>
-                <div className="text-[10px] text-muted-foreground/60 font-medium uppercase tracking-wider">já automatizam com IA</div>
-              </div>
-            </div>
+
           </div>
 
           {/* Right: Chat Demo */}

@@ -32,7 +32,7 @@ import { Button } from '../shared/ui/Button';
 import { useNavigate } from 'react-router-dom';
 import { professionalService, type BotConfig } from '../features/company/professional.service';
 import { subscriptionService } from '../features/subscription/subscription.service';
-import { useAuthStore } from '../features/auth/auth.store';
+
 
 const BUSINESS_TYPES = [
   { value: 'clinic', label: 'Clínica / Consultório', icon: Stethoscope },
@@ -47,8 +47,6 @@ export const BotConfigPage = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const _selectedCompany = useAuthStore((state) => state.selectedCompany);
-
   const { data: subscriptionStatus } = useQuery({
     queryKey: ['subscription-status'],
     queryFn: subscriptionService.getStatus,

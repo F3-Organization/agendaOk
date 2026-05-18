@@ -56,7 +56,7 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - internal
-      - traefik-public
+      - personal
     deploy:
       replicas: 1
       restart_policy:
@@ -151,5 +151,5 @@ volumes:
 networks:
   internal:
     driver: overlay
-  traefik-public:
+  personal:
     external: true

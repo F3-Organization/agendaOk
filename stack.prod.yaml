@@ -77,7 +77,7 @@ services:
       - redis
 
   web:
-    image: registry.f3-software.com.br/confirmazap/production/frontend:latest
+    image: registry.f3-software.com.br/confirmazap/production/frontend:84e60c9
     networks:
       - personal
     deploy:

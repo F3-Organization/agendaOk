@@ -14,6 +14,7 @@ CMD ["npm", "run", "dev"]
 FROM dependencies AS build
 COPY backend/ ./
 COPY shared/ ../shared/
+RUN ln -sf /usr/src/app/node_modules /usr/src/shared/node_modules
 RUN npm run build
 
 FROM base AS prod

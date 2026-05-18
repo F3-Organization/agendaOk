@@ -65,7 +65,7 @@ export class ManageBotConfigUseCase {
         if (input.botGreeting !== undefined) data.botGreeting = input.botGreeting ?? "";
         if (input.botInstructions !== undefined) data.botInstructions = input.botInstructions ?? "";
         if (input.address !== undefined) data.address = input.address ?? "";
-        if (input.workingHours !== undefined) data.workingHours = input.workingHours ?? {};
+        if (input.workingHours !== undefined) data.workingHours = (input.workingHours ?? {}) as Record<string, Array<{ start: string; end: string }>>;
         if (input.servicesOffered !== undefined) data.servicesOffered = input.servicesOffered ?? [];
         if (input.botEnabled !== undefined) data.botEnabled = input.botEnabled;
 

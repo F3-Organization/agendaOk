@@ -42,7 +42,7 @@ export class LeadController {
                     });
                 }
 
-                await this.leadRepo.create({ name, email, phone, source: "landing" });
+                await this.leadRepo.create({ name, email, ...(phone ? { phone } : {}), source: "landing" });
 
                 return reply.code(201).send({
                     message: "Cadastro realizado com sucesso! Entraremos em contato em breve.",

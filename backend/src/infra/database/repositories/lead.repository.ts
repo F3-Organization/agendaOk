@@ -1,23 +1,28 @@
-import { AppDataSource } from "../../infra/config/data-source";
-import { Lead } from "../database/entities/lead.entity";
+import { Repository } from "typeorm";
+import { AppDataSource } from "../../config/data-source";
+import { Lead } from "../entities/lead.entity";
 
 export class LeadRepository {
-    private repo = AppDataSource.getRepository(Lead);
+    private repository: Repository<Lead>;
 
-    async create(data: { name: string; email: string; phone?: string; source?: string }): Promise<Lead> {
-        const lead = this.repo.create(data);
-        return this.repo.save(lead);
+    constructor() {
+        this.repository = AppDataSource.getRepository(Lead);
+    }
+
+    async create(data: { name: string; email: string; phone?: string | undefined; source?: string | undefined }): Promise<Lead> {
+        const lead = this.repository.create(data);
+        return this.repository.save(lead);
     }
 
     async findByEmail(email: string): Promise<Lead | null> {
-        return this.repo.findOne({ where: { email } });
+        return this.repository.findOne({ where: { email } });
     }
 
     async findAll(): Promise<Lead[]> {
-        return this.repo.find({ order: { createdAt: "DESC" } });
+        return this.repository.find({ order: { createdAt: "DESC" } });
     }
 
     async count(): Promise<number> {
-        return this.repo.count();
+        return this.repository.count();
     }
 }

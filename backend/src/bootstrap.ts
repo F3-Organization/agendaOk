@@ -31,6 +31,7 @@ async function bootstrap() {
         validateEnv();
 
         await AppDataSource.initialize();
+        await AppDataSource.runMigrations();
         await seedPlansIfEmpty();
         await seedPaymentMethods();
 

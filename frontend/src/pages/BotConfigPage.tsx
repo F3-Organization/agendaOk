@@ -31,6 +31,7 @@ import { Card } from '../shared/ui/Card';
 import { Button } from '../shared/ui/Button';
 import { useNavigate } from 'react-router-dom';
 import { professionalService, type BotConfig } from '../features/company/professional.service';
+import { subscriptionService } from '../features/subscription/subscription.service';
 import { useAuthStore } from '../features/auth/auth.store';
 
 const BUSINESS_TYPES = [
@@ -47,7 +48,14 @@ export const BotConfigPage = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const selectedCompany = useAuthStore((state) => state.selectedCompany);
-  const isFreePlan = !selectedCompany?.subscription?.plan || selectedCompany.subscription.plan === 'FREE';
+
+  const { data: subscriptionStatus } = useQuery({
+    queryKey: ['subscription-status'],
+    queryFn: subscriptionService.getStatus,
+    staleTime: 30_000,
+  });
+
+  const isFreePlan = !subscriptionStatus?.plan || subscriptionStatus.plan === 'FREE';
   const [form, setForm] = useState<BotConfig>({});
   const [newService, setNewService] = useState('');
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);

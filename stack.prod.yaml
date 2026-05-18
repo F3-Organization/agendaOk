@@ -59,6 +59,16 @@ services:
       - personal
     deploy:
       replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 15s
+        order: start-first
+        failure_action: rollback
+      rollback_config:
+        parallelism: 1
+        delay: 0s
+        order: stop-first
+        failure_action: pause
       restart_policy:
         condition: on-failure
         delay: 5s
@@ -82,6 +92,16 @@ services:
       - personal
     deploy:
       replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+      rollback_config:
+        parallelism: 1
+        delay: 0s
+        order: stop-first
+        failure_action: pause
       restart_policy:
         condition: on-failure
         delay: 5s

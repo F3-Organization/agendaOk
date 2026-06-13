@@ -13,14 +13,12 @@ A ConfirmaZap é uma plataforma **SaaS Multi-Tenant** com dois níveis de entida
 
 ### Nível Empresa (Company)
 - Cada User pode criar uma ou mais **Companies** (empresas/negócios).
-- **Isolamento de Dados:** Todas as entidades operacionais (`clients`, `schedules`, `company_configs`, `integrations`) são vinculadas obrigatoriamente a um `companyId`.
-- **Isolamento de Recursos:** Cada empresa possui sua própria instância no WhatsApp Evolution API e seus próprios tokens de acesso ao Google Calendar (via `Integration`).
+- **Isolamento de Dados:** Todas as entidades operacionais (`clients`, `schedules`, `company_configs`) são vinculadas obrigatoriamente a um `companyId`.
+- **Isolamento de Recursos:** Cada empresa possui sua própria instância no WhatsApp Evolution API.
 - **Segurança:** Use Cases que operam dados de negócio devem sempre receber o `companyId` autenticado e garantir que as operações de leitura/escrita sejam filtradas por esse ID.
 
-### Gestão de Integrações
-- **Tokens OAuth do Google** são armazenados na tabela `integrations` (por `companyId` + `provider`), criptografados com AES-256-CBC via `cryptography.ts`.
-- O `IntegrationRepository` gerencia `accessToken`, `refreshToken` e `expiresAt`, criptografando ao salvar e descriptografando ao ler.
-- O `CompanyConfig` mantém apenas configurações operacionais: WhatsApp number, sync enabled, horários de silêncio, taxId, etc.
+### Configurações por Empresa
+- O `CompanyConfig` mantém as configurações operacionais da empresa: WhatsApp number, nome da instância da Evolution API, horários de silêncio, `taxId`, `locale` e configuração do bot.
 
 ## 2. Bot de Autoatendimento com IA (Feature Principal)
 
@@ -54,10 +52,10 @@ A ConfirmaZap é uma plataforma **SaaS Multi-Tenant** com dois níveis de entida
 - `GEMINI_API_KEY`: Chave de acesso à API do Google Gemini.
 - `GEMINI_MODEL`: Modelo a ser utilizado (padrão: `gemini-2.0-flash`).
 
-## 3. Identificação de Clientes e Telefones (Client Matching)
-O sistema deve tentar encontrar o telefone do cliente final nas seguintes tentativas (Fallback Strategy):
-- **Estratégia A (Regex no Título/Descrição):** O sistema varre o título e descrição do evento buscando um número de telefone com ou sem DDD. Quando um agendamento é criado pelo próprio frontend do ConfirmaZap, ele é sincronizado **instantaneamente (síncrono)** com a API do Google Calendar e o telefone do cliente é embutido diretamente na descrição do evento (`Telefone: XXXXX`).
-- **Estratégia B (Base de Dados):** O sistema busca na tabela `clients` se existe um cliente cadastrado pela empresa (`companyId`) cujo `name` ou `email` bata com o título/convidado do evento no Google Calendar.
+## 3. Identificação de Clientes e Telefones
+- Os agendamentos (`schedules`) são criados no próprio ConfirmaZap e armazenam diretamente `clientName` e `clientPhone`.
+- No envio via WhatsApp o número é normalizado para o padrão brasileiro (prefixo `55` adicionado quando ausente).
+- A tabela `clients` mantém o cadastro de clientes por `companyId` (nome, telefone, email) para reuso entre agendamentos.
 
 ## 4. Janela de Notificação (Cron Jobs)
 - O sistema varre os eventos futuros a cada 15 minutos.
@@ -66,30 +64,7 @@ O sistema deve tentar encontrar o telefone do cliente final nas seguintes tentat
 - **Agendamento BullMQ:** Mensagens geradas durante o horário de silêncio devem ser enfileiradas para serem disparadas no primeiro minuto útil (ex: 08:01).
 - **DLQ (Dead Letter Queue):** Jobs com falha são retidos (últimos 100 por fila) para diagnóstico — `removeOnFail: { count: 100 }`. O `stalled` event também é monitorado.
 
-## 5. Integração Google Calendar (Opcional)
-A integração com Google Calendar é uma **feature complementar**, não obrigatória para o funcionamento do bot.
-
-### Quando é útil
-- Profissionais que já usam Google Calendar e querem sincronizar eventos existentes.
-- Disparar lembretes automáticos para agendamentos criados fora do ConfirmaZap.
-
-### Limitações conhecidas
-- Somente o **calendário primário** é sincronizado (sem seleção de calendário na UI).
-- Extração de telefone do evento depende de regex no título/descrição (ver seção 3).
-
-### Fluxo de Sincronização
-1. User inicia Google OAuth → tokens armazenados criptografados em `integrations`.
-2. `SyncCalendarUseCase` roda via BullMQ a cada 15 minutos por empresa.
-3. Eventos com telefone identificado geram jobs de notificação.
-4. Resposta do cliente via WhatsApp atualiza cor do evento (verde/vermelho) no Google Calendar.
-
-### Conciliação de Status
-Quando o cliente responde no WhatsApp:
-- Se resposta = SIM → Mudar cor do evento no Google para 'Verde' (ID 10) e adicionar prefixo `[CONFIRMADO]`.
-- Se resposta = NÃO → Mudar cor para 'Vermelho' (ID 11), adicionar prefixo `[CANCELADO]` e alertar o profissional.
-- O sistema nunca deleta o evento, apenas atualiza o status.
-
-## 6. Cobrança e Monetização (Abacate Pay)
+## 5. Cobrança e Monetização (Abacate Pay)
 
 ### Modelo de Assinatura
 - A **Subscription pertence ao User**, não à Company.
@@ -108,7 +83,7 @@ Quando o cliente responde no WhatsApp:
 ### Faturas em PDF
 - Download de comprovantes disponível apenas para transações com status `PAID`.
 
-## 7. Limites de Uso e Planos
+## 6. Limites de Uso e Planos
 
 - **Plano FREE:**
   - Limite de **1 empresa** por usuário.
@@ -122,24 +97,24 @@ Quando o cliente responde no WhatsApp:
 ### Resolução de Plano (CheckUsageLimitUseCase)
 O `CheckUsageLimitUseCase` recebe um `companyId`, resolve o `ownerId` da company, e então busca a `Subscription` pelo `userId` (owner). A contagem de mensagens é feita **por company**, mas a verificação do plano é **por user**.
 
-## 8. Integração WhatsApp (Evolution API)
+## 7. Integração WhatsApp (Evolution API)
 - **Nomenclatura de Instâncias:** As instâncias no WhatsApp seguem o padrão `agent_<companyId (clean)>`.
 - **Auto-Configuração:** No momento da conexão, o sistema configura automaticamente o Webhook da Evolution API para apontar para a URL do sistema.
 - **Rate Limiting:** O servidor aplica rate limit por usuário (120 req/min por `userId` via JWT, ou por IP para requisições não autenticadas).
 
-## 9. Comunicação e Notificações (E-mail)
+## 8. Comunicação e Notificações (E-mail)
 O sistema mantém o Profissional informado através de e-mails automáticos:
 - **Confirmação de Pagamento:** Após ativação bem-sucedida do plano PRO.
 - **Expiração/Cancelamento:** Quando cobrança expira ou checkout é abandonado.
 - **Reembolso:** Após processamento de reembolso e revogação do acesso premium.
 
-## 10. Gestão de Profissionais (Professional)
+## 9. Gestão de Profissionais (Professional)
 - Cada empresa pode cadastrar múltiplos **profissionais**.
 - Cada profissional possui: `name`, `specialty`, `workingHours`, `appointmentDuration` e `active`.
 - Os horários de trabalho são armazenados como JSON: `Record<'mon'|'tue'|...|'sun', Array<{start: string, end: string}>>`.
 - Profissionais são isolados por `companyId`.
 
-## 11. Gestão de Atendentes (Attendant)
+## 10. Gestão de Atendentes (Attendant)
 - O **Atendente** é um papel com acesso restrito ao CRUD de agendamentos.
 - Diferente do **Professional**, o atendente pode **criar, editar, deletar e confirmar** agendamentos para **qualquer profissional** da empresa.
 - O atendente vê **todos** os agendamentos da empresa (não filtrado por profissional).

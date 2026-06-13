@@ -82,7 +82,7 @@ describe("CreateSubscriptionCheckoutUseCase", () => {
     it("deve lançar erro se o usuário não for encontrado", async () => {
         vi.mocked(userRepository.findById).mockResolvedValueOnce(null);
 
-        await expect(sut.execute("user-1")).rejects.toThrow("User not found");
+        await expect(sut.execute("user-1")).rejects.toThrow("Usuário não encontrado");
     });
 
     it("deve retornar URL existente se a assinatura já estiver ativa", async () => {

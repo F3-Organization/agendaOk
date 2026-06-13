@@ -91,7 +91,6 @@ import { NotifyWorker } from "../queue/notify.worker";
 import { SubscriptionQueue } from "../queue/subscription.queue";
 import { SubscriptionWorker } from "../queue/subscription.worker";
 import { subscriptionMiddleware } from "../middleware/subscription.middleware";
-import { usageLimitMiddleware } from "../middleware/usage-limit.middleware";
 import { NodemailerAdapter } from "../adapters/nodemailer.adapter";
 import { RedisService } from "../database/redis.service";
 import { SendEmailVerificationUseCase } from "../../usecase/auth/send-email-verification.usecase";
@@ -176,7 +175,9 @@ const getUseCase = {
     notifyUpcomingAppointments: () => new NotifyUpcomingAppointmentsUseCase(
         getRepo.schedule(),
         getRepo.companyConfig(),
-        evolutionAdapter
+        evolutionAdapter,
+        silentWindowService,
+        getUseCase.checkUsageLimit()
     ),
 
     handleEvolutionWebhook: () => {
@@ -234,6 +235,7 @@ const getUseCase = {
         getRepo.subscriptionPayment(),
         getRepo.user(),
         getRepo.companyConfig(),
+        getRepo.company(),
         new SubscriptionNotificationService(mailAdapter),
         fiscalService,
         getRepo.webhookAuditLog(),
@@ -332,7 +334,6 @@ const getUseCase = {
 
 const getMiddleware = {
     subscription: () => subscriptionMiddleware(getRepo.subscription()),
-    usageLimit: () => usageLimitMiddleware(getUseCase.checkUsageLimit()),
 };
 
 export const factory = {
@@ -344,6 +345,7 @@ export const factory = {
         gemini: () => geminiAdapter,
     },
     repositories: getRepo,
+    middleware: getMiddleware,
     controller: {
         app: () => new AppController(adapterInstance, getUseCase.getHealthStatus()),
         auth: () => new AuthController(
@@ -416,7 +418,8 @@ export const factory = {
             getUseCase.manageProfessionals(),
             getUseCase.manageBotConfig(),
             getUseCase.inviteProfessionalUser(),
-            getUseCase.inviteAttendant()
+            getUseCase.inviteAttendant(),
+            getMiddleware.subscription()
         ),
         admin: () => new AdminController(adapterInstance),
         lead: () => new LeadController(adapterInstance, getRepo.lead()),

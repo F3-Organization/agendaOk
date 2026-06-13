@@ -7,10 +7,15 @@ describe("CheckExpiredSubscriptionsUseCase", () => {
     let subscriptionRepository: any;
     let userRepository: any;
     let notificationService: any;
+    let companyConfigRepository: any;
+    let companyRepository: any;
+    let evolutionService: any;
 
     beforeEach(() => {
         subscriptionRepository = {
-            findExpired: vi.fn(),
+            findExpired: vi.fn().mockResolvedValue([]),
+            findExpiringSoon: vi.fn().mockResolvedValue([]),
+            findPastDueExpired: vi.fn().mockResolvedValue([]),
             updateStatus: vi.fn()
         };
 
@@ -19,13 +24,31 @@ describe("CheckExpiredSubscriptionsUseCase", () => {
         };
 
         notificationService = {
-            notifySubscriptionExpired: vi.fn()
+            notifySubscriptionExpired: vi.fn(),
+            notifyRenewalReminder: vi.fn(),
+            notifyDowngradedToFree: vi.fn()
+        };
+
+        companyConfigRepository = {
+            findByCompanyId: vi.fn(),
+            updateByCompanyId: vi.fn()
+        };
+
+        companyRepository = {
+            findByOwnerId: vi.fn().mockResolvedValue([])
+        };
+
+        evolutionService = {
+            sendText: vi.fn()
         };
 
         sut = new CheckExpiredSubscriptionsUseCase(
             subscriptionRepository,
             userRepository,
-            notificationService
+            notificationService,
+            companyConfigRepository,
+            companyRepository,
+            evolutionService
         );
     });
 
@@ -47,7 +70,7 @@ describe("CheckExpiredSubscriptionsUseCase", () => {
             "sub-1", "user-1", SubscriptionStatus.CANCELLED
         );
         expect(notificationService.notifySubscriptionExpired).toHaveBeenCalledWith("felipe@test.com", "Felipe");
-        expect(result.processed).toBe(1);
+        expect(result.pastDue).toBe(1);
     });
 
     it("deve marcar assinatura paga expirada como PAST_DUE", async () => {
@@ -67,7 +90,7 @@ describe("CheckExpiredSubscriptionsUseCase", () => {
         expect(subscriptionRepository.updateStatus).toHaveBeenCalledWith(
             "sub-2", "user-2", SubscriptionStatus.PAST_DUE
         );
-        expect(result.processed).toBe(1);
+        expect(result.pastDue).toBe(1);
     });
 
     it("deve processar zero quando nao houver expirados", async () => {
@@ -76,7 +99,7 @@ describe("CheckExpiredSubscriptionsUseCase", () => {
         const result = await sut.execute();
 
         expect(subscriptionRepository.updateStatus).not.toHaveBeenCalled();
-        expect(result.processed).toBe(0);
+        expect(result.pastDue).toBe(0);
     });
 
     it("deve continuar processando mesmo se o usuario nao for encontrado", async () => {
@@ -97,6 +120,6 @@ describe("CheckExpiredSubscriptionsUseCase", () => {
             "sub-3", "user-ghost", SubscriptionStatus.CANCELLED
         );
         expect(notificationService.notifySubscriptionExpired).not.toHaveBeenCalled();
-        expect(result.processed).toBe(1);
+        expect(result.pastDue).toBe(1);
     });
 });

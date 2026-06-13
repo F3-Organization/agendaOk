@@ -14,6 +14,10 @@ export class WebhookAuditLogRepository {
         return this.repository.save(entry);
     }
 
+    async markProcessed(id: string): Promise<void> {
+        await this.repository.update(id, { processedAt: new Date() });
+    }
+
     async findByBillingId(billingId: string): Promise<WebhookAuditLog[]> {
         return this.repository.find({
             where: { billingId },

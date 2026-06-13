@@ -7,6 +7,7 @@ import { InviteProfessionalUserUseCase } from "../../usecase/appointment/invite-
 import { InviteAttendantUseCase } from "../../usecase/appointment/invite-attendant.usecase";
 import { AuthUserPayload } from "../types/auth.types";
 import { ownerOnlyMiddleware } from "../middleware/owner-only.middleware";
+import type { preHandlerHookHandler } from "fastify";
 import { t } from "../../shared/i18n";
 import {
     createProfessionalSchema,
@@ -36,7 +37,8 @@ export class ProfessionalController {
         private readonly manageProfessionals: ManageProfessionalsUseCase,
         private readonly manageBotConfig: ManageBotConfigUseCase,
         private readonly inviteProfessionalUser: InviteProfessionalUserUseCase,
-        private readonly inviteAttendant: InviteAttendantUseCase
+        private readonly inviteAttendant: InviteAttendantUseCase,
+        private readonly requireActiveSubscription: preHandlerHookHandler
     ) {
         this.fastify.logInfo("[ProfessionalController] Initializing...");
         this.registerRoutes();
@@ -182,7 +184,7 @@ export class ProfessionalController {
             } catch (error: any) {
                 reply.code(400).send({ error: error.message });
             }
-        }, updateBotConfigSwaggerSchema, ownerOnlyMiddleware);
+        }, updateBotConfigSwaggerSchema, [ownerOnlyMiddleware, this.requireActiveSubscription]);
 
         // ── Attendants ──────────────────────────
 

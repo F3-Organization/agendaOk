@@ -86,6 +86,8 @@ export const pt = {
         pixCreationFailed: "Falha ao criar PIX",
         statusCheckFailed: "Falha ao verificar status",
         cancellationFailed: "Falha no cancelamento",
+        usageLimitReached: "Você atingiu o limite de {limit} mensagens mensais do plano {plan}. Faça upgrade para PRO para continuar.",
+        noCompanySelected: "Nenhuma empresa selecionada. Selecione uma empresa primeiro.",
     },
 
     notification: {

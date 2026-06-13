@@ -9,6 +9,7 @@ describe("HandleAbacatePayWebhookUseCase", () => {
     let paymentRepository: any;
     let userRepository: any;
     let companyConfigRepository: any;
+    let companyRepository: any;
     let notificationService: any;
     let fiscalService: any;
     let auditLogRepository: any;
@@ -39,6 +40,10 @@ describe("HandleAbacatePayWebhookUseCase", () => {
             findByCompanyId: vi.fn()
         };
 
+        companyRepository = {
+            findByOwnerId: vi.fn().mockResolvedValue([])
+        };
+
         notificationService = {
             notifyPaymentSuccess: vi.fn(),
             notifySubscriptionExpired: vi.fn(),
@@ -53,7 +58,8 @@ describe("HandleAbacatePayWebhookUseCase", () => {
         auditLogRepository = {
             save: vi.fn(),
             create: vi.fn().mockResolvedValue({ id: 'audit-1' }),
-            update: vi.fn()
+            update: vi.fn(),
+            markProcessed: vi.fn()
         };
 
         paymentMethodRepository = {
@@ -69,6 +75,7 @@ describe("HandleAbacatePayWebhookUseCase", () => {
             paymentRepository,
             userRepository,
             companyConfigRepository,
+            companyRepository,
             notificationService,
             fiscalService,
             auditLogRepository,
@@ -128,6 +135,35 @@ describe("HandleAbacatePayWebhookUseCase", () => {
         );
         expect(notificationService.notifyPaymentSuccess).not.toHaveBeenCalled();
         expect(result.status).toBe("processed");
+    });
+
+    it("deve emitir NFS-e usando o taxId da config da empresa do owner", async () => {
+        const payload = {
+            event: "subscription.completed",
+            data: { id: "billing-789", paidAmount: 4990 }
+        };
+
+        const mockSubscription = { id: "sub-3", userId: "user-3", plan: "PRO" };
+        vi.mocked(subscriptionRepository.findByBillingId).mockResolvedValueOnce(mockSubscription as any);
+        paymentRepository.findByBillingId.mockResolvedValueOnce({ id: "pay-3" });
+        userRepository.findById.mockResolvedValueOnce({ id: "user-3", name: "Owner", email: "owner@test.com" });
+        companyRepository.findByOwnerId.mockResolvedValueOnce([{ id: "comp-1", ownerId: "user-3" }]);
+        companyConfigRepository.findByCompanyId.mockImplementation(async (companyId: string) =>
+            companyId === "comp-1" ? { companyId: "comp-1", taxId: "12345678900", address: "Rua A" } : null
+        );
+
+        await sut.execute(payload);
+
+        expect(companyRepository.findByOwnerId).toHaveBeenCalledWith("user-3");
+        expect(fiscalService.emitirNfseAssinatura).toHaveBeenCalledWith(
+            expect.objectContaining({
+                referenceId: "billing-789",
+                tomadorCpfCnpj: "12345678900",
+                tomadorNome: "Owner",
+                valorServicos: 49.90
+            })
+        );
+        expect(notificationService.notifyPaymentSuccess).toHaveBeenCalledWith("owner@test.com", "Owner", "PRO", true);
     });
 
     it("não deve fazer nada se a assinatura não for encontrada", async () => {

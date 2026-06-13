@@ -21,11 +21,18 @@ export class NotifyQueue {
     }
 
     private async setupRecurringJobs() {
+        const repeatables = await this.queue.getRepeatableJobs();
+        for (const job of repeatables) {
+            if (job.name === "notify-upcoming") {
+                await this.queue.removeRepeatableByKey(job.key);
+            }
+        }
+
         await this.queue.add(
             "notify-upcoming",
             {},
             {
-                repeat: { pattern: "*/30 * * * *" },
+                repeat: { pattern: "*/15 * * * *" },
                 removeOnComplete: { count: 5 },
                 removeOnFail: { count: 100 },
                 attempts: 2,

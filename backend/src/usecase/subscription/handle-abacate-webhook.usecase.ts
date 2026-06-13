@@ -4,6 +4,7 @@ import { ISubscriptionPaymentRepository } from "../repositories/isubscription-pa
 import { SubscriptionPaymentStatus } from "../../infra/database/entities/subscription-payment.entity";
 import { UserRepository } from "../../infra/database/repositories/user.repository";
 import { CompanyConfigRepository } from "../../infra/database/repositories/company-config.repository";
+import { ICompanyRepository } from "../repositories/icompany-repository";
 import { SubscriptionNotificationService } from "./subscription-notification.service";
 import { FiscalService } from "./fiscal.service";
 import { WebhookAuditLog } from "../../infra/database/entities/webhook-audit-log.entity";
@@ -18,6 +19,7 @@ export class HandleAbacatePayWebhookUseCase {
         private readonly paymentRepository: ISubscriptionPaymentRepository,
         private readonly userRepository: UserRepository,
         private readonly companyConfigRepository: CompanyConfigRepository,
+        private readonly companyRepository: ICompanyRepository,
         private readonly notificationService: SubscriptionNotificationService,
         private readonly fiscalService: FiscalService,
         private readonly auditLogRepository: WebhookAuditLogRepository,
@@ -43,10 +45,7 @@ export class HandleAbacatePayWebhookUseCase {
 
         try {
             await this.processEvent(event, data, methodCode);
-            await this.auditLogRepository.create({
-                ...auditEntry,
-                processedAt: new Date(),
-            });
+            await this.auditLogRepository.markProcessed(auditEntry.id);
         } catch (error: any) {
             console.error(`[Webhook] Processing failed for event ${event}:`, error.message);
             // Mark audit entry with error but don't rethrow — already saved above
@@ -57,27 +56,22 @@ export class HandleAbacatePayWebhookUseCase {
     }
 
     private extractPaymentMethodCode(event: string, data: any): string {
-        // v2 webhook doesn't expose the chosen payment method in the payload.
-        // Infer from event type and the methods we configure per product type.
         if (event === "subscription.completed" || event === "subscription.renewed") {
-            // Subscriptions are created with methods: ["CARD"] only
             return "CREDIT_CARD";
         }
 
         if (event === "transparent.completed" || event === "transparent.refunded" ||
             event === "transparent.disputed" || event === "transparent.lost") {
-            // Transparent checkouts are always PIX
             return "PIX";
         }
 
-        // For checkout events try to read from payload (v1 compat or future v2 field)
         const raw: string | undefined =
             data?.payment?.method ??
             data?.method ??
             data?.paymentMethod ??
             data?.methods?.[0];
 
-        if (!raw) return "CREDIT_CARD"; // safe default
+        if (!raw) return "CREDIT_CARD";
 
         const MAP: Record<string, string> = {
             PIX: "PIX",
@@ -95,9 +89,8 @@ export class HandleAbacatePayWebhookUseCase {
 
     private async processEvent(event: string, data: any, methodCode: string | undefined) {
         switch (event) {
-            // ── Subscription events ──────────────────────────────────────
-            case "subscription.completed":   // first payment confirmed
-            case "subscription.renewed":     // recurring payment confirmed
+            case "subscription.completed":
+            case "subscription.renewed":
                 await this.handleBillingPaid(data, methodCode);
                 break;
 
@@ -113,7 +106,6 @@ export class HandleAbacatePayWebhookUseCase {
                 await this.handleBillingRefunded(data);
                 break;
 
-            // ── Checkout events (one-time) ───────────────────────────────
             case "checkout.completed":
                 await this.handleBillingPaid(data, methodCode);
                 break;
@@ -127,7 +119,6 @@ export class HandleAbacatePayWebhookUseCase {
                 await this.handleBillingDisputed(event, data);
                 break;
 
-            // ── Transparent PIX events ───────────────────────────────────
             case "transparent.completed":
                 await this.handleBillingPaid(data, "PIX");
                 break;
@@ -158,7 +149,6 @@ export class HandleAbacatePayWebhookUseCase {
 
         if (!subscription) return;
 
-        // Resolve PaymentMethod FK from code
         let paymentMethodId: string | undefined;
         if (methodCode) {
             const knownMethod = await this.paymentMethodRepository.findByCode(methodCode);
@@ -171,7 +161,6 @@ export class HandleAbacatePayWebhookUseCase {
 
         const methodPatch = paymentMethodId ? { paymentMethodId } : {};
 
-        // v2: paidAmount is the settled value; amount is the total billed
         const paidAmountCents: number | undefined =
             data.paidAmount ?? data.amount ?? data.payment?.amount;
 
@@ -198,7 +187,6 @@ export class HandleAbacatePayWebhookUseCase {
         const periodEnd = new Date();
         periodEnd.setDate(periodEnd.getDate() + 30);
 
-        // If subscription was downgraded to FREE, resolve the correct paid plan
         let activePlan = subscription.plan;
         if (activePlan === "FREE") {
             const purchasablePlan = await this.planRepository.findPurchasable();
@@ -218,11 +206,15 @@ export class HandleAbacatePayWebhookUseCase {
         await this.subscriptionRepository.deactivateOthers(subscription.userId, subscription.id);
 
         const user = await this.userRepository.findById(subscription.userId);
-        const userConfig = await this.companyConfigRepository.findByCompanyId(subscription.userId);
+        const ownerCompanies = await this.companyRepository.findByOwnerId(subscription.userId);
+        const primaryCompany = ownerCompanies[0];
+        const companyConfig = primaryCompany
+            ? await this.companyConfigRepository.findByCompanyId(primaryCompany.id)
+            : null;
 
         let nfseEmitted = false;
 
-        if (user && userConfig?.taxId) {
+        if (user && companyConfig?.taxId) {
             try {
                 // Use actual payment amount; fallback to plan price from DB
                 const paidAmountCents = data.paidAmount ?? data.amount ?? data.payment?.amount;
@@ -236,10 +228,10 @@ export class HandleAbacatePayWebhookUseCase {
 
                 const nfseResult = await this.fiscalService.emitirNfseAssinatura({
                     referenceId: billingId,
-                    tomadorCpfCnpj: userConfig.taxId,
+                    tomadorCpfCnpj: companyConfig.taxId,
                     tomadorNome: user.name,
                     tomadorEmail: user.email,
-                    tomadorEndereco: userConfig.address,
+                    tomadorEndereco: companyConfig.address,
                     valorServicos,
                     planName: subscription.plan,
                 });

@@ -29,10 +29,11 @@ describe("SendEmailVerificationUseCase", () => {
             expect.stringMatching(/^\d{6}$/),
             900
         );
+        const storedCode = vi.mocked(redisService.set).mock.calls[0]![1] as string;
         expect(mailService.sendMail).toHaveBeenCalledWith(
             email,
-            "ConfirmaZap - Verificação de E-mail",
-            expect.stringContaining("Seu código de verificação")
+            "ConfirmaZap — Seu código de verificação",
+            expect.stringContaining(storedCode)
         );
     });
 });

@@ -61,6 +61,6 @@ describe("ConnectWhatsappUseCase", () => {
     it("deve lançar erro se o usuário não tiver configuração", async () => {
         vi.mocked(companyConfigRepository.findByCompanyId).mockResolvedValueOnce(null);
 
-        await expect(sut.execute("user-2")).rejects.toThrow("User configuration not found");
+        await expect(sut.execute("user-2")).rejects.toThrow("Configuração do usuário não encontrada");
     });
 });

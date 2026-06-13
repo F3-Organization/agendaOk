@@ -86,6 +86,8 @@ export const en = {
         pixCreationFailed: "PIX creation failed",
         statusCheckFailed: "Status check failed",
         cancellationFailed: "Cancellation failed",
+        usageLimitReached: "You have reached the {limit} monthly message limit of the {plan} plan. Upgrade to PRO to continue.",
+        noCompanySelected: "No company selected. Select a company first.",
     },
 
     notification: {

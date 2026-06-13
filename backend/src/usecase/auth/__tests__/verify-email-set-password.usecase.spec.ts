@@ -47,6 +47,6 @@ describe("VerifyEmailSetPasswordUseCase", () => {
 
         vi.mocked(redisService.get).mockResolvedValue("wrong-code");
 
-        await expect(useCase.execute(email, code, "password")).rejects.toThrow("Invalid or expired verification code.");
+        await expect(useCase.execute(email, code, "password")).rejects.toThrow("Código de verificação inválido ou expirado.");
     });
 });

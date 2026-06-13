@@ -32,8 +32,12 @@ export class HandleEvolutionWebhookUseCase {
         const ctx = this.messageParser.parse(payload);
         if (!ctx) return;
 
-        // If remoteJid is a LID, resolve it to the real phone number
-        if (ctx.lid && ctx.senderNumber && !/^\d{10,}$/.test(ctx.senderNumber)) {
+        // If remoteJid is a LID and no real phone was found in the payload,
+        // the parser falls back to the LID's own local part — resolve it.
+        const senderIsLidFallback = ctx.lid !== "" &&
+            (!ctx.senderNumber || ctx.senderNumber === ctx.lid.split("@")[0]);
+
+        if (senderIsLidFallback) {
             const resolvedNumber = await this.lidResolver.resolve(instanceName, ctx.lid);
             if (resolvedNumber) {
                 ctx.senderNumber = resolvedNumber;
